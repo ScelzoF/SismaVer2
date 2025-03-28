@@ -1,5 +1,6 @@
 
 import streamlit as st
+
 from modules.dati_regioni_a import abruzzo
 
 dati_regioni = {}
