@@ -24,10 +24,6 @@ Provincia di Chieti
             "descrizione": "In Abruzzo si verificano frequentemente alluvioni e frane, in particolare nelle aree montane appenniniche.",
             "link": "https://www.protezionecivile.gov.it/it/rischi/rischio-idrogeologico/"
         }
-    },"rischio_idrogeologico": {
-            "descrizione": "Informazioni in fase di completamento.",
-            "link": "https://www.protezionecivile.gov.it/it/rischi/rischio-idrogeologico/"
-        }
     },
     "Campania": {
         "criticita": "Contenuto in fase di aggiornamento.",
