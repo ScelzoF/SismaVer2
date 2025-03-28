@@ -1,16 +1,12 @@
-from modules.dati_regioni_b import dati_regioni_b
-from modules.dati_regioni_c import dati_regioni_c
-from modules.dati_regioni_b import dati_regioni_b
 
 import streamlit as st
-from modules.dati_regioni_a import dati_regioni_a
-from modules.dati_regioni_b import dati_regioni_b
-from modules.dati_regioni_c import dati_regioni_c
+from modules.dati_regioni_a import abruzzo
 
 dati_regioni = {}
-dati_regioni.update(dati_regioni_a)
-dati_regioni.update(dati_regioni_b)
-dati_regioni.update(dati_regioni_c)
+dati_regioni.update(abruzzo)
+
+dati_regioni = {}
+dati_regioni.update(abruzzo)
 
 
 
@@ -214,5 +210,3 @@ def show():
         st.markdown(f"[Maggiori informazioni]({dati['rischio_idrogeologico']['link']})")
 
 
-dati_regioni.update(dati_regioni_b)
-dati_regioni.update(dati_regioni_c)

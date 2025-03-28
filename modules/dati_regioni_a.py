@@ -1,4 +1,4 @@
-dati_regioni_a = {
+abruzzo = {
     "Abruzzo": {
         "criticita": "La regione Abruzzo è soggetta a rischio sismico elevato, in particolare nelle province interne come L'Aquila. Sono presenti anche rischi idrogeologici nei bacini montani e collinari.",
         "punti_raccolta": """Provincia di L'Aquila  
