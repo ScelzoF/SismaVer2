@@ -3,6 +3,15 @@ from modules.dati_regioni_c import dati_regioni_c
 from modules.dati_regioni_b import dati_regioni_b
 
 import streamlit as st
+from modules.dati_regioni_a import dati_regioni_a
+from modules.dati_regioni_b import dati_regioni_b
+from modules.dati_regioni_c import dati_regioni_c
+
+dati_regioni = {}
+dati_regioni.update(dati_regioni_a)
+dati_regioni.update(dati_regioni_b)
+dati_regioni.update(dati_regioni_c)
+
 
 
 dati_regioni = {
