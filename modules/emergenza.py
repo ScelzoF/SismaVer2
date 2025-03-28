@@ -4,6 +4,8 @@ import streamlit as st
 from modules.dati_regioni_a import abruzzo
 
 dati_regioni = {}
+from modules.dati_regioni_a import abruzzo
+dati_regioni.update(abruzzo)
 dati_regioni.update(abruzzo)
 
 dati_regioni = {}
