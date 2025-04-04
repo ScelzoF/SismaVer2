@@ -1,7 +1,38 @@
 import streamlit as st
+from PIL import Image
+import os
 
 def show():
     st.title("📜 Termini d'Uso e Diritti Riservati")
+    
+    # Sezione biografia dello sviluppatore
+    st.header("👨‍💻 Lo Sviluppatore")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        try:
+            # Percorso dell'immagine del profilo
+            image_path = os.path.join("images", "fabio_scelzo.jpg")
+            if os.path.exists(image_path):
+                image = Image.open(image_path)
+                st.image(image, width=200)
+            else:
+                st.error("Immagine profilo non trovata")
+        except Exception as e:
+            st.error(f"Errore nel caricamento dell'immagine: {e}")
+    
+    with col2:
+        st.subheader("Fabio Scelzo")
+        st.markdown("""
+        Nato nel 1973, Fabio ha coltivato sin dall'infanzia una profonda passione per l'elettronica e l'informatica, che è rimasta costante attraverso gli anni, evolvendo insieme alle tecnologie.
+        
+        Esperto di sviluppo software e appassionato di monitoraggio ambientale, ha creato questa piattaforma per fornire uno strumento utile alla comunità, combinando competenze tecniche e interesse per il territorio. Lo sviluppo è stato potenziato dall'utilizzo delle moderne tecnologie di Intelligenza Artificiale, che hanno contribuito a migliorarne le funzionalità e l'interfaccia utente.
+        
+        Attualmente vive a Torre Annunziata, una città ricca di storia e tradizioni nella provincia di Napoli.
+        """)
+    
+    st.markdown("---")
     
     st.markdown("""
     ### ❗ Diritti riservati - Fabio SCELZO

@@ -26,11 +26,11 @@ def show():
 
     st.subheader("📧 Dona con PayPal")
     st.markdown("""
-    Supporta SismaVer2 con una donazione tramite PayPal:
+    Supporta SismaVer2 con una donazione tramite PayPal **(donazione amici e parenti)**:
 
-    [🎁 Dona ora con PayPal](https://www.paypal.com/paypalme/meteotorre)
+    [🎁 Dona ora con PayPal](https://www.paypal.com/donate/?business=meteotorre%40gmail.com)
 
-    Email PayPal: meteotorre@gmail.com
+    Email PayPal: **meteotorre@gmail.com**
 
     Ogni contributo è importante per il progetto.
     """)

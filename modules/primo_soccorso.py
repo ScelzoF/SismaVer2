@@ -48,6 +48,53 @@ def show():
             text_image = f'<div style="width:100%;height:150px;background-color:#f0f0f0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:5px;">{caption}</div>'
             st.markdown(text_image, unsafe_allow_html=True)
 
+    # Funzione per rendere le immagini cliccabili e ingrandibili
+    def display_clickable_image(image_path, caption, width=600):
+        """
+        Mostra un'immagine cliccabile che si apre in una nuova finestra quando selezionata.
+        
+        Args:
+            image_path: Percorso dell'immagine
+            caption: Didascalia dell'immagine
+            width: Larghezza dell'immagine
+        """
+        # Visualizziamo l'immagine principale
+        try:
+            img = Image.open(image_path)
+            st.image(img, caption=caption, width=width)
+            
+            # Aggiungiamo un pulsante per aprire l'immagine a schermo intero
+            if st.button(f"🔍 Ingrandisci immagine", key=f"btn_{image_path}"):
+                st.markdown(f"""
+                <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 20px; margin-bottom: 20px;">
+                    <h3>{caption}</h3>
+                    <img src="data:image/png;base64,{get_image_as_base64(image_path)}" style="max-width: 95%; height: auto;">
+                </div>
+                <hr>
+                """, unsafe_allow_html=True)
+        except Exception as e:
+            st.warning(f"Immagine non disponibile: {caption}")
+            # Tentiamo il percorso alternativo
+            alt_path = image_path.replace("images/", "attached_assets/")
+            if "images/" in image_path:
+                try:
+                    img = Image.open(alt_path)
+                    st.image(img, caption=caption, width=width)
+                    
+                    # Aggiungiamo un pulsante per aprire l'immagine a schermo intero
+                    if st.button(f"🔍 Ingrandisci immagine", key=f"btn_{alt_path}"):
+                        st.markdown(f"""
+                        <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 20px; margin-bottom: 20px;">
+                            <h3>{caption}</h3>
+                            <img src="data:image/png;base64,{get_image_as_base64(alt_path)}" style="max-width: 95%; height: auto;">
+                        </div>
+                        <hr>
+                        """, unsafe_allow_html=True)
+                except:
+                    # Creare un'immagine placeholder con il testo
+                    text_image = f'<div style="width:100%;height:150px;background-color:#f0f0f0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:5px;">{caption}</div>'
+                    st.markdown(text_image, unsafe_allow_html=True)
+    
     # Funzione per caricare SVG da file
     def load_svg_from_file(file_path):
         try:
@@ -148,20 +195,9 @@ def show():
             """)
 
             with st.expander("🔄 Manovra di Heimlich - Adulti"):
-                # Carichiamo SVG direttamente come stringa
-                try:
-                    with open("images/heimlich_adulti.svg", "r") as svg_file:
-                        svg_content = svg_file.read()
-                        
-                    st.markdown(f"""
-                    <div style="text-align: center;">
-                        {svg_content}
-                        <p style="margin-top: 10px; font-style: italic;">Manovra di Heimlich per adulti</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"Errore nel caricamento dell'immagine: {e}")
-                    st.image("attached_assets/image_1743605409566.png", caption="Manovra di Heimlich per adulti")
+                # Utilizziamo l'immagine JPG fornita
+                # Utilizziamo la nuova funzione per immagini cliccabili
+                display_clickable_image("attached_assets/Manovra-di-heimlich.jpg", "Manovra di Heimlich per adulti", width=600)
                 
                 st.markdown("""
                 Se la persona è cosciente:
@@ -178,20 +214,9 @@ def show():
                 """)
 
             with st.expander("👶 Manovra di Heimlich - Bambini (1-8 anni)"):
-                # Carichiamo SVG direttamente come stringa
-                try:
-                    with open("images/heimlich_bambini.svg", "r") as svg_file:
-                        svg_content = svg_file.read()
-                        
-                    st.markdown(f"""
-                    <div style="text-align: center;">
-                        {svg_content}
-                        <p style="margin-top: 10px; font-style: italic;">Manovra di Heimlich per bambini</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"Errore nel caricamento dell'immagine: {e}")
-                    st.image("attached_assets/image_1743605441292.png", caption="Manovra di Heimlich per bambini")
+                # Utilizziamo l'immagine PNG fornita
+                # Utilizziamo la nuova funzione per immagini cliccabili
+                display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=600)
                 
                 st.markdown("""
                 1. La tecnica è simile a quella per gli adulti ma con minore forza
@@ -201,20 +226,9 @@ def show():
                 """)
 
             with st.expander("👶 Disostruzione lattanti (< 1 anno)"):
-                # Carichiamo SVG direttamente come stringa
-                try:
-                    with open("images/disostruzione_lattanti.svg", "r") as svg_file:
-                        svg_content = svg_file.read()
-                        
-                    st.markdown(f"""
-                    <div style="text-align: center;">
-                        {svg_content}
-                        <p style="margin-top: 10px; font-style: italic;">Disostruzione delle vie aeree nei lattanti</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"Errore nel caricamento dell'immagine: {e}")
-                    st.image("attached_assets/image_1743605461967.png", caption="Disostruzione vie aeree nei lattanti")
+                # Utilizziamo l'immagine JPG fornita
+                # Utilizziamo la nuova funzione per immagini cliccabili
+                display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=600)
                 
                 st.markdown("""
                 1. Posiziona il lattante a faccia in giù sul tuo avambraccio
@@ -354,10 +368,11 @@ def show():
             """)
 
         with col2:
-            # Immagine SVG incorporata direttamente
-            with open("images/heimlich_adulti.svg", "r") as svg_file:
-                heimlich_adulti_svg = svg_file.read()
-            st.markdown(heimlich_adulti_svg, unsafe_allow_html=True)
+            # Utilizziamo la nuova funzione per immagini cliccabili
+            display_clickable_image("attached_assets/MANOVRA-DI-HEIMLICH-1024x480.jpg", "Manovra di Heimlich - Sequenza corretta di esecuzione", width=700)
+            
+            # Immagine aggiuntiva con funzione cliccabile
+            display_clickable_image("attached_assets/fc3a00c3-f5c0-4d12-8860-e7611e8f98cb.jpg", "Manovra di Heimlich - Posizione alternativa", width=400)
 
         st.markdown("**Se la persona è incosciente:**")
         st.markdown("""
@@ -379,10 +394,8 @@ def show():
             """)
 
         with col2:
-            # Immagine SVG incorporata direttamente
-            with open("images/heimlich_bambini.svg", "r") as svg_file:
-                heimlich_bambini_svg = svg_file.read()
-            st.markdown(heimlich_bambini_svg, unsafe_allow_html=True)
+            # Utilizziamo la nuova funzione per immagini cliccabili
+            display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=500)
 
         # Disostruzione lattanti con illustrazione
         st.subheader("Disostruzione lattanti (età < 1 anno)")
@@ -399,70 +412,70 @@ def show():
             """)
 
         with col2:
-            # Immagine SVG incorporata direttamente
-            with open("images/disostruzione_lattanti.svg", "r") as svg_file:
-                disostrazione_lattanti_svg = svg_file.read()
-            st.markdown(disostrazione_lattanti_svg, unsafe_allow_html=True)
+            # Utilizziamo la nuova funzione per immagini cliccabili
+            display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=500)
 
-        # RCP con illustrazioni
+        # RCP con video tutorial
         st.subheader("RCP (Rianimazione Cardiopolmonare)")
-
+        
+        # Integrazione video locale
+        st.markdown("### 📺 Video Tutorial: Manovre di Rianimazione")
+        try:
+            st.video("attached_assets/Manovra di Rianimazione - RCP Bambino_Adulto.mp4")
+            st.caption("Video: Manovre di Rianimazione - RCP per Bambini e Adulti | Fonte: Croce Rossa Italiana")
+        except Exception as e:
+            st.error(f"Errore nel caricamento del video: {e}")
+            # Fallback a YouTube se il video locale non è disponibile
+            st.video("https://www.youtube.com/watch?v=iorzXJ1Jrzw")
+            
+        st.markdown("""
+        Il video mostra le corrette procedure di Rianimazione Cardiopolmonare (RCP) per bambini e adulti secondo le linee guida internazionali della Croce Rossa Italiana.
+        """)
+        
+        # Dividiamo in tab per età
         tab_rcp_adulti, tab_rcp_bambini, tab_rcp_lattanti = st.tabs(["Adulti", "Bambini", "Lattanti"])
 
         with tab_rcp_adulti:
-            col1, col2 = st.columns([2, 3])
-            with col1:
-                st.markdown("### RCP - Adulti")
-                st.markdown("""
-                1. Posiziona la persona supina su una superficie rigida
-                2. Metti le mani al centro del torace (metà inferiore dello sterno)
-                3. Comprimi il torace di 5-6 cm
-                4. Frequenza: 100-120 compressioni al minuto
-                5. Dopo 30 compressioni, effettua 2 ventilazioni (se addestrato)
-                6. Se non addestrato, continua solo con le compressioni
-                """)
-
-            with col2:
-                # Immagine SVG incorporata direttamente
-                with open("images/rcp_adulti.svg", "r") as svg_file:
-                    rcp_adulti_svg = svg_file.read()
-                st.markdown(rcp_adulti_svg, unsafe_allow_html=True)
+            st.markdown("### RCP - Adulti")
+            st.markdown("""
+            1. Posiziona la persona supina su una superficie rigida
+            2. Metti le mani al centro del torace (metà inferiore dello sterno)
+            3. Comprimi il torace di 5-6 cm
+            4. Frequenza: 100-120 compressioni al minuto
+            5. Dopo 30 compressioni, effettua 2 ventilazioni (se addestrato)
+            6. Se non addestrato, continua solo con le compressioni
+            """)
+            
+            # Usiamo un'immagine locale caricata in attached_assets
+            try:
+                display_clickable_image("attached_assets/image_1743605481081.png", "RCP su adulto", width=600)
+            except:
+                # Fallback all'immagine online se quella locale non è disponibile
+                st.image("https://www.croceverde.org/wp-content/uploads/2021/05/rcp.jpg", caption="RCP su adulto", width=600)
 
         with tab_rcp_bambini:
-            col1, col2 = st.columns([2, 3])
-            with col1:
-                st.markdown("### RCP - Bambini (età 1-8 anni)")
-                st.markdown("""
-                1. Posiziona il bambino supino su una superficie rigida
-                2. Usa una o due mani al centro del torace
-                3. Comprimi il torace di circa 5 cm
-                4. Frequenza: 100-120 compressioni al minuto
-                5. Rapporto 30 compressioni e 2 ventilazioni
-                """)
-
-            with col2:
-                # Immagine SVG incorporata direttamente
-                with open("images/rcp_bambini.svg", "r") as svg_file:
-                    rcp_bambini_svg = svg_file.read()
-                st.markdown(rcp_bambini_svg, unsafe_allow_html=True)
+            st.markdown("### RCP - Bambini (età 1-8 anni)")
+            st.markdown("""
+            1. Posiziona il bambino supino su una superficie rigida
+            2. Usa una o due mani al centro del torace
+            3. Comprimi il torace di circa 5 cm
+            4. Frequenza: 100-120 compressioni al minuto
+            5. Rapporto 30 compressioni e 2 ventilazioni
+            """)
+            
+            st.info("Nelle procedure per i bambini è importante dosare la forza in base alla corporatura del bambino.")
 
         with tab_rcp_lattanti:
-            col1, col2 = st.columns([2, 3])
-            with col1:
-                st.markdown("### RCP - Lattanti (età < 1 anno)")
-                st.markdown("""
-                1. Posiziona il lattante supino su una superficie rigida
-                2. Usa due dita al centro del torace, appena sotto la linea dei capezzoli
-                3. Comprimi il torace di circa 4 cm
-                4. Frequenza: 100-120 compressioni al minuto
-                5. Rapporto 30 compressioni e 2 ventilazioni (coprendo bocca e naso)
-                """)
-
-            with col2:
-                # Immagine SVG incorporata direttamente
-                with open("images/rcp_lattanti.svg", "r") as svg_file:
-                    rcp_lattanti_svg = svg_file.read()
-                st.markdown(rcp_lattanti_svg, unsafe_allow_html=True)
+            st.markdown("### RCP - Lattanti (età < 1 anno)")
+            st.markdown("""
+            1. Posiziona il lattante supino su una superficie rigida
+            2. Usa due dita al centro del torace, appena sotto la linea dei capezzoli
+            3. Comprimi il torace di circa 4 cm
+            4. Frequenza: 100-120 compressioni al minuto
+            5. Rapporto 30 compressioni e 2 ventilazioni (coprendo bocca e naso)
+            """)
+            
+            st.warning("Nei lattanti è fondamentale la delicatezza dei movimenti e usare solo due dita per le compressioni.")
 
         with st.expander("🚨 Emergenze Specifiche"):
             st.write("""
