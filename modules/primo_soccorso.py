@@ -6,14 +6,12 @@ import requests
 import json
 import os
 import base64
+import glob
 from datetime import datetime
 from PIL import Image
 from io import BytesIO
 
-import streamlit as st
-
 def show():
-    import streamlit as st
     st.title('🩺 Primo Soccorso e Strutture Sanitarie')
 
     st.write("""
@@ -49,51 +47,140 @@ def show():
             st.markdown(text_image, unsafe_allow_html=True)
 
     # Funzione per rendere le immagini cliccabili e ingrandibili
-    def display_clickable_image(image_path, caption, width=600):
+    def display_clickable_image(image_path, caption, width=600, key_suffix=""):
         """
-        Mostra un'immagine cliccabile che si apre in una nuova finestra quando selezionata.
+        Mostra un'immagine cliccabile che si apre in una nuova finestra popup quando selezionata.
         
         Args:
             image_path: Percorso dell'immagine
             caption: Didascalia dell'immagine
             width: Larghezza dell'immagine
+            key_suffix: Suffisso opzionale per rendere unica la chiave del pulsante
         """
-        # Visualizziamo l'immagine principale
+        # Generiamo un ID univoco basato sul percorso dell'immagine e sul suffisso opzionale
+        unique_id = f"{image_path}_{key_suffix}_{width}"
+        
+        # Verifichiamo che l'immagine esista prima
         try:
-            img = Image.open(image_path)
-            st.image(img, caption=caption, width=width)
-            
-            # Aggiungiamo un pulsante per aprire l'immagine a schermo intero
-            if st.button(f"🔍 Ingrandisci immagine", key=f"btn_{image_path}"):
-                st.markdown(f"""
-                <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 20px; margin-bottom: 20px;">
-                    <h3>{caption}</h3>
-                    <img src="data:image/png;base64,{get_image_as_base64(image_path)}" style="max-width: 95%; height: auto;">
-                </div>
-                <hr>
-                """, unsafe_allow_html=True)
-        except Exception as e:
-            st.warning(f"Immagine non disponibile: {caption}")
-            # Tentiamo il percorso alternativo
-            alt_path = image_path.replace("images/", "attached_assets/")
-            if "images/" in image_path:
-                try:
-                    img = Image.open(alt_path)
-                    st.image(img, caption=caption, width=width)
+            # Verifichiamo il percorso originale
+            if os.path.exists(image_path):
+                img = Image.open(image_path)
+                st.image(img, caption=caption, width=width)
+                
+                # Utilizziamo uno script JavaScript per aprire una nuova finestra popup
+                if st.button(f"🔍 Ingrandisci immagine", key=f"btn_{unique_id}"):
+                    # Convertiamo l'immagine in base64
+                    img_base64 = get_image_as_base64(image_path)
                     
-                    # Aggiungiamo un pulsante per aprire l'immagine a schermo intero
-                    if st.button(f"🔍 Ingrandisci immagine", key=f"btn_{alt_path}"):
-                        st.markdown(f"""
-                        <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 20px; margin-bottom: 20px;">
-                            <h3>{caption}</h3>
-                            <img src="data:image/png;base64,{get_image_as_base64(alt_path)}" style="max-width: 95%; height: auto;">
-                        </div>
-                        <hr>
-                        """, unsafe_allow_html=True)
-                except:
+                    # Creiamo un HTML con script per aprire una finestra popup
+                    popup_html = f"""
+                    <script>
+                    (function() {{
+                        var img_win = window.open("", "_blank", "width=800,height=600,scrollbars=yes");
+                        img_win.document.write(`
+                            <html>
+                                <head>
+                                    <title>{caption}</title>
+                                    <style>
+                                        body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }}
+                                        h2 {{ margin-bottom: 20px; }}
+                                        img {{ max-width: 95%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; }}
+                                        .close-btn {{ 
+                                            display: inline-block; 
+                                            padding: 10px 20px; 
+                                            margin-top: 20px; 
+                                            background-color: #f44336; 
+                                            color: white; 
+                                            border: none; 
+                                            border-radius: 4px; 
+                                            cursor: pointer; 
+                                        }}
+                                    </style>
+                                </head>
+                                <body>
+                                    <h2>{caption}</h2>
+                                    <img src="data:image/png;base64,{img_base64}" alt="{caption}">
+                                    <br>
+                                    <button class="close-btn" onclick="window.close()">Chiudi finestra</button>
+                                </body>
+                            </html>
+                        `);
+                        img_win.document.close();
+                    }})();
+                    </script>
+                    """
+                    st.components.v1.html(popup_html, height=0)
+            else:
+                # Proviamo il percorso alternativo per le immagini in attached_assets
+                alternative_paths = [
+                    image_path.replace("images/", "attached_assets/"),
+                    f"attached_assets/{os.path.basename(image_path)}"
+                ]
+                
+                found = False
+                for alt_path in alternative_paths:
+                    if os.path.exists(alt_path):
+                        img = Image.open(alt_path)
+                        st.image(img, caption=caption, width=width)
+                        found = True
+                        
+                        # Utilizziamo uno script JavaScript per aprire una nuova finestra popup
+                        alt_unique_id = f"{alt_path}_{key_suffix}_{width}"
+                        if st.button(f"🔍 Ingrandisci immagine", key=f"btn_{alt_unique_id}"):
+                            # Convertiamo l'immagine in base64
+                            img_base64 = get_image_as_base64(alt_path)
+                            
+                            # Creiamo un HTML con script per aprire una finestra popup
+                            popup_html = f"""
+                            <script>
+                            (function() {{
+                                var img_win = window.open("", "_blank", "width=800,height=600,scrollbars=yes");
+                                img_win.document.write(`
+                                    <html>
+                                        <head>
+                                            <title>{caption}</title>
+                                            <style>
+                                                body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }}
+                                                h2 {{ margin-bottom: 20px; }}
+                                                img {{ max-width: 95%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; }}
+                                                .close-btn {{ 
+                                                    display: inline-block; 
+                                                    padding: 10px 20px; 
+                                                    margin-top: 20px; 
+                                                    background-color: #f44336; 
+                                                    color: white; 
+                                                    border: none; 
+                                                    border-radius: 4px; 
+                                                    cursor: pointer; 
+                                                }}
+                                            </style>
+                                        </head>
+                                        <body>
+                                            <h2>{caption}</h2>
+                                            <img src="data:image/png;base64,{img_base64}" alt="{caption}">
+                                            <br>
+                                            <button class="close-btn" onclick="window.close()">Chiudi finestra</button>
+                                        </body>
+                                    </html>
+                                `);
+                                img_win.document.close();
+                            }})();
+                            </script>
+                            """
+                            st.components.v1.html(popup_html, height=0)
+                        break
+                
+                if not found:
                     # Creare un'immagine placeholder con il testo
                     text_image = f'<div style="width:100%;height:150px;background-color:#f0f0f0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:5px;">{caption}</div>'
                     st.markdown(text_image, unsafe_allow_html=True)
+                    st.warning(f"Immagine non trovata: {image_path}")
+                    
+        except Exception as e:
+            st.warning(f"Errore nel caricamento dell'immagine: {e}")
+            # Creare un'immagine placeholder con il testo
+            text_image = f'<div style="width:100%;height:150px;background-color:#f0f0f0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:5px;">{caption}</div>'
+            st.markdown(text_image, unsafe_allow_html=True)
     
     # Funzione per caricare SVG da file
     def load_svg_from_file(file_path):
@@ -183,9 +270,6 @@ def show():
                 st.markdown(sollevamento_svg, unsafe_allow_html=True)
 
 
-        import streamlit as st
-        import os
-
         def show_manovre():
             st.title("🩺 Primo Soccorso")
 
@@ -197,7 +281,7 @@ def show():
             with st.expander("🔄 Manovra di Heimlich - Adulti"):
                 # Utilizziamo l'immagine JPG fornita
                 # Utilizziamo la nuova funzione per immagini cliccabili
-                display_clickable_image("attached_assets/Manovra-di-heimlich.jpg", "Manovra di Heimlich per adulti", width=600)
+                display_clickable_image("attached_assets/Manovra-di-heimlich.jpg", "Manovra di Heimlich per adulti", width=600, key_suffix="expander_heimlich_adulti")
                 
                 st.markdown("""
                 Se la persona è cosciente:
@@ -216,7 +300,7 @@ def show():
             with st.expander("👶 Manovra di Heimlich - Bambini (1-8 anni)"):
                 # Utilizziamo l'immagine PNG fornita
                 # Utilizziamo la nuova funzione per immagini cliccabili
-                display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=600)
+                display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=600, key_suffix="expander_heimlich_bambini")
                 
                 st.markdown("""
                 1. La tecnica è simile a quella per gli adulti ma con minore forza
@@ -228,7 +312,7 @@ def show():
             with st.expander("👶 Disostruzione lattanti (< 1 anno)"):
                 # Utilizziamo l'immagine JPG fornita
                 # Utilizziamo la nuova funzione per immagini cliccabili
-                display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=600)
+                display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=600, key_suffix="expander_lattante")
                 
                 st.markdown("""
                 1. Posiziona il lattante a faccia in giù sul tuo avambraccio
@@ -369,10 +453,10 @@ def show():
 
         with col2:
             # Utilizziamo la nuova funzione per immagini cliccabili
-            display_clickable_image("attached_assets/MANOVRA-DI-HEIMLICH-1024x480.jpg", "Manovra di Heimlich - Sequenza corretta di esecuzione", width=700)
+            display_clickable_image("attached_assets/MANOVRA-DI-HEIMLICH-1024x480.jpg", "Manovra di Heimlich - Sequenza corretta di esecuzione", width=700, key_suffix="main_heimlich_adulti_1")
             
             # Immagine aggiuntiva con funzione cliccabile
-            display_clickable_image("attached_assets/fc3a00c3-f5c0-4d12-8860-e7611e8f98cb.jpg", "Manovra di Heimlich - Posizione alternativa", width=400)
+            display_clickable_image("attached_assets/fc3a00c3-f5c0-4d12-8860-e7611e8f98cb.jpg", "Manovra di Heimlich - Posizione alternativa", width=400, key_suffix="main_heimlich_adulti_2")
 
         st.markdown("**Se la persona è incosciente:**")
         st.markdown("""
@@ -395,7 +479,7 @@ def show():
 
         with col2:
             # Utilizziamo la nuova funzione per immagini cliccabili
-            display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=500)
+            display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=500, key_suffix="main_heimlich_bambini")
 
         # Disostruzione lattanti con illustrazione
         st.subheader("Disostruzione lattanti (età < 1 anno)")
@@ -413,7 +497,7 @@ def show():
 
         with col2:
             # Utilizziamo la nuova funzione per immagini cliccabili
-            display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=500)
+            display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=500, key_suffix="main_lattante")
 
         # RCP con video tutorial
         st.subheader("RCP (Rianimazione Cardiopolmonare)")
@@ -446,12 +530,8 @@ def show():
             6. Se non addestrato, continua solo con le compressioni
             """)
             
-            # Usiamo un'immagine locale caricata in attached_assets
-            try:
-                display_clickable_image("attached_assets/image_1743605481081.png", "RCP su adulto", width=600)
-            except:
-                # Fallback all'immagine online se quella locale non è disponibile
-                st.image("https://www.croceverde.org/wp-content/uploads/2021/05/rcp.jpg", caption="RCP su adulto", width=600)
+            # Mostriamo solo le istruzioni testuali senza immagine
+            st.info("Seguire scrupolosamente le indicazioni per la RCP, assicurandosi di mantenere il ritmo corretto delle compressioni.")
 
         with tab_rcp_bambini:
             st.markdown("### RCP - Bambini (età 1-8 anni)")
