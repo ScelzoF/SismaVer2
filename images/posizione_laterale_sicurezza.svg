@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="300" viewBox="0 0 400 300">
+  <!-- Sfondo -->
+  <rect width="400" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  
+  <!-- Titolo -->
+  <text x="200" y="30" font-family="Arial" font-size="18" font-weight="bold" fill="#212529" text-anchor="middle">Posizione Laterale di Sicurezza</text>
+  
+  <!-- Figura persona in PLS (posizione laterale di sicurezza) -->
+  <g transform="translate(200, 160)">
+    <!-- Corpo da lato -->
+    <path d="M -60,-30 C -50,-20 -40,20 -30,30 C -20,40 0,40 20,35 C 45,30 50,20 60,10 C 70,0 75,-20 65,-30 C 50,-40 -40,-40 -60,-30 Z" fill="#d3d3d3" stroke="#6c757d" stroke-width="2"/>
+    
+    <!-- Testa di lato -->
+    <ellipse cx="-80" cy="-25" rx="25" ry="20" fill="#d3d3d3" stroke="#6c757d" stroke-width="2" transform="rotate(-10, -80, -25)"/>
+    
+    <!-- Braccio sotto la testa -->
+    <path d="M -60,-20 C -70,-15 -90,-10 -100,-20" stroke="#d3d3d3" stroke-width="10" fill="none" stroke-linecap="round"/>
+    
+    <!-- Braccio superiore -->
+    <path d="M -30,-15 C -10,-30 30,-25 40,-15" stroke="#d3d3d3" stroke-width="10" fill="none" stroke-linecap="round"/>
+    
+    <!-- Gamba superiore piegata -->
+    <path d="M 10,25 C 30,45 60,40 80,15" stroke="#d3d3d3" stroke-width="16" fill="none" stroke-linecap="round"/>
+    
+    <!-- Gamba inferiore estesa -->
+    <path d="M 10,25 C 30,35 40,40 70,45" stroke="#d3d3d3" stroke-width="14" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Indicatori e annotazioni per le vie aeree -->
+  <g transform="translate(85, 135)">
+    <!-- Via aerea -->
+    <path d="M 0,0 C 10,10 20,-5 35,-5" stroke="#0d6efd" stroke-width="2" fill="none"/>
+    <circle cx="0" cy="0" r="3" fill="#0d6efd"/>
+    <text x="0" y="-10" font-family="Arial" font-size="10" fill="#0d6efd" text-anchor="end">Vie aeree</text>
+    <text x="0" y="-20" font-family="Arial" font-size="10" fill="#0d6efd" text-anchor="end">aperte</text>
+  </g>
+  
+  <!-- Punti chiave della posizione -->
+  <g transform="translate(300, 130)">
+    <rect x="-60" y="-15" width="120" height="115" rx="5" fill="#e9ecef" stroke="#dee2e6" stroke-width="1"/>
+    <text x="0" y="0" font-family="Arial" font-size="12" fill="#212529" text-anchor="middle" font-weight="bold">Punti chiave:</text>
+    <text x="0" y="20" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle">• Braccio sotto la guancia</text>
+    <text x="0" y="40" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle">• Ginocchio superiore piegato</text>
+    <text x="0" y="60" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle">• Mantiene le vie aeree aperte</text>
+    <text x="0" y="80" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle">• Previene il soffocamento</text>
+    <text x="0" y="100" font-family="Arial" font-size="10" text-decoration="underline" fill="#dc3545" text-anchor="middle">Posizione stabile</text>
+  </g>
+  
+  <!-- Procedura semplificata -->
+  <g transform="translate(80, 80)">
+    <rect x="-50" y="-15" width="130" height="105" rx="5" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+    <text x="15" y="0" font-family="Arial" font-size="12" fill="#212529" font-weight="bold">Procedura:</text>
+    <text x="15" y="20" font-family="Arial" font-size="10" fill="#343a40">1. Distendi la vittima supina</text>
+    <text x="15" y="35" font-family="Arial" font-size="10" fill="#343a40">2. Posiziona il braccio vicino</text>
+    <text x="15" y="50" font-family="Arial" font-size="10" fill="#343a40">   ad angolo retto</text>
+    <text x="15" y="65" font-family="Arial" font-size="10" fill="#343a40">3. Piega il ginocchio lontano</text>
+    <text x="15" y="80" font-family="Arial" font-size="10" fill="#343a40">4. Ruota la persona di lato</text>
+    <text x="15" y="95" font-family="Arial" font-size="10" fill="#343a40">5. Stabilizza la posizione</text>
+  </g>
+  
+  <!-- Nota sul monitoraggio -->
+  <g transform="translate(200, 250)">
+    <rect x="-180" y="-20" width="360" height="50" rx="5" fill="#e7f5ff" stroke="#0d6efd" stroke-width="1"/>
+    <text x="0" y="0" font-family="Arial" font-size="12" fill="#212529" text-anchor="middle" font-weight="bold">Importante:</text>
+    <text x="0" y="20" font-family="Arial" font-size="11" fill="#343a40" text-anchor="middle">Controlla frequentemente respirazione e polso. Utilizza questa posizione</text>
+    <text x="0" y="35" font-family="Arial" font-size="11" fill="#343a40" text-anchor="middle">solo se la persona è incosciente ma respira normalmente.</text>
+  </g>
+</svg>

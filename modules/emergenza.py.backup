@@ -1,0 +1,672 @@
+import streamlit as st
+import pandas as pd
+import folium
+from streamlit_folium import folium_static
+from geopy.geocoders import Nominatim
+from modules.dati_regioni_b import dati_regioni_b
+from modules.dati_regioni_c import dati_regioni_c
+import os
+
+def show():
+    st.title("🚨 Emergenza Regionale")
+    st.write("Informazioni di emergenza e contatti utili per ciascuna regione italiana.")
+    
+    # Selezione tipo emergenza
+    tipo_emergenza = st.radio(
+        "Seleziona il tipo di emergenza:",
+        ["Tutte le emergenze", "Terremoto", "Alluvione", "Incendio", "Eruzioni vulcaniche", "Frana", "Emergenza sanitaria"],
+        horizontal=True
+    )
+
+    # Dati regioni di base
+    dati_regioni = {
+        "Liguria": {
+            "criticita": "Rischio idrogeologico molto elevato, soprattutto per frane e alluvioni nelle aree costiere e collinari.",
+            "punti_raccolta": [
+                "Genova: Piazza De Ferrari, Giardini di Brignole",
+                "La Spezia: Piazza Europa, Parco XXV Aprile",
+                "Savona: Piazza Mameli, Giardini del Priamar",
+                "Imperia: Piazza Dante, Parco Urbano San Leonardo"
+            ],
+            "link_utili": {
+                "Protezione Civile Liguria": "https://protezionecivile.regione.liguria.it/"
+            },
+            "rischio_idrogeologico": {
+                "descrizione": "Alluvioni ricorrenti, frane nelle aree collinari, rischio molto alto nelle 4 province.",
+                "link": "https://allertaliguria.regione.liguria.it/"
+            }
+        },
+        "Lazio": {
+            "criticita": "Rischio sismico significativo nelle zone interne, fenomeni di dissesto idrogeologico nelle aree collinari e costiere.",
+            "punti_raccolta": [
+                "Roma: Piazza del Popolo, Piazza Venezia, Parco della Caffarella",
+                "Latina: Piazza del Popolo, Parco Falcone-Borsellino",
+                "Frosinone: Piazza della Libertà, Villa Comunale",
+                "Rieti: Piazza Vittorio Emanuele II, Parco San Francesco",
+                "Viterbo: Piazza del Plebiscito, Parco Prato Giardino"
+            ],
+            "link_utili": {
+                "Protezione Civile Lazio": "https://www.regione.lazio.it/protezionecivile"
+            },
+            "rischio_idrogeologico": {
+                "descrizione": "Rischio frane e alluvioni diffuso in zone interne e lungo la costa laziale.",
+                "link": "https://www.regione.lazio.it/protezionecivile/piani-emergenza"
+            }
+        },
+        "Marche": {
+            "criticita": "Rischio sismico elevato nelle aree interne e rischio idrogeologico in tutto il territorio regionale.",
+            "punti_raccolta": [
+                "Ancona: Piazza Cavour, Parco del Cardeto",
+                "Pesaro: Piazza del Popolo, Parco Miralfiore",
+                "Macerata: Piazza della Libertà, Giardini Diaz",
+                "Ascoli Piceno: Piazza del Popolo, Parco Annunziata",
+                "Fermo: Piazza del Popolo, Parco della Mentuccia"
+            ],
+            "link_utili": {
+                "Protezione Civile Marche": "https://www.protezionecivile.marche.it/"
+            },
+            "rischio_idrogeologico": {
+                "descrizione": "Alluvioni e frane frequenti, soprattutto nelle vallate e zone collinari.",
+                "link": "https://www.protezionecivile.marche.it/Allertamento/"
+            }
+        }
+    }
+
+    # Aggiorna il dizionario dati_regioni con i dati esterni
+    dati_regioni.update(dati_regioni_b)
+    dati_regioni.update(dati_regioni_c)
+
+    # Centroidi regioni italiane per mappa
+    centroidi_regioni = {
+        "Abruzzo": [42.354, 13.391],
+        "Basilicata": [40.633, 16.083],
+        "Calabria": [39.050, 16.516],
+        "Campania": [40.833, 14.250],
+        "Emilia-Romagna": [44.493, 11.333],
+        "Friuli Venezia Giulia": [46.067, 13.233],
+        "Lazio": [41.900, 12.483],
+        "Liguria": [44.411, 8.932],
+        "Lombardia": [45.464, 9.189],
+        "Marche": [43.617, 13.517],
+        "Molise": [41.567, 14.650],
+        "Piemonte": [45.050, 7.667],
+        "Puglia": [41.125, 16.867],
+        "Sardegna": [39.217, 9.117],
+        "Sicilia": [37.567, 14.017],
+        "Toscana": [43.767, 11.250],
+        "Trentino-Alto Adige": [46.067, 11.133],
+        "Umbria": [43.100, 12.383],
+        "Valle d'Aosta": [45.733, 7.317],
+        "Veneto": [45.438, 12.327]
+    }
+    
+    # Aggiungi alias per compatibilità con diversi formati dei nomi delle regioni
+    regioni_alias = {
+        "Emilia Romagna": "Emilia-Romagna",
+        "Trentino Alto Adige": "Trentino-Alto Adige"
+    }
+
+    # Livelli di criticità per ogni regione
+    livelli_criticita = {
+        "Abruzzo": "red",
+        "Basilicata": "yellow",
+        "Calabria": "red",
+        "Campania": "red",
+        "Emilia Romagna": "orange",
+        "Friuli Venezia Giulia": "red",
+        "Lazio": "orange",
+        "Liguria": "red",
+        "Lombardia": "orange",
+        "Marche": "red",
+        "Molise": "orange",
+        "Piemonte": "yellow",
+        "Puglia": "orange",
+        "Sardegna": "yellow",
+        "Sicilia": "red",
+        "Toscana": "orange",
+        "Trentino Alto Adige": "yellow",
+        "Umbria": "orange",
+        "Valle d'Aosta": "yellow",
+        "Veneto": "orange"
+    }
+
+    # Mappa per visualizzare criticità regionali
+    st.subheader("🗺️ Mappa delle criticità regionali")
+    m = folium.Map(location=[42.504, 12.573], zoom_start=6, tiles="OpenStreetMap")
+    
+    # Aggiungi marker per ogni regione e i suoi punti di raccolta
+    for regione, coords in centroidi_regioni.items():
+        colore = livelli_criticita.get(regione, "blue")
+        popup_html = f"<b>{regione}</b>"
+        
+        # Marker principale della regione
+        # Mappa i colori personalizzati ai colori supportati da Folium
+        colore_folium = colore
+        if colore not in ['lightgray', 'beige', 'darkgreen', 'white', 'gray', 'blue', 'lightred', 
+                         'green', 'lightgreen', 'black', 'lightblue', 'darkpurple', 'cadetblue', 
+                         'red', 'pink', 'darkred', 'purple', 'darkblue', 'orange']:
+            # Mappa colori personalizzati a colori supportati
+            if colore == "yellow":
+                colore_folium = "beige"
+            elif colore == "yellow-orange":
+                colore_folium = "orange"
+            else:
+                colore_folium = "blue"  # default fallback
+                
+        folium.Marker(
+            location=coords,
+            popup=popup_html,
+            icon=folium.Icon(color=colore_folium, icon="info-sign")
+        ).add_to(m)
+        
+        # Aggiungi marker per i punti di raccolta solo se la regione è nei dati
+        if regione in dati_regioni:
+            punti = dati_regioni[regione]["punti_raccolta"]
+            for punto in punti:
+                # Estrai città e luogo dal formato "Città: Luogo"
+                try:
+                    città, luogo = punto.split(": ", 1)
+                    # Usa il geocoder per ottenere le coordinate
+                    geolocator = Nominatim(user_agent="sismaver2")
+                    location = geolocator.geocode(f"{luogo}, {città}, {regione}, Italy")
+                    
+                    if location:
+                        punto_html = f"""
+                        <b>{città}</b><br>
+                        {luogo}<br>
+                        <small>Punto di raccolta</small>
+                        """
+                        
+                        folium.Marker(
+                            location=[location.latitude, location.longitude],
+                            popup=punto_html,
+                            icon=folium.Icon(color="green", icon="flag")
+                        ).add_to(m)
+                except Exception as e:
+                    # Raccogliamo gli errori di geolocalizzazione ma non li mostriamo direttamente 
+                    # all'utente per evitare troppi messaggi di warning
+                    pass
+    
+    # Visualizza la mappa
+    folium_static(m, width=700, height=500)
+    
+    # Linee guida generali per tipo di emergenza
+    if tipo_emergenza != "Tutte le emergenze":
+        st.markdown(f"## Linee guida per emergenza: {tipo_emergenza}")
+        
+        if tipo_emergenza == "Terremoto":
+            st.markdown("""
+            ### ⚠️ Prima del terremoto:
+            1. **Informati sui rischi** della tua zona e sui piani di emergenza comunali
+            2. **Verifica la sicurezza** della tua abitazione (crepe, stabilità)
+            3. **Prepara un kit d'emergenza** con acqua, cibo, medicinali, torcia
+            4. **Identifica i luoghi sicuri** in ogni stanza: sotto tavoli robusti, vicino a muri portanti
+            5. **Impara dove sono gli interruttori** di luce, gas e acqua
+            
+            ### 🚨 Durante il terremoto:
+            1. **Se sei in casa**: riparati sotto un tavolo robusto, vicino a muri portanti, lontano da vetri e oggetti pesanti
+            2. **Se sei all'aperto**: allontanati da edifici, alberi, lampioni e linee elettriche
+            3. **Se sei in auto**: fermati lontano da ponti, cavalcavia e edifici
+            4. **Non precipitarti verso le scale** e non usare l'ascensore
+            5. **Proteggi testa e collo** con le braccia
+            
+            ### 🔄 Dopo il terremoto:
+            1. **Verifica lo stato di salute** di chi ti sta intorno
+            2. **Chiudi gas, acqua e luce** per evitare perdite o cortocircuiti
+            3. **Esci con prudenza** indossando scarpe per proteggerti da vetri rotti
+            4. **Raggiungi le aree di attesa** previste dal piano di emergenza
+            5. **Limita l'uso del telefono** alle emergenze
+            6. **Segui le indicazioni** della Protezione Civile
+            
+            ### 📱 App e risorse utili:
+            - **IO-Non Rischio**: app ufficiale della Protezione Civile italiana
+            - **Instant Earthquake Info**: informazioni in tempo reale su terremoti
+            - **Numero nazionale emergenze**: 112
+            - **Protezione Civile**: 800 840 840
+            """)
+            
+        elif tipo_emergenza == "Alluvione":
+            st.markdown("""
+            ### ⚠️ Prima dell'alluvione:
+            1. **Informati sui rischi** della tua zona e sui piani di emergenza
+            2. **Segui gli allerta meteo** della Protezione Civile
+            3. **Proteggi i beni** collocati in locali allagabili
+            4. **Assicurati che scantinati e piani terra** siano impermeabilizzati
+            5. **Tieni pronto un kit d'emergenza** con acqua, cibo, medicinali, torcia
+            
+            ### 🚨 Durante l'alluvione:
+            1. **Sali ai piani superiori** e non scendere per nessun motivo
+            2. **Non usare ascensori** per evitare di rimanere bloccato
+            3. **Chiudi gas e disattiva l'elettricità** solo se l'impianto è a rischio allagamento
+            4. **Non bere acqua dal rubinetto** potrebbe essere contaminata
+            5. **Se sei all'aperto**, allontanati dalla zona allagata verso i punti più elevati
+            6. **Non attraversare ponti** o strade inondate, anche con l'auto
+            
+            ### 🔄 Dopo l'alluvione:
+            1. **Verifica se puoi riattivare luce e gas** senza pericolo
+            2. **Aiuta chi ha bisogno** soprattutto anziani e persone con disabilità
+            3. **Pulisci e disinfetta** le superfici esposte all'acqua
+            4. **Non consumare alimenti** venuti a contatto con l'acqua dell'alluvione
+            5. **Segnala alle autorità** situazioni di rischio
+            
+            ### 📱 App e risorse utili:
+            - **FlagMii**: app per segnalare e ricevere avvisi di emergenza
+            - **Meteo Protezione Civile**: aggiornamenti meteo e allerte
+            - **Numero emergenze**: 112
+            - **Vigili del Fuoco**: 115
+            """)
+            
+        elif tipo_emergenza == "Incendio":
+            st.markdown("""
+            ### ⚠️ Prima dell'incendio:
+            1. **Installa rilevatori di fumo** e tienili in efficienza
+            2. **Prepara un piano di evacuazione** familiare con un punto di ritrovo
+            3. **Tieni un estintore** in casa e impara ad usarlo
+            4. **Verifica che impianti elettrici** siano a norma
+            5. **Non accumulare materiali infiammabili** in casa
+            
+            ### 🚨 Durante l'incendio:
+            1. **Chiama immediatamente il 115** (Vigili del Fuoco)
+            2. **Se il fuoco è piccolo**, prova a spegnerlo con l'estintore
+            3. **Se c'è molto fumo**, muoviti carponi tenendo un panno umido su naso e bocca
+            4. **Verifica se le vie di fuga** sono percorribili
+            5. **Chiudi le porte** dietro di te per rallentare la propagazione
+            6. **Non usare ascensori**
+            7. **Se sei bloccato**, sigilla porte e finestre con panni bagnati
+            
+            ### Se l'incendio è in un bosco o area naturale:
+            1. **Segnala subito** il fuoco chiamando il 1515 (Corpo Forestale) o il 115 (Vigili del Fuoco)
+            2. **Cerca una via di fuga** allontanandoti dal fuoco verso strade o aree senza vegetazione
+            3. **Non sostare in luoghi sovrastanti l'incendio** o in zone verso le quali soffia il vento
+            4. **Non attraversare strada invase dal fumo** o dalle fiamme
+            5. **Facilitare l'intervento** dei mezzi di soccorso non intralciando le strade
+            
+            ### 🔄 Dopo l'incendio:
+            1. **Non rientrare** finché le autorità non dichiarano la zona sicura
+            2. **Verifica danni strutturali** prima di rientrare nell'edificio
+            3. **Aerare i locali** per eliminare fumo e gas
+            4. **Non riattivare elettricità e gas** finché non hai verificato gli impianti
+            
+            ### 📱 App e risorse utili:
+            - **Fire Alarm**: app per simulazioni evacuazioni antincendio
+            - **Vigili del Fuoco**: 115
+            - **Corpo Forestale/Carabinieri Forestali**: 1515
+            """)
+            
+        elif tipo_emergenza == "Eruzioni vulcaniche":
+            st.markdown("""
+            ### ⚠️ Prima dell'eruzione:
+            1. **Conosci la tua zona di rischio** sui piani di evacuazione vulcanica
+            2. **Informati sui segnali premonitori** e sui livelli di allerta
+            3. **Tieni pronto un kit d'emergenza** e documenti importanti
+            4. **Prepara un piano di evacuazione** familiare
+            5. **Segui le comunicazioni** della Protezione Civile e dell'INGV
+            
+            ### 🚨 Durante l'allerta o l'eruzione:
+            1. **Abbandona immediatamente la zona rossa** seguendo le indicazioni di evacuazione
+            2. **Chiudi porte e finestre** e sigillale con panni umidi
+            3. **Proteggi naso e bocca** con un fazzoletto umido in caso di cenere
+            4. **Indossa indumenti che coprono** tutto il corpo per proteggerti da cenere e lapilli
+            5. **Rimuovi la cenere dai tetti** per evitare accumuli pericolosi
+            6. **Non guidare se non è necessario** la cenere rende strade scivolose
+            
+            ### 🔄 Dopo l'eruzione:
+            1. **Non rientrare nelle zone evacuate** finché le autorità non lo autorizzano
+            2. **Pulisci la cenere usando mascherine** e occhiali protettivi
+            3. **Verifica stabilità del tetto** prima di salire per pulire
+            4. **Non bere acqua contaminata** dalla cenere
+            
+            ### 📱 App e risorse utili:
+            - **INGVvulcani**: app ufficiale dell'Istituto Nazionale di Geofisica e Vulcanologia
+            - **Vesuvio e Campi Flegrei Alert**: informazioni specifiche per queste aree
+            - **Protezione Civile**: 800 840 840
+            - **Osservatorio Vesuviano INGV**: https://www.ov.ingv.it/
+            """)
+            
+        elif tipo_emergenza == "Frana":
+            st.markdown("""
+            ### ⚠️ Prima della frana:
+            1. **Informati se la tua zona** è a rischio frane
+            2. **Osserva terreno** per crepe, cedimenti, inclinazioni di alberi
+            3. **Fai controllare muri di contenimento** e canali di scolo
+            4. **Non costruire** in zone a rischio idrogeologico
+            5. **Presta attenzione alle previsioni** durante periodi di piogge intense
+            
+            ### 🚨 Durante l'emergenza frana:
+            1. **Allontanati rapidamente** senza tornare indietro
+            2. **Se non puoi fuggire**, rannicchiati su te stesso e proteggi la testa
+            3. **Guardati dalle frane che possono trascinarti** mentre fuggi
+            4. **Non attraversare ponti** o strade interessate da frane
+            5. **Evita di avvicinarti al ciglio** di una frana per curiosare
+            
+            ### 🔄 Dopo la frana:
+            1. **Allontanati dall'area** e segnala alle autorità eventuali persone coinvolte
+            2. **Verifica se ci sono feriti** e presta primo soccorso
+            3. **Controlla se ci sono linee elettriche scoperte** o perdite di gas
+            4. **Non rientrare negli edifici** coinvolti
+            5. **Segnala alle autorità** danni a edifici o infrastrutture
+            
+            ### 📱 App e risorse utili:
+            - **IFIS (Italian Flood Information System)**: informazioni sulle frane
+            - **GeoAlert**: avvisi geolocalizzati su eventi franosi
+            - **Protezione Civile**: 800 840 840
+            - **Vigili del Fuoco**: 115
+            """)
+            
+        elif tipo_emergenza == "Emergenza sanitaria":
+            st.markdown("""
+            ### ⚠️ Preparazione alle emergenze sanitarie:
+            1. **Tieni una scorta di farmaci** essenziali e ricette mediche
+            2. **Crea una lista di contatti** medici e servizi di emergenza
+            3. **Conserva documentazione medica** in un luogo sicuro e accessibile
+            4. **Impara tecniche di primo soccorso** base
+            5. **Prepara un kit sanitario d'emergenza** con farmaci, disinfettanti, mascherine
+            
+            ### 🚨 Durante un'emergenza sanitaria pubblica:
+            1. **Segui le indicazioni ufficiali** delle autorità sanitarie
+            2. **Usa correttamente DPI** (mascherine, guanti) se raccomandati
+            3. **Mantieni le distanze di sicurezza** consigliate
+            4. **Pratica l'igiene delle mani** frequentemente
+            5. **Evita luoghi affollati** se sconsigliati
+            6. **Segnala sintomi sospetti** ai numeri dedicati, non andare al pronto soccorso
+            
+            ### 🏥 Numeri utili per emergenze mediche:
+            - **Emergenza Sanitaria**: 118
+            - **Numero Unico Emergenze**: 112
+            - **Guardia Medica**: varia per regione (normalmente attiva durante chiusura ambulatori medici)
+            - **Farmacie di turno**: app "Farmacia Aperta"
+            
+            ### 📱 App e risorse utili:
+            - **Salute Lazio/Lombardia/ecc.**: app regionali per servizi sanitari
+            - **First Aid - Croce Rossa**: guide primo soccorso
+            - **Immuni/Green Pass/IT-Alert**: app ufficiali durante pandemie o crisi
+            - **DAE RespondER**: localizzazione defibrillatori più vicini
+            """)
+    
+    # Selettore regione
+    regione_sel = st.selectbox("Seleziona la tua regione", sorted(dati_regioni.keys()))
+    
+    # Gestione degli alias per i nomi delle regioni
+    if regione_sel in dati_regioni:
+        dati = dati_regioni[regione_sel]
+    else:
+        # Controlla se è un alias e usa la versione corretta
+        alias_regione = regioni_alias.get(regione_sel)
+        if alias_regione and alias_regione in dati_regioni:
+            regione_sel = alias_regione
+            dati = dati_regioni[regione_sel]
+        else:
+            st.error(f"Dati non disponibili per la regione {regione_sel}")
+            return  # Interrompi l'esecuzione se non ci sono dati
+    
+    # A questo punto dati dovrebbe essere sempre definito
+    # Criticità territoriali
+    st.markdown("### 🛑 Criticità territoriali")
+    st.markdown(dati["criticita"])
+        
+        # Punti di raccolta
+        st.markdown("### 📍 Punti di raccolta")
+        for punto in dati["punti_raccolta"]:
+            st.markdown(f"- {punto}")
+        
+        # Link utili
+        st.markdown("### 🔗 Link utili")
+        for titolo, url in dati["link_utili"].items():
+            st.markdown(f"- [{titolo}]({url})")
+        
+        # Rischio idrogeologico
+        if "rischio_idrogeologico" in dati:
+            st.markdown("### 🌧️ Rischio Idrogeologico")
+            st.markdown(dati["rischio_idrogeologico"]["descrizione"])
+            st.markdown(f"[Maggiori informazioni]({dati['rischio_idrogeologico']['link']})")
+        
+        # Informazioni aggiuntive specifiche per regione
+        st.markdown("### 📋 Piani di emergenza")
+        
+        # Controllo presenza piano regionale
+        if "piano_regionale" in dati:
+            st.markdown(dati["piano_regionale"])
+        else:
+            st.markdown("""
+            Per consultare il Piano di Emergenza Regionale completo, visita il sito della Protezione Civile regionale o il portale della Regione.
+            
+            In caso di emergenza:
+            - Mantieni la calma e segui le indicazioni delle autorità
+            - Non usare l'ascensore e non ripararti vicino a mobili che possono cadere
+            - Chiudi gas, acqua e corrente
+            - Recati ai punti di raccolta stabiliti
+            - Non intasare le linee telefoniche
+            """)
+        
+        # Mappa rischio specifico della regione
+        st.markdown("### 🗺️ Mappa del rischio")
+        
+        if "coordinate_rischio" in dati:
+            # Se ci sono coordinate specifiche per zone a rischio
+            df_rischio = pd.DataFrame(dati["coordinate_rischio"])
+            st.map(df_rischio)
+        else:
+            # Altrimenti mostra il centroide della regione
+            if regione_sel in centroidi_regioni:
+                df_centroide = pd.DataFrame({
+                    "lat": [centroidi_regioni[regione_sel][0]],
+                    "lon": [centroidi_regioni[regione_sel][1]]
+                })
+                st.map(df_centroide)
+        
+        # Percorsi di evacuazione
+        st.markdown("### 🚗 Percorsi di evacuazione")
+        
+        # Mappa per visualizzare i percorsi di evacuazione
+        m_evacuazione = folium.Map(location=centroidi_regioni[regione_sel], zoom_start=9, tiles="OpenStreetMap")
+        
+        # Aggiungi percorsi di evacuazione principali per le regioni con rischio alto
+        if regione_sel in ["Campania", "Sicilia", "Calabria", "Abruzzo", "Friuli Venezia Giulia", "Liguria", "Marche"]:
+            st.markdown("""
+            I percorsi di evacuazione sono indicati nella mappa sottostante:
+            - 🟢 Percorsi principali (verde)
+            - 🟠 Percorsi alternativi (arancione)
+            - 🔴 Zone da evitare (rosso)
+            """)
+            
+            # Aggiungi marker per i punti di raccolta principali
+            if "punti_raccolta" in dati:
+                for punto in dati["punti_raccolta"][:3]:  # Prendiamo solo i primi 3 punti per semplicità
+                    try:
+                        # Estrai città e luogo dal formato "Città: Luogo"
+                        città, luogo = punto.split(": ", 1)
+                        
+                        # Usa il geocoder per ottenere le coordinate
+                        geolocator = Nominatim(user_agent="sismaver2")
+                        location = geolocator.geocode(f"{luogo}, {città}, {regione_sel}, Italy")
+                        
+                        if location:
+                            # Aggiungi marker del punto di raccolta
+                            folium.Marker(
+                                location=[location.latitude, location.longitude],
+                                popup=f"<b>Punto di raccolta:</b><br>{città} - {luogo}",
+                                icon=folium.Icon(color="green", icon="flag")
+                            ).add_to(m_evacuazione)
+                            
+                            # Simula un percorso di evacuazione verso il punto di raccolta
+                            # Creando un percorso dalla periferia della città verso il punto di raccolta
+                            
+                            # Crea un punto di partenza simulato (leggermente spostato rispetto al punto di raccolta)
+                            offset_lat = location.latitude + 0.03
+                            offset_lon = location.longitude - 0.03
+                            
+                            # Aggiungi marker per il punto di partenza
+                            folium.Marker(
+                                location=[offset_lat, offset_lon],
+                                popup="<b>Punto di partenza</b>",
+                                icon=folium.Icon(color="blue", icon="home")
+                            ).add_to(m_evacuazione)
+                            
+                            # Crea un percorso dal punto di partenza al punto di raccolta
+                            percorso_principale = [
+                                [offset_lat, offset_lon],  # Punto di partenza
+                                [offset_lat - 0.01, offset_lon + 0.01],  # Punto intermedio 1
+                                [offset_lat - 0.02, offset_lon + 0.02],  # Punto intermedio 2
+                                [location.latitude, location.longitude]  # Punto di arrivo (raccolta)
+                            ]
+                            
+                            # Aggiungi una linea per il percorso principale
+                            folium.PolyLine(
+                                percorso_principale,
+                                color="green",
+                                weight=4,
+                                opacity=0.8,
+                                popup="Percorso principale di evacuazione"
+                            ).add_to(m_evacuazione)
+                            
+                            # Crea un percorso alternativo
+                            percorso_alternativo = [
+                                [offset_lat, offset_lon],  # Punto di partenza
+                                [offset_lat - 0.01, offset_lon - 0.01],  # Punto intermedio alt 1
+                                [offset_lat - 0.01, offset_lon + 0.02],  # Punto intermedio alt 2
+                                [location.latitude, location.longitude]  # Punto di arrivo (raccolta)
+                            ]
+                            
+                            # Aggiungi una linea per il percorso alternativo
+                            folium.PolyLine(
+                                percorso_alternativo,
+                                color="orange",
+                                weight=3,
+                                opacity=0.7,
+                                popup="Percorso alternativo di evacuazione"
+                            ).add_to(m_evacuazione)
+                            
+                            # Aggiungi anche un'area da evitare (zona rossa)
+                            folium.Circle(
+                                radius=1000,
+                                location=[location.latitude - 0.02, location.longitude - 0.02],
+                                popup="Zona da evitare",
+                                color='red',
+                                fill=True,
+                                fill_opacity=0.2
+                            ).add_to(m_evacuazione)
+                            
+                            # Aggiungi link a Google Maps per ottenere direzioni
+                            google_maps_url = f"https://www.google.com/maps/dir/?api=1&destination={location.latitude},{location.longitude}&travelmode=driving"
+                            st.markdown(f"[🧭 Ottieni indicazioni stradali per {città} - {luogo} (Google Maps)]({google_maps_url})")
+                            
+                    except Exception as e:
+                        # Se non riesce a geolocalizzare un punto, prova con il successivo
+                        pass
+            
+            # Aggiungi avvertenze generali
+            st.markdown("""
+            **Avvertenze per l'evacuazione:**
+            - Segui sempre le indicazioni delle autorità locali
+            - Evita ponti, sottopassi e strade a rischio allagamento
+            - Segnala la tua posizione ai soccorritori quando arrivi a un punto di raccolta
+            - Porta con te solo l'essenziale durante l'evacuazione
+            - Se possibile, viaggia in gruppo e non da solo
+            """)
+            
+        else:
+            st.markdown("""
+            Per questa regione non sono definiti percorsi specifici di evacuazione vista la classificazione di rischio medio-bassa.
+            
+            In caso di emergenza, segui queste indicazioni generali:
+            - Segui le indicazioni delle autorità locali
+            - Mantieni la calma e aiuta chi ha difficoltà
+            - Utilizza le strade principali evitando zone potenzialmente pericolose
+            - Raggiungi il punto di raccolta più vicino alla tua posizione
+            - Segnala la tua presenza una volta giunto al punto di raccolta
+            """)
+            
+            # Aggiungi link generico a Google Maps
+            centroide = centroidi_regioni[regione_sel]
+            google_maps_url = f"https://www.google.com/maps/search/punto+di+raccolta+protezione+civile+{regione_sel.replace(' ', '+')}/@{centroide[0]},{centroide[1]},10z"
+            st.markdown(f"[🔍 Cerca punti di raccolta su Google Maps per {regione_sel}]({google_maps_url})")
+        
+        # Visualizza la mappa di evacuazione
+        folium_static(m_evacuazione, width=700, height=500)
+        
+        # Kit di emergenza
+        st.markdown("### 🎒 Kit di emergenza consigliato")
+        st.markdown("""
+        In caso di emergenza, è consigliabile avere pronto un kit contenente:
+        
+        - Acqua potabile e cibo non deperibile
+        - Torcia elettrica e batterie di ricambio
+        - Radio a batterie per ricevere aggiornamenti
+        - Kit di primo soccorso e medicinali essenziali
+        - Copia di documenti importanti in contenitore impermeabile
+        - Coperte termiche e indumenti caldi
+        - Caricabatterie portatile per telefono
+        - Fischietto per segnalare la propria posizione
+        - Contanti di piccolo taglio
+        - Mascherine e disinfettante per le mani
+        """)
+        
+        # Procedure di emergenza comunali
+        st.markdown("### 📄 Procedure di emergenza comunali")
+        
+        # Controllo se ci sono procedure specifiche nel dataset
+        if "procedure_comunali" in dati:
+            st.markdown(dati["procedure_comunali"])
+        else:
+            st.markdown("""
+            Ogni comune italiano è dotato di un Piano di Emergenza Comunale (PEC) che contiene le procedure specifiche per ogni tipo di emergenza.
+            
+            **Come accedere al Piano di Emergenza del tuo comune:**
+            1. Visita il sito web del tuo comune
+            2. Cerca la sezione "Protezione Civile" o "Piano di Emergenza"
+            3. Contatta l'URP del tuo comune se non trovi informazioni online
+            
+            **Il Piano di Emergenza Comunale definisce:**
+            - I rischi specifici del territorio
+            - Le aree di attesa, accoglienza e ammassamento
+            - Le procedure di allertamento
+            - I percorsi di evacuazione
+            - Le responsabilità e i ruoli durante le emergenze
+            
+            **Informazioni che devi conoscere:**
+            - L'area di attesa più vicina alla tua abitazione
+            - I percorsi di evacuazione suggeriti
+            - Le modalità di allertamento della popolazione
+            - I numeri di emergenza locali
+            """)
+        
+        # Numeri utili e contatti di emergenza
+        st.markdown("### ☎️ Numeri utili e contatti di emergenza")
+        
+        # Crea due colonne per organizzare i numeri
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### Numeri nazionali")
+            st.markdown("""
+            - **112** - Numero Unico Emergenze
+            - **115** - Vigili del Fuoco
+            - **118** - Emergenza Sanitaria
+            - **1515** - Emergenza Ambientale (Carabinieri Forestali)
+            - **117** - Guardia di Finanza
+            - **1530** - Emergenza in Mare (Guardia Costiera)
+            - **800 840 840** - Protezione Civile (numero verde)
+            """)
+        
+        with col2:
+            st.markdown("#### Numeri regionali")
+            
+            # Mostra numeri specifici se disponibili nel dataset
+            if "numeri_regionali" in dati:
+                for nome, numero in dati.get("numeri_regionali", {}).items():
+                    st.markdown(f"- **{numero}** - {nome}")
+            else:
+                st.markdown(f"""
+                - Protezione Civile {regione_sel}: verifica sul sito regionale
+                - Sala Operativa Regionale: verifica sul sito regionale
+                - Prefettura di competenza: verifica sul sito della Prefettura
+                """)
+            
+            # Link alla app IO per ricevere avvisi dalla Protezione Civile
+            st.markdown("### 📱 App ufficiali")
+            st.markdown("""
+            - **IO**: app ufficiale dei servizi pubblici, ricevi alert dalla Protezione Civile
+            - **IT-alert**: sistema di allarme pubblico nazionale
+            - **Libretto Famiglia**: documenti sanitari e contatti di emergenza
+            - **FlagMii**: condivisione posizione con i soccorritori in caso di emergenza
+            """)
