@@ -117,4 +117,54 @@ def show():
     **meteotorre@gmail.com**
     """)
     
-    st.caption("Ultimo aggiornamento dei termini: Dicembre 2023")
+    st.caption("Ultimo aggiornamento dei termini: Aprile 2025")
+    
+    st.markdown("---")
+    
+    with st.expander("ℹ️ Informazioni sull'applicazione"):
+        st.subheader("Come funziona SismaVer2")
+        
+        st.markdown("""
+        ### Architettura dell'applicazione
+        
+        SismaVer2 è costruito su un'architettura moderna e resiliente che integra diverse tecnologie:
+        
+        - **Frontend**: Streamlit (framework Python per applicazioni web interattive)
+        - **Backend**: Sistema modulare Python con cache multi-livello
+        - **Database**: Supabase per la persistenza dei dati e gestione utenti
+        - **Visualizzazione dati**: Folium, Plotly e Pandas per elaborazione e visualizzazione
+        - **API**: Integrazione con INGV, USGS, OpenWeatherMap e altri servizi
+        
+        ### Fonti dei dati
+        
+        L'applicazione integra dati da fonti ufficiali e autorevoli:
+        
+        - **Dati sismici**: INGV (Istituto Nazionale di Geofisica e Vulcanologia) con fallback a USGS
+        - **Dati vulcanici**: INGV Osservatorio Vesuviano e Osservatorio Etneo
+        - **Dati meteo**: OpenWeatherMap API
+        - **Punti di emergenza**: Database Protezione Civile e risorse comunali
+        
+        ### Sistema di fallback multi-livello
+        
+        Per garantire la massima affidabilità, SismaVer2 implementa un sofisticato sistema di fallback:
+        
+        1. **Richieste multi-server**: Le richieste vengono inviate a server alternativi quando il principale non risponde
+        2. **API alternative**: Utilizzo di USGS quando INGV non è raggiungibile
+        3. **Cache temporanea**: I dati recenti vengono memorizzati per garantire l'accesso anche offline
+        4. **Dati storici**: In ultima istanza, vengono mostrati dati storici significativi
+        
+        ### Aggiornamenti automatici
+        
+        SismaVer2 implementa un sistema di aggiornamento continuo:
+        
+        - **Monitoraggio sismico**: Aggiornamento automatico ogni 15 minuti
+        - **Dati vulcanici**: Aggiornamento giornaliero
+        - **Previsioni meteo**: Aggiornamento ogni 3 ore
+        - **Segnalazioni utenti**: In tempo reale
+        """)
+        
+        st.success("SismaVer2 è progettato per funzionare anche in condizioni di connettività limitata o instabile, garantendo l'accesso alle informazioni essenziali in ogni momento.")
+        
+    st.markdown("---")
+    
+    st.info("Per ulteriori informazioni o richieste specifiche, contattare l'autore all'indirizzo meteotorre@gmail.com")

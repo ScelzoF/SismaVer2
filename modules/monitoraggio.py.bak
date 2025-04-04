@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import plotly.express as px
 import plotly.graph_objects as go
 import time
@@ -12,9 +12,6 @@ import requests
 import json
 from io import StringIO
 import os
-
-# Definizione del fuso orario italiano (UTC+2)
-FUSO_ORARIO_ITALIA = timezone(timedelta(hours=2))
 
 def show():
     st.title("📡 Monitoraggio Sismico Nazionale")
@@ -33,10 +30,10 @@ def show():
     
     regione_scelta = st.sidebar.selectbox("Seleziona regione", regioni)
 
-    # Data e ora dell'ultimo aggiornamento con fuso orario italiano
-    current_time = datetime.now(timezone(timedelta(hours=2)))  # UTC+2 per l'Italia
+    # Data e ora dell'ultimo aggiornamento
+    current_time = datetime.now()
     last_update_timestamp = current_time.strftime("%d/%m/%Y %H:%M:%S")
-    st.sidebar.markdown(f"**🕒 Ultimo aggiornamento:** {last_update_timestamp} (IT)")
+    st.sidebar.markdown(f"**🕒 Ultimo aggiornamento:** {last_update_timestamp}")
     st.sidebar.markdown("---")
     
     # Informazioni sul monitoraggio
@@ -60,16 +57,16 @@ def show():
         
         with col_refresh:
             if st.button("🔄 Aggiorna dati"):
-                st.session_state.last_update = datetime.now(FUSO_ORARIO_ITALIA)
+                st.session_state.last_update = datetime.now()
                 st.rerun()
         
         with col_time:
-            current_time = datetime.now(timezone(timedelta(hours=2)))  # UTC+2 per l'Italia
+            current_time = datetime.now()
             
             if 'last_update' not in st.session_state:
                 st.session_state.last_update = current_time
                 
-            st.markdown(f"**🕒 Ultimo aggiornamento:** {current_time.strftime('%d/%m/%Y %H:%M:%S')} (IT)")
+            st.markdown(f"**🕒 Ultimo aggiornamento:** {current_time.strftime('%d/%m/%Y %H:%M:%S')}")
             
         # Auto-aggiornamento ogni 5 minuti
         if 'last_update' not in st.session_state:
@@ -137,14 +134,12 @@ def show():
                 @st.cache_data(ttl=1800, show_spinner=False)  # Cache validità aumentata a 30 minuti
                 def fetch_seismic_data(url):
                     """
-                    Recupera i dati sismici con sistema di cache avanzato a quattro livelli:
+                    Recupera i dati sismici con sistema di cache avanzato a tre livelli:
                     1. Cache di Streamlit (TTL 30 minuti)
-                    2. Cache in session_state (15 minuti) 
-                    3. Sistema multiserver INGV con strategie adattive di resilienza
-                    4. Dati persistenti statici come fallback di emergenza
+                    2. Cache in session_state (5 minuti)
+                    3. Dati persistenti statici come fallback
 
                     Questa implementazione massimizza le performance e riduce il carico sulle API.
-                    Include controllo preliminare multiplo della raggiungibilità di tutti i server INGV.
                     """
                     # Log di debug per tracciare le chiamate
                     print(f"DEBUG - Richiesta dati sismici da: {url}")
@@ -154,16 +149,14 @@ def show():
                         if 'last_seismic_data' not in st.session_state:
                             st.session_state.last_seismic_data = {"features": [], "type": "FeatureCollection"}
                         if 'last_fetch_time' not in st.session_state:
-                            st.session_state.last_fetch_time = datetime.now(FUSO_ORARIO_ITALIA) - timedelta(hours=1)
-                        if 'using_usgs_data' not in st.session_state:
-                            st.session_state.using_usgs_data = False  # Flag per indicare se stiamo usando dati USGS
+                            st.session_state.last_fetch_time = datetime.now() - timedelta(hours=1)
                         
                         # Livello cache 1: Verifichiamo session_state per dati ultra-recenti
                         if 'last_seismic_data' in st.session_state and 'last_fetch_time' in st.session_state:
-                            # Utilizziamo dati in memoria se recenti (aumentato a 15 minuti)
-                            time_diff = datetime.now(FUSO_ORARIO_ITALIA) - st.session_state.last_fetch_time
-                            if time_diff.total_seconds() < 900:  # 15 minuti (aumentato da 10)
-                                print(f"INFO: Usando dati sismici dalla cache in memoria (età: {int(time_diff.total_seconds())}s)")
+                            # Utilizziamo dati in memoria se recenti (meno di 10 minuti)
+                            time_diff = datetime.now() - st.session_state.last_fetch_time
+                            if time_diff.total_seconds() < 600:  # 10 minuti
+                                print("INFO: Usando dati sismici dalla cache in memoria")
                                 return st.session_state.last_seismic_data, None
                         
                         # Livello cache 2: Recuperiamo da API con timeout ottimizzato e retry
@@ -171,102 +164,29 @@ def show():
                             # Impostazione timeout più lungo per evitare errori su reti lente
                             print("INFO: Tentativo di recupero dati da API INGV...")
                             headers = {
-                                'User-Agent': 'SismaVer2/1.0 (Monitoraggio sismico italiano; https://sisma-ver-2.replit.app/)',
-                                'Accept': 'application/json, text/plain, application/xml',  # Accettiamo più formati
-                                'Accept-Encoding': 'gzip, deflate',  # Compressione per ridurre bandwidth
-                                'Connection': 'keep-alive'  # Performance migliorata per richieste multiple
+                                'User-Agent': 'SismaVer2/1.0 (Monitoraggio sismico italiano; https://sisma-ver-2.replit.app/)'
                             }
                             
-                            # Definizione di tutti i server INGV alternativi
-                            ingv_servers = [
-                                "webservices.ingv.it",
-                                "terremoti.ingv.it",
-                                "cnt.rm.ingv.it",
-                                "iside.rm.ingv.it"
-                            ]
-                            
-                            # Definizione delle strategie per richieste alternative (più resilienti)
-                            data_strategies = [
-                                # Default strategia
-                                lambda u: u,
-                                # Strategia catalogs (formato diverso)
-                                lambda u: u.replace("fdsnws/event/1/query", "fdsnws/event/1/catalogs"),
-                                # Strategia evento (meno dati, più veloce)
-                                lambda u: u.replace("format=geojson", "format=text").replace("limit=100", "limit=25"),
-                                # Strategia magnitudo (solo eventi significativi)
-                                lambda u: u.replace("minmag=0.5", "minmag=2.0").replace("limit=100", "limit=25"),
-                                # Strategia storica (ultimi 7 giorni)
-                                lambda u: u.replace("starttime=", "starttime=" + (datetime.now(FUSO_ORARIO_ITALIA) - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S"))
-                            ]
-                            
-                            # Implementazione con retry adattivo
-                            max_retries = 2  # Manteniamo 2 tentativi per non bloccare l'interfaccia
+                            # Implementazione con retry ridotto e timeout più breve
+                            max_retries = 2  # Riduco da 3 a 2 tentativi
                             retry_count = 0
-                            retry_delay = 1  # Partiamo con un secondo
-                            response = None  # Inizializzazione esplicita
+                            retry_delay = 1  # Ridotto da 2 a 1 secondo
                             
                             while retry_count < max_retries:
-                                # Lista di server INGV raggiungibili (verifica preliminare)
-                                reachable_servers = []
-                                
-                                # Verifichiamo tutti i server contemporaneamente
-                                for server in ingv_servers:
-                                    try:
-                                        check_url = f"https://{server}"
-                                        head_response = requests.head(check_url, timeout=2.5, headers=headers)
-                                        if head_response.status_code < 400:
-                                            reachable_servers.append(server)
-                                            print(f"INFO: Server INGV raggiungibile: {server}")
-                                    except Exception as server_err:
-                                        print(f"INFO: Server INGV non accessibile: {server} ({str(server_err)[:50]}...)")
-                                
-                                if not reachable_servers:
-                                    print("INFO: Nessun server INGV raggiungibile, utilizzo cache")
-                                    raise requests.exceptions.ConnectionError("Tutti i server INGV non sono raggiungibili")
-                                
-                                # Prova tutte le combinazioni di server e strategie
-                                success = False
-                                
-                                for server in reachable_servers:
-                                    if success:
-                                        break
-                                        
-                                    for strategy in data_strategies:
-                                        try:
-                                            # Costruisci URL con server e strategia attuali
-                                            current_url = url.replace("webservices.ingv.it", server)
-                                            current_url = strategy(current_url)
-                                            
-                                            print(f"INFO: Tentativo con {server}, strategia: {strategy.__name__ if hasattr(strategy, '__name__') else 'custom'}")
-                                            response = requests.get(current_url, timeout=7, headers=headers)  # Timeout aumentato
-                                            
-                                            if response.status_code == 200:
-                                                content_type = response.headers.get('Content-Type', '')
-                                                
-                                                # Verifica preliminare del contenuto
-                                                if ('application/json' in content_type and len(response.text) > 100) or \
-                                                   ('text/plain' in content_type and len(response.text) > 50):
-                                                    print(f"INFO: Risposta valida ricevuta da {server} ({len(response.text)} bytes)")
-                                                    success = True
-                                                    break
-                                                else:
-                                                    print(f"INFO: Risposta da {server} troppo corta o non valida")
-                                        except Exception as req_err:
-                                            print(f"INFO: Errore durante richiesta a {server}: {str(req_err)[:50]}...")
-                                
-                                if success and response and response.status_code == 200:
-                                    print("INFO: Recupero dati INGV completato con successo")
+                                try:
+                                    response = requests.get(url, timeout=5, headers=headers)  # Riduco timeout da 10 a 5 secondi
+                                    # Se arriviamo qui, la richiesta ha avuto successo
                                     break
-                                else:
+                                except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
                                     retry_count += 1
-                                    # Utilizziamo backoff esponenziale modificato: aumenta più gradualmente
-                                    retry_wait = retry_delay * (1.2 ** retry_count)  # Crescita più graduale
                                     if retry_count < max_retries:
-                                        print(f"INFO: Tentativo {retry_count} fallito, riprovo tra {retry_wait:.1f} secondi...")
-                                        time.sleep(retry_wait)
+                                        print(f"INFO: Tentativo {retry_count} fallito, riprovo tra {retry_delay} secondi...")
+                                        time.sleep(retry_delay)
+                                        retry_delay *= 1.5  # Aumenta il ritardo ad ogni tentativo
                                     else:
-                                        print(f"INFO: Tutti i tentativi falliti ({max_retries}), utilizzo dati di fallback")
-                                        raise requests.exceptions.RequestException("Tutti i tentativi falliti")
+                                        # Ultimo tentativo fallito, passa direttamente al fallback
+                                        print(f"INFO: Tutti i tentativi falliti, utilizzo dati di fallback")
+                                        raise
                             
                             if response.status_code == 200:
                                 try:
@@ -285,14 +205,9 @@ def show():
                                     
                                     # Ottimizzazione: Memorizziamo in session_state
                                     st.session_state.last_seismic_data = data
-                                    st.session_state.last_fetch_time = datetime.now(FUSO_ORARIO_ITALIA)
-                                    # Se prima stavamo usando USGS, segnala il ripristino di INGV
-                                    message = None
-                                    if st.session_state.get('using_usgs_data', False):
-                                        st.session_state.using_usgs_data = False  # Reset flag USGS
-                                        message = "✅ Connessione INGV ripristinata. Utilizzando dati ufficiali dell'Istituto Nazionale di Geofisica e Vulcanologia."
-                                    print(f"INFO: Recuperati {len(data.get('features', []))} eventi sismici da INGV")
-                                    return data, message
+                                    st.session_state.last_fetch_time = datetime.now()
+                                    print(f"INFO: Recuperati {len(data.get('features', []))} eventi sismici")
+                                    return data, None
                                     
                                 except ValueError as json_err:
                                     error_msg = f"Errore nel parsing JSON: {str(json_err)}"
@@ -312,51 +227,9 @@ def show():
                         except requests.exceptions.RequestException as req_e:
                             print(f"ERROR: Eccezione nella richiesta HTTP: {str(req_e)}")
                             
-                            # Livello 3: Fallback a USGS per dati globali in tempo reale
-                            try:
-                                print("INFO: INGV non accessibile, tentativo con USGS...")
-                                
-                                # Coordiante approssimative dell'Italia
-                                italy_bounds = {
-                                    "north": 47.5,  # Confine settentrionale
-                                    "south": 35.0,  # Confine meridionale (include Sicilia)
-                                    "east": 20.0,   # Confine orientale (include Puglia)
-                                    "west": 6.0     # Confine occidentale (include Sardegna) 
-                                }
-                                
-                                # Costruisci URL per USGS per l'area dell'Italia
-                                usgs_start_time = (datetime.now(FUSO_ORARIO_ITALIA) - timedelta(days=30)).strftime("%Y-%m-%d")
-                                usgs_url = f"https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson" + \
-                                          f"&starttime={usgs_start_time}" + \
-                                          f"&minlatitude={italy_bounds['south']}&maxlatitude={italy_bounds['north']}" + \
-                                          f"&minlongitude={italy_bounds['west']}&maxlongitude={italy_bounds['east']}" + \
-                                          f"&minmagnitude=0.5"
-                                          
-                                usgs_headers = {
-                                    'User-Agent': 'SismaVer2/1.0 (Monitoraggio sismico italiano; https://sisma-ver-2.replit.app/)',
-                                    'Accept': 'application/json'
-                                }
-                                
-                                usgs_response = requests.get(usgs_url, timeout=10, headers=usgs_headers)
-                                
-                                if usgs_response.status_code == 200:
-                                    usgs_data = usgs_response.json()
-                                    
-                                    # Verifica dati USGS 
-                                    if isinstance(usgs_data, dict) and "features" in usgs_data:
-                                        # Salva in session_state
-                                        st.session_state.last_seismic_data = usgs_data
-                                        st.session_state.last_fetch_time = datetime.now(FUSO_ORARIO_ITALIA)
-                                        st.session_state.using_usgs_data = True  # Flag per indicare l'uso di USGS
-                                        print(f"INFO: Recuperati {len(usgs_data.get('features', []))} eventi sismici da USGS")
-                                        return usgs_data, "⚠️ INGV temporaneamente non disponibile. Utilizzando dati da USGS (United States Geological Survey)."
-                            except Exception as usgs_err:
-                                print(f"ERROR: Fallito anche fallback USGS: {str(usgs_err)}")
-                            
-                            # Livello 4: Fallback a dati in cache
+                            # Se abbiamo dati in cache, utilizziamo quelli come livello 3 di fallback
                             if 'last_seismic_data' in st.session_state:
-                                source_text = "USGS" if st.session_state.get('using_usgs_data', False) else "INGV"
-                                return st.session_state.last_seismic_data, f"⚠️ Problemi di connessione. Visualizzando dati recenti da {source_text} in cache."
+                                return st.session_state.last_seismic_data, f"Errore di connessione API: {str(req_e)}"
                         
                         # Ultimo livello (fallback): dati storici da CSV locale
                         try:
@@ -424,7 +297,7 @@ def show():
                                 fallback_data = {
                                     "type": "FeatureCollection",
                                     "metadata": {
-                                        "generated": datetime.now(FUSO_ORARIO_ITALIA).isoformat(),
+                                        "generated": datetime.now().isoformat(),
                                         "title": "Dati sismici storici (modalità fallback)",
                                         "status": 200,
                                         "count": len(features)
@@ -432,12 +305,12 @@ def show():
                                     "features": features[:20]  # Limitiamo a 20 eventi per prestazioni
                                 }
                                 
-                                return fallback_data, "L'API INGV al momento non è accessibile. Visualizzazione dei principali eventi sismici storici in Italia."
+                                return fallback_data, "Impossibile accedere ai dati in tempo reale - visualizzazione dati storici"
                         except Exception as csv_err:
                             print(f"ERROR nel fallback CSV: {str(csv_err)}")
                             
                         # Fallback finale: struttura vuota ma valida
-                        return {"features": [], "type": "FeatureCollection", "metadata": {"generated": datetime.now(FUSO_ORARIO_ITALIA).isoformat()}}, "Impossibile accedere ai dati sismici - riprova più tardi"
+                        return {"features": [], "type": "FeatureCollection", "metadata": {"generated": datetime.now().isoformat()}}, "Impossibile accedere ai dati sismici - riprova più tardi"
                     
                     except Exception as e:
                         # Gestione dell'errore migliorata con log per debugging
@@ -445,7 +318,7 @@ def show():
                         print(f"ERROR - Sistema di cache sismico: {error_msg}")
                         
                         # Fallback finale: restituiamo una struttura vuota ma valida
-                        empty_data = {"features": [], "type": "FeatureCollection", "metadata": {"generated": datetime.now(FUSO_ORARIO_ITALIA).isoformat()}}
+                        empty_data = {"features": [], "type": "FeatureCollection", "metadata": {"generated": datetime.now().isoformat()}}
                         return empty_data, error_msg
                 
                 with st.spinner("Caricamento dati sismici in tempo reale..."):
@@ -454,11 +327,7 @@ def show():
                     features = sensor_data.get("features", [])
                     
                     if error_msg:
-                        # Se è un messaggio di ripristino INGV (inizia con ✅), usa st.success invece di warning
-                        if error_msg.startswith("✅"):
-                            st.success(error_msg)
-                        else:
-                            st.warning(error_msg)
+                        st.warning(f"Avviso: {error_msg}")
                     
                     if not features:
                         st.info(f"Nessun evento sismico rilevato nelle ultime 24 ore {f'in {regione_scelta}' if regione_scelta != 'Italia (Visione nazionale)' else 'in Italia'}.")
@@ -573,39 +442,8 @@ def show():
                         st.subheader("📈 Andamento sismico eventi recenti")
                         
                         try:
-                            # Creare un asse temporale per il grafico con gestione multiformat
-                            # Controllo se stiamo usando dati USGS o INGV per adattare il parsing delle date
-                            using_usgs = st.session_state.get('using_usgs_data', False)
-                            
-                            # Funzione per convertire diverse date in datetime con gestione errori
-                            def parse_date_flexible(date_str):
-                                formats_to_try = [
-                                    '%d/%m/%Y %H:%M:%S',  # INGV formato standard (con IT)
-                                    '%Y-%m-%d %H:%M:%S',  # USGS formato standard
-                                    '%d/%m/%Y %H:%M:%S (IT)',  # INGV con indicatore fuso
-                                    '%Y-%m-%dT%H:%M:%S',  # ISO format
-                                    '%Y-%m-%dT%H:%M:%S.%f',  # ISO with microseconds
-                                ]
-                                
-                                # Rimuovi l'indicatore di fuso orario se presente
-                                date_str = date_str.replace(' (IT)', '')
-                                
-                                for fmt in formats_to_try:
-                                    try:
-                                        return pd.to_datetime(date_str, format=fmt)
-                                    except (ValueError, TypeError):
-                                        continue
-                                        
-                                # Se nessun formato funziona, usa il parser generico di pandas
-                                try:
-                                    return pd.to_datetime(date_str)
-                                except:
-                                    # Come ultima risorsa, ritorna la data corrente
-                                    print(f"Impossibile convertire data: {date_str}")
-                                    return pd.to_datetime('now')
-                            
-                            # Applica la funzione di parsing flessibile
-                            df_seismic['Data/Ora Obj'] = df_seismic['Data/Ora'].apply(parse_date_flexible)
+                            # Creare un asse temporale per il grafico
+                            df_seismic['Data/Ora Obj'] = pd.to_datetime(df_seismic['Data/Ora'], format='%d/%m/%Y %H:%M:%S')
                             df_seismic = df_seismic.sort_values('Data/Ora Obj')
                             
                             # Crea grafico con Plotly
@@ -621,30 +459,9 @@ def show():
                                 labels={'Data/Ora Obj': 'Data/Ora', 'Magnitudo': 'Magnitudo'}
                             )
                             
-                            # Aggiungi traccia per connettere i punti cronologicamente
-                            fig.add_trace(
-                                go.Scatter(
-                                    x=df_seismic['Data/Ora Obj'], 
-                                    y=df_seismic['Magnitudo'],
-                                    mode='lines',
-                                    line=dict(width=1, color='rgba(200,200,200,0.5)'),
-                                    showlegend=False
-                                )
-                            )
-                            
-                            # Migliora layout
-                            fig.update_layout(
-                                xaxis_title="Data/Ora",
-                                yaxis_title="Magnitudo",
-                                legend_title="Magnitudo",
-                                hovermode="closest"
-                            )
-                            
                             st.plotly_chart(fig, use_container_width=True)
                         except Exception as e:
                             st.warning(f"Non è stato possibile creare il grafico temporale: {e}")
-                            print(f"DEBUG - Errore grafico: {str(e)}")
-                            print(f"DEBUG - Formato date nel DataFrame: {df_seismic['Data/Ora'].iloc[0] if len(df_seismic) > 0 else 'DataFrame vuoto'}")
                         
                         # Statistiche rapide
                         st.subheader("📊 Statistiche sismiche")
@@ -1284,7 +1101,7 @@ def show():
             st.success("✅ Nessuna allerta idrogeologica attiva")
             
         # Info bollettini
-        st.info(f"Ultimo bollettino idrogeologico aggiornato: {datetime.now(FUSO_ORARIO_ITALIA).strftime('%d/%m/%Y')}")
+        st.info(f"Ultimo bollettino idrogeologico aggiornato: {datetime.now().strftime('%d/%m/%Y')}")
         
         # Visualizza informazioni sui portali ufficiali
         with st.expander("🔗 Portali ufficiali monitoraggio idrogeologico"):
@@ -1316,7 +1133,7 @@ def show_monitoraggio_idrogeologico():
         st.metric("Zone a rischio alluvione", "2.062.475", "Alta criticità")
         st.metric("Popolazione esposta", "6.8 M", "abitanti")
     
-    st.info("Dati aggiornati al: " + datetime.now(FUSO_ORARIO_ITALIA).strftime("%d/%m/%Y %H:%M:%S") + " (IT)")
+    st.info("Dati aggiornati al: " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
     
     # Mappa delle zone a rischio
     st.markdown("### 🗺️ Mappa delle zone a rischio")

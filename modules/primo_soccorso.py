@@ -7,9 +7,15 @@ import json
 import os
 import base64
 import glob
-from datetime import datetime
-from PIL import Image
+import time
+import hashlib
+from datetime import datetime, timezone, timedelta
+from PIL import Image, UnidentifiedImageError, ImageOps
 from io import BytesIO
+from functools import lru_cache
+
+# Definizione fuso orario italiano per coerenza
+FUSO_ORARIO_ITALIA = timezone(timedelta(hours=2))
 
 def show():
     st.title('🩺 Primo Soccorso e Strutture Sanitarie')
@@ -23,33 +29,108 @@ def show():
 
     tab1, tab2, tab3, tab4 = st.tabs(["📋 Linee Guida", "🚑 Pronto Soccorso", "🏥 Ospedali e Strutture", "🔃 Punti di Raccolta"])
 
-    # Funzione per caricare e visualizzare immagini
-    def get_image_as_base64(path):
+    # Sistema ottimizzato per gestione immagini con advanced caching
+    @lru_cache(maxsize=32)
+    def get_image_hash(path):
+        """Crea un hash univoco dell'immagine per il cache avanzato."""
         try:
+            if not os.path.exists(path):
+                return None
+            
+            # Usa la combinazione di mtime e dimensione file per hash più efficiente
+            mtime = os.path.getmtime(path)
+            size = os.path.getsize(path)
+            return hashlib.md5(f"{path}_{mtime}_{size}".encode()).hexdigest()
+        except Exception:
+            return None
+            
+    # Sistema di cache per immagini base64 (per ingrandimento)
+    image_base64_cache = {}
+    
+    # Funzione ottimizzata per caricare e visualizzare immagini
+    def get_image_as_base64(path):
+        """Versione ottimizzata con multilevel caching e gestione errori avanzata."""
+        try:
+            # Verifica esistenza file
+            if not os.path.exists(path):
+                fallback_path = os.path.join("images", os.path.basename(path))
+                if os.path.exists(fallback_path):
+                    path = fallback_path
+                else:
+                    return None
+                    
+            # Cache check con chiave hash basata su percorso e mtime
+            image_hash = get_image_hash(path)
+            if image_hash in image_base64_cache:
+                return image_base64_cache[image_hash]
+                
+            # Lettura file ottimizzata con gestone risorse
             with open(path, "rb") as img_file:
-                return base64.b64encode(img_file.read()).decode()
+                img_data = img_file.read()
+                result = base64.b64encode(img_data).decode()
+                
+                # Salva in cache
+                image_base64_cache[image_hash] = result
+                return result
         except Exception as e:
-            st.error(f"Errore nel caricamento dell'immagine: {e}")
+            print(f"Errore nel caricamento dell'immagine {path}: {e}")
             return None
 
-    # Funzione per visualizzare immagini con didascalie
+    # Funzione per visualizzare immagini con didascalie e placeholder avanzati
     def display_image_with_caption(image_path, caption, width=None):
+        """Funzione ottimizzata con multiple fallbacks e gestione errori."""
         try:
-            img = Image.open(image_path)
-            if width:
-                st.image(img, caption=caption, width=width)
+            # Gestione percorsi alternativi
+            paths_to_try = [
+                image_path,
+                os.path.join("attached_assets", os.path.basename(image_path)),
+                os.path.join("images", os.path.basename(image_path))
+            ]
+            
+            # Prova tutti i percorsi possibili
+            img = None
+            for path in paths_to_try:
+                if os.path.exists(path):
+                    try:
+                        img = Image.open(path)
+                        break
+                    except UnidentifiedImageError:
+                        continue
+            
+            if img:
+                # Ottimizzazione dell'immagine per il display
+                if img.mode == 'RGBA' and img.size[0] > 1000:
+                    # Riduce dimensioni per performance migliori
+                    img.thumbnail((1000, 1000), Image.LANCZOS)
+                
+                # Visualizzazione ottimizzata
+                if width:
+                    st.image(img, caption=caption, width=width)
+                else:
+                    st.image(img, caption=caption)
             else:
-                st.image(img, caption=caption)
+                # Placeholder avanzato con stile migliorato
+                st.warning(f"Immagine non disponibile: {caption}")
+                text_image = f'''
+                <div style="width:100%;height:180px;background-color:#f8f9fa;
+                    border:1px solid #dee2e6;display:flex;align-items:center;
+                    justify-content:center;text-align:center;border-radius:8px;
+                    font-family:sans-serif;color:#495057;margin:10px 0;">
+                    <div>
+                        <div style="font-size:40px;margin-bottom:10px;">🖼️</div>
+                        <div style="font-weight:bold;">{caption}</div>
+                        <div style="font-size:12px;margin-top:5px;">Immagine non disponibile</div>
+                    </div>
+                </div>'''
+                st.markdown(text_image, unsafe_allow_html=True)
         except Exception as e:
-            st.warning(f"Immagine non disponibile: {caption}")
-            # Creare un'immagine placeholder con il testo
-            text_image = f'<div style="width:100%;height:150px;background-color:#f0f0f0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:5px;">{caption}</div>'
-            st.markdown(text_image, unsafe_allow_html=True)
+            print(f"Errore visualizzazione immagine: {e}")
+            st.warning(f"Impossibile visualizzare l'immagine: {caption}")
 
-    # Funzione per rendere le immagini cliccabili e ingrandibili
+    # Funzione avanzata per rendere le immagini cliccabili e ingrandibili
     def display_clickable_image(image_path, caption, width=600, key_suffix=""):
         """
-        Mostra un'immagine cliccabile che si apre in una nuova finestra popup quando selezionata.
+        Mostra un'immagine cliccabile con popup ottimizzato e responsive per diversi dispositivi.
         
         Args:
             image_path: Percorso dell'immagine
@@ -57,27 +138,66 @@ def show():
             width: Larghezza dell'immagine
             key_suffix: Suffisso opzionale per rendere unica la chiave del pulsante
         """
-        # Generiamo un ID univoco basato sul percorso dell'immagine e sul suffisso opzionale
-        unique_id = f"{image_path}_{key_suffix}_{width}"
+        # Cache key per migliori performance
+        image_hash = get_image_hash(image_path) or f"hash_{time.time()}"
+        unique_id = f"{image_hash}_{key_suffix}_{width}"
         
-        # Verifichiamo che l'immagine esista prima
-        try:
-            # Verifichiamo il percorso originale
-            if os.path.exists(image_path):
-                img = Image.open(image_path)
-                st.image(img, caption=caption, width=width)
+        # Cerca l'immagine in posizioni alternative se necessario
+        actual_path = None
+        alternative_paths = [
+            image_path,
+            os.path.join("attached_assets", os.path.basename(image_path)),
+            os.path.join("images", os.path.basename(image_path)),
+            image_path.replace("images/", "attached_assets/"),
+            f"attached_assets/{os.path.basename(image_path)}"
+        ]
+        
+        for path in alternative_paths:
+            if os.path.exists(path):
+                actual_path = path
+                break
                 
-                # Utilizziamo uno script JavaScript per aprire una nuova finestra popup
-                if st.button(f"🔍 Ingrandisci immagine", key=f"btn_{unique_id}"):
-                    # Convertiamo l'immagine in base64
-                    img_base64 = get_image_as_base64(image_path)
+        # Se ancora non troviamo l'immagine, mostra un placeholder e esci
+        if not actual_path:
+            st.warning(f"Immagine non trovata: {caption}")
+            text_image = f'<div style="width:100%;height:150px;background-color:#f0f0f0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:5px;">{caption}</div>'
+            st.markdown(text_image, unsafe_allow_html=True)
+            return
+            
+        try:
+            # Carica e ottimizza l'immagine
+            img = Image.open(actual_path)
+            
+            # Ottimizzazione proporzioni e dimensioni
+            if img.width > width:
+                ratio = width / img.width
+                height = int(img.height * ratio)
+            else:
+                height = img.height
+                
+            # Visualizza immagine ottimizzata
+            st.image(img, caption=caption, width=width)
+            
+            # Crea pulsante per ingrandimento con UI migliorata
+            if st.button(f"🔍 Visualizza a schermo intero", key=f"btn_{unique_id}"):
+                # Carica l'immagine in base64 con cache
+                img_base64 = get_image_as_base64(actual_path)
+                
+                # HTML responsive per mobile e desktop
+                popup_html = f"""
+                <script>
+                (function() {{
+                    // Ottimizzazione multi-dispositivo
+                    var screenWidth = window.innerWidth;
+                    var screenHeight = window.innerHeight;
+                    var popupWidth = Math.min(800, screenWidth * 0.9);
+                    var popupHeight = Math.min(600, screenHeight * 0.9);
                     
-                    # Creiamo un HTML con script per aprire una finestra popup
-                    popup_html = f"""
-                    <script>
-                    (function() {{
-                        var img_win = window.open("", "_blank", "width=800,height=600,scrollbars=yes");
-                        img_win.document.write(`
+                    var img_win = window.open("", "_blank", 
+                        "width=" + popupWidth + 
+                        ",height=" + popupHeight + 
+                        ",scrollbars=yes,resizable=yes,status=no,location=no,toolbar=no,menubar=no");
+                    img_win.document.write(`
                             <html>
                                 <head>
                                     <title>{caption}</title>
@@ -105,82 +225,19 @@ def show():
                                 </body>
                             </html>
                         `);
-                        img_win.document.close();
-                    }})();
-                    </script>
-                    """
-                    st.components.v1.html(popup_html, height=0)
-            else:
-                # Proviamo il percorso alternativo per le immagini in attached_assets
-                alternative_paths = [
-                    image_path.replace("images/", "attached_assets/"),
-                    f"attached_assets/{os.path.basename(image_path)}"
-                ]
-                
-                found = False
-                for alt_path in alternative_paths:
-                    if os.path.exists(alt_path):
-                        img = Image.open(alt_path)
-                        st.image(img, caption=caption, width=width)
-                        found = True
-                        
-                        # Utilizziamo uno script JavaScript per aprire una nuova finestra popup
-                        alt_unique_id = f"{alt_path}_{key_suffix}_{width}"
-                        if st.button(f"🔍 Ingrandisci immagine", key=f"btn_{alt_unique_id}"):
-                            # Convertiamo l'immagine in base64
-                            img_base64 = get_image_as_base64(alt_path)
-                            
-                            # Creiamo un HTML con script per aprire una finestra popup
-                            popup_html = f"""
-                            <script>
-                            (function() {{
-                                var img_win = window.open("", "_blank", "width=800,height=600,scrollbars=yes");
-                                img_win.document.write(`
-                                    <html>
-                                        <head>
-                                            <title>{caption}</title>
-                                            <style>
-                                                body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }}
-                                                h2 {{ margin-bottom: 20px; }}
-                                                img {{ max-width: 95%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; }}
-                                                .close-btn {{ 
-                                                    display: inline-block; 
-                                                    padding: 10px 20px; 
-                                                    margin-top: 20px; 
-                                                    background-color: #f44336; 
-                                                    color: white; 
-                                                    border: none; 
-                                                    border-radius: 4px; 
-                                                    cursor: pointer; 
-                                                }}
-                                            </style>
-                                        </head>
-                                        <body>
-                                            <h2>{caption}</h2>
-                                            <img src="data:image/png;base64,{img_base64}" alt="{caption}">
-                                            <br>
-                                            <button class="close-btn" onclick="window.close()">Chiudi finestra</button>
-                                        </body>
-                                    </html>
-                                `);
-                                img_win.document.close();
-                            }})();
-                            </script>
-                            """
-                            st.components.v1.html(popup_html, height=0)
-                        break
-                
-                if not found:
-                    # Creare un'immagine placeholder con il testo
-                    text_image = f'<div style="width:100%;height:150px;background-color:#f0f0f0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:5px;">{caption}</div>'
-                    st.markdown(text_image, unsafe_allow_html=True)
-                    st.warning(f"Immagine non trovata: {image_path}")
-                    
+                    img_win.document.close();
+                }})();
+                </script>
+                """
+                st.components.v1.html(popup_html, height=0)
+        
         except Exception as e:
             st.warning(f"Errore nel caricamento dell'immagine: {e}")
             # Creare un'immagine placeholder con il testo
             text_image = f'<div style="width:100%;height:150px;background-color:#f0f0f0;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:5px;">{caption}</div>'
             st.markdown(text_image, unsafe_allow_html=True)
+    
+    # Funzione per caricare SVG da file
     
     # Funzione per caricare SVG da file
     def load_svg_from_file(file_path):
