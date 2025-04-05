@@ -3,13 +3,20 @@ def show():
     import streamlit as st
     import requests
     from streamlit_js_eval import streamlit_js_eval
+    from datetime import datetime, timezone, timedelta
+    import os
 
     st.title("🌤️ Meteo Attuale")
 
-    API_KEY = st.secrets.get("OPENWEATHER_API_KEY")
+    # Ottieni la chiave API OpenWeather
+    API_KEY = os.environ.get("OPENWEATHER_API_KEY")
     if not API_KEY:
-        st.error("🔑 Chiave API OpenWeather mancante nei secrets.")
-        return
+        try:
+            API_KEY = st.secrets.get("OPENWEATHER_API_KEY")
+        except:
+            pass
+    if not API_KEY:
+        API_KEY = "d23fb9868855e4bcb4dcf04404d14a78"  # Chiave fallback
 
     metodo = st.radio("🔍 Metodo:", ["📍 Usa posizione attuale", "🏙️ Inserisci città"])
     url = None

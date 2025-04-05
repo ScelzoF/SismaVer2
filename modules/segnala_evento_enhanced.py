@@ -460,7 +460,7 @@ CREATE INDEX idx_event_reports_gravita ON public.event_reports(gravita);
     
     with tab3:
         # Sezione impostazioni
-        st.subheader("🔒 Impostazioni di moderazione")
+        st.subheader("🔒 Sistema di moderazione")
         
         # Spiegazione dei livelli di moderazione
         st.markdown("""
@@ -471,24 +471,22 @@ CREATE INDEX idx_event_reports_gravita ON public.event_reports(gravita);
         3. **Verifica manuale**: Segnalazioni critiche possono essere verificate dal team di moderazione
         """)
         
-        # Selezione del livello di moderazione
-        livello_mod = st.radio(
-            "Livello di moderazione",
-            ["leggero", "standard", "severo"],
-            index=1,  # Default 'standard'
-            help="Scegli quanto la moderazione dovrebbe essere rigorosa"
-        )
+        # Impostiamo sempre il livello su severo senza possibilità di modifica
+        st.session_state.moderazione_attiva = "severo"
         
-        if livello_mod != st.session_state.moderazione_attiva:
-            st.session_state.moderazione_attiva = livello_mod
-            st.success(f"Livello di moderazione impostato a '{livello_mod}'")
+        st.success(f"Il sistema di moderazione è impostato al livello massimo (severo) per garantire segnalazioni accurate e sicure.")
         
-        # Spiegazione dei livelli
+        # Spiegazione del livello severo
         st.markdown("""
-        - **Leggero**: Filtra solo i contenuti più inappropriati
-        - **Standard**: Equilibrio tra libertà di espressione e sicurezza (consigliato)
-        - **Severo**: Moderazione rigorosa, blocca qualsiasi contenuto potenzialmente problematico
+        Il livello **Severo** garantisce:
+        - Moderazione rigorosa di ogni segnalazione
+        - Rilevamento avanzato di contenuti inappropriati
+        - Protezione completa contro false segnalazioni
+        - Verifica automatica dell'affidabilità del contenuto
+        - Monitoraggio continuo dei comportamenti utente
         """)
+        
+
         
         st.info("Nota: Le segnalazioni che violano le linee guida possono essere moderate o bloccate dal sistema automatico.")
         

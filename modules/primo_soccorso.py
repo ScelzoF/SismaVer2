@@ -183,49 +183,58 @@ def show():
                 # Carica l'immagine in base64 con cache
                 img_base64 = get_image_as_base64(actual_path)
                 
-                # HTML responsive per mobile e desktop
+                # HTML responsive per mobile e desktop con correzione per errore DOM selector
                 popup_html = f"""
                 <script>
                 (function() {{
-                    // Ottimizzazione multi-dispositivo
-                    var screenWidth = window.innerWidth;
-                    var screenHeight = window.innerHeight;
-                    var popupWidth = Math.min(800, screenWidth * 0.9);
-                    var popupHeight = Math.min(600, screenHeight * 0.9);
-                    
-                    var img_win = window.open("", "_blank", 
-                        "width=" + popupWidth + 
-                        ",height=" + popupHeight + 
-                        ",scrollbars=yes,resizable=yes,status=no,location=no,toolbar=no,menubar=no");
-                    img_win.document.write(`
-                            <html>
-                                <head>
-                                    <title>{caption}</title>
-                                    <style>
-                                        body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }}
-                                        h2 {{ margin-bottom: 20px; }}
-                                        img {{ max-width: 95%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; }}
-                                        .close-btn {{ 
-                                            display: inline-block; 
-                                            padding: 10px 20px; 
-                                            margin-top: 20px; 
-                                            background-color: #f44336; 
-                                            color: white; 
-                                            border: none; 
-                                            border-radius: 4px; 
-                                            cursor: pointer; 
-                                        }}
-                                    </style>
-                                </head>
-                                <body>
-                                    <h2>{caption}</h2>
-                                    <img src="data:image/png;base64,{img_base64}" alt="{caption}">
-                                    <br>
-                                    <button class="close-btn" onclick="window.close()">Chiudi finestra</button>
-                                </body>
-                            </html>
-                        `);
-                    img_win.document.close();
+                    try {{
+                        // Ottimizzazione multi-dispositivo
+                        var screenWidth = window.innerWidth;
+                        var screenHeight = window.innerHeight;
+                        var popupWidth = Math.min(800, screenWidth * 0.9);
+                        var popupHeight = Math.min(600, screenHeight * 0.9);
+                        
+                        var img_win = window.open("", "_blank", 
+                            "width=" + popupWidth + 
+                            ",height=" + popupHeight + 
+                            ",scrollbars=yes,resizable=yes,status=no,location=no,toolbar=no,menubar=no");
+                        
+                        if (img_win) {{
+                            img_win.document.write(`
+                                <html>
+                                    <head>
+                                        <title>{caption}</title>
+                                        <style>
+                                            body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }}
+                                            h2 {{ margin-bottom: 20px; }}
+                                            img {{ max-width: 95%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; }}
+                                            .close-btn {{ 
+                                                display: inline-block; 
+                                                padding: 10px 20px; 
+                                                margin-top: 20px; 
+                                                background-color: #f44336; 
+                                                color: white; 
+                                                border: none; 
+                                                border-radius: 4px; 
+                                                cursor: pointer; 
+                                            }}
+                                        </style>
+                                    </head>
+                                    <body>
+                                        <h2>{caption}</h2>
+                                        <img src="data:image/png;base64,{img_base64}" alt="{caption}">
+                                        <br>
+                                        <button class="close-btn" onclick="window.close()">Chiudi finestra</button>
+                                    </body>
+                                </html>
+                            `);
+                            img_win.document.close();
+                        }} else {{
+                            console.log("Non è stato possibile aprire la finestra popup. Il browser potrebbe bloccare i popup.");
+                        }}
+                    }} catch (e) {{
+                        console.error("Errore durante l'apertura dell'immagine:", e);
+                    }}
                 }})();
                 </script>
                 """
@@ -294,10 +303,17 @@ def show():
                 """)
 
             with col2:
-                # Immagine SVG incorporata direttamente
-                with open("images/posizione_laterale_sicurezza.svg", "r") as svg_file:
-                    posizione_laterale_svg = svg_file.read()
-                st.markdown(posizione_laterale_svg, unsafe_allow_html=True)
+                # Utilizziamo direttamente l'immagine fornita dall'utente
+                try:
+                    st.image("attached_assets/image_1743844393469.png", caption="Posizione laterale di sicurezza", width=400)
+                except Exception as e:
+                    st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                    # Fallback a una descrizione in caso di errore
+                    st.markdown("""
+                    <div style="width:100%;text-align:center;padding:20px;background:#f8f9fa;border-radius:10px;">
+                        <p>🔄 Posizionare la persona su un fianco con testa leggermente inclinata all'indietro.</p>
+                    </div>
+                    """, unsafe_allow_html=True)
 
             # Illustrazione per sanguinamento
             st.subheader("Sanguinamento")
@@ -311,180 +327,195 @@ def show():
                 4. Non rimuovere oggetti conficcati nella ferita
                 """)
 
-                # Immagine SVG incorporata direttamente
-                with open("images/sanguinamento.svg", "r") as svg_file:
-                    sanguinamento_svg = svg_file.read()
-                st.markdown(sanguinamento_svg, unsafe_allow_html=True)
-
             with col2:
-                # Incluso nell'SVG del sanguinamento
-                sollevamento_svg = """
-                <svg width="200" height="100" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="200" height="100" fill="#f8f9fa" rx="10" ry="10"/>
-                    <text x="100" y="50" font-family="Arial" font-size="14" fill="#343a40" text-anchor="middle">Vedi illustrazione sopra</text>
-                </svg>
-                """
-                st.markdown(sollevamento_svg, unsafe_allow_html=True)
+                # Utilizziamo direttamente l'immagine fornita dall'utente
+                try:
+                    st.image("attached_assets/image_1743844502745.png", caption="Gestione del sanguinamento", width=300)
+                except Exception as e:
+                    st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                    # Fallback a una descrizione in caso di errore
+                    st.markdown("""
+                    <div style="width:100%;text-align:center;padding:20px;background:#f8f9fa;border-radius:10px;">
+                        <p>🩸 Applicare pressione diretta sulla ferita e sollevare l'arto se possibile.</p>
+                    </div>
+                    """, unsafe_allow_html=True)
 
 
         def show_manovre():
             st.title("🩺 Primo Soccorso")
 
             st.markdown("""
-            ### Manovre di primo soccorso essenziali
-            Qui troverai le manovre principali di primo soccorso. È importante ricordare che questa è solo una guida e non sostituisce un corso di primo soccorso professionale.
-            """)
+            <h2 style="font-size: 32px; margin-bottom: 20px; color: #1E88E5; font-weight: bold; text-align: center;">MANOVRE DI PRIMO SOCCORSO ESSENZIALI</h2>
+            <p style="font-size: 20px; margin-bottom: 25px; line-height: 1.5; font-weight: 500;">Qui troverai le manovre principali di primo soccorso. È importante ricordare che questa è solo una guida e non sostituisce un corso di primo soccorso professionale.</p>
+            """, unsafe_allow_html=True)
 
-            with st.expander("🔄 Manovra di Heimlich - Adulti"):
-                # Utilizziamo l'immagine JPG fornita
-                # Utilizziamo la nuova funzione per immagini cliccabili
-                display_clickable_image("attached_assets/Manovra-di-heimlich.jpg", "Manovra di Heimlich per adulti", width=600, key_suffix="expander_heimlich_adulti")
+            with st.expander("🔄 MANOVRA DI HEIMLICH - ADULTI", expanded=False):
+                # Utilizziamo la nuova immagine fornita dall'utente con funzione cliccabile
+                try:
+                    # Funzione per rendere l'immagine cliccabile
+                    display_clickable_image("attached_assets/image_1743854709152.png", "Manovra di Heimlich per adulti", width=1000, key_suffix="expander_heimlich_adulti_new")
+                except Exception as e:
+                    st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                    # Fallback alla vecchia immagine
+                    display_clickable_image("attached_assets/Manovra-di-heimlich.jpg", "Manovra di Heimlich per adulti", width=1000, key_suffix="expander_heimlich_adulti")
                 
                 st.markdown("""
-                Se la persona è cosciente:
-                1. Posizionarsi dietro la persona con le braccia intorno alla vita
-                2. Chiudere una mano a pugno e posizionarla tra l'ombelico e lo sterno
-                3. Afferrare il pugno con l'altra mano
-                4. Eseguire spinte rapide verso l'interno e verso l'alto
-                5. Ripeti fino a quando l'oggetto viene espulso o la persona perde coscienza
+                <h3 style="font-size: 28px; margin-top: 20px; color: #D32F2F; font-weight: bold;">Se la persona è cosciente:</h3>
+                <ol style="font-size: 24px; margin-bottom: 25px; line-height: 1.6;">
+                    <li>Posizionarsi dietro la persona con le braccia intorno alla vita</li>
+                    <li>Chiudere una mano a pugno e posizionarla tra l'ombelico e lo sterno</li>
+                    <li>Afferrare il pugno con l'altra mano</li>
+                    <li>Eseguire spinte rapide verso l'interno e verso l'alto</li>
+                    <li>Ripeti fino a quando l'oggetto viene espulso o la persona perde coscienza</li>
+                </ol>
                 
-                Se la persona è incosciente:
-                1. Posiziona la persona supina
-                2. Inizia la RCP (30 compressioni e 2 ventilazioni)
-                3. Prima di ogni ventilazione, controlla se vedi il corpo estraneo in bocca
-                """)
+                <h3 style="font-size: 28px; margin-top: 20px; color: #D32F2F; font-weight: bold;">Se la persona è incosciente:</h3>
+                <ol style="font-size: 24px; margin-bottom: 25px; line-height: 1.6;">
+                    <li>Posiziona la persona supina</li>
+                    <li>Inizia la RCP (30 compressioni e 2 ventilazioni)</li>
+                    <li>Prima di ogni ventilazione, controlla se vedi il corpo estraneo in bocca</li>
+                </ol>
+                """, unsafe_allow_html=True)
 
-            with st.expander("👶 Manovra di Heimlich - Bambini (1-8 anni)"):
-                # Utilizziamo l'immagine PNG fornita
-                # Utilizziamo la nuova funzione per immagini cliccabili
-                display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=600, key_suffix="expander_heimlich_bambini")
-                
-                st.markdown("""
-                1. La tecnica è simile a quella per gli adulti ma con minore forza
-                2. Posizionarsi dietro il bambino, con le braccia intorno alla vita
-                3. Posiziona il pugno tra l'ombelico e lo sterno
-                4. Esegui spinte graduali verso l'interno e verso l'alto
-                """)
-
-            with st.expander("👶 Disostruzione lattanti (< 1 anno)"):
-                # Utilizziamo l'immagine JPG fornita
-                # Utilizziamo la nuova funzione per immagini cliccabili
-                display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=600, key_suffix="expander_lattante")
+            with st.expander("👶 MANOVRA DI HEIMLICH - BAMBINI (1-8 ANNI)", expanded=False):
+                # Utilizziamo la nuova immagine fornita dall'utente
+                try:
+                    # Funzione per rendere l'immagine cliccabile
+                    display_clickable_image("attached_assets/image_1743854826822.png", "Manovra di Heimlich per bambini", width=1000, key_suffix="expander_heimlich_bambini_new")
+                except Exception as e:
+                    st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                    # Fallback alla vecchia immagine
+                    display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=1000, key_suffix="expander_heimlich_bambini")
                 
                 st.markdown("""
-                1. Posiziona il lattante a faccia in giù sul tuo avambraccio
-                2. Sostieni la testa e il collo con la mano
-                3. Da 5 colpi interscapolari con il palmo della mano
-                4. Se inefficace, gira il lattante supino sullo stesso avambraccio
-                5. Esegui 5 compressioni toraciche con due dita al centro del torace
-                6. Alterna 5 colpi interscapolari a 5 compressioni toraciche
-                """)
+                <ol style="font-size: 28px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;">
+                    <li>La tecnica è simile a quella per gli adulti ma con minore forza</li>
+                    <li>Posizionarsi dietro il bambino, con le braccia intorno alla vita</li>
+                    <li>Posiziona il pugno tra l'ombelico e lo sterno</li>
+                    <li>Esegui spinte graduali verso l'interno e verso l'alto</li>
+                </ol>
+                """, unsafe_allow_html=True)
 
-            with st.expander("💗 RCP (Rianimazione Cardiopolmonare)"):
-                tab1, tab2, tab3 = st.tabs(["Adulti", "Bambini", "Lattanti"])
+            with st.expander("👶 DISOSTRUZIONE LATTANTI (< 1 ANNO)", expanded=False):
+                # Utilizziamo la nuova immagine fornita dall'utente
+                try:
+                    # Funzione per rendere l'immagine cliccabile
+                    display_clickable_image("attached_assets/image_1743854881664.png", "Disostruzione delle vie aeree nei lattanti", width=1000, key_suffix="expander_lattante_new")
+                except Exception as e:
+                    st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                    # Fallback alla vecchia immagine
+                    display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=1000, key_suffix="expander_lattante")
+                
+                st.markdown("""
+                <ol style="font-size: 28px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;">
+                    <li>Posiziona il lattante a faccia in giù sul tuo avambraccio</li>
+                    <li>Sostieni la testa e il collo con la mano</li>
+                    <li>Da 5 colpi interscapolari con il palmo della mano</li>
+                    <li>Se inefficace, gira il lattante supino sullo stesso avambraccio</li>
+                    <li>Esegui 5 compressioni toraciche con due dita al centro del torace</li>
+                    <li>Alterna 5 colpi interscapolari a 5 compressioni toraciche</li>
+                </ol>
+                """, unsafe_allow_html=True)
+
+            with st.expander("💗 RCP (RIANIMAZIONE CARDIOPOLMONARE)", expanded=False):
+                tab1, tab2, tab3 = st.tabs(["ADULTI", "BAMBINI", "LATTANTI"])
 
                 with tab1:
-                    # Carichiamo SVG direttamente come stringa
+                    # Utilizziamo la nuova immagine fornita dall'utente
                     try:
-                        with open("images/rcp_adulti.svg", "r") as svg_file:
-                            svg_content = svg_file.read()
-                            
-                        st.markdown(f"""
-                        <div style="text-align: center;">
-                            {svg_content}
-                            <p style="margin-top: 10px; font-style: italic;">RCP per adulti</p>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        st.image("attached_assets/image_1743847108810.png", caption="RCP per adulti", width=1000)
                     except Exception as e:
                         st.error(f"Errore nel caricamento dell'immagine: {e}")
-                        st.image("attached_assets/image_1743605481081.png", caption="RCP per adulti")
+                        # Fallback alla vecchia immagine
+                        st.image("attached_assets/image_1743605481081.png", caption="RCP per adulti", width=900)
                     
                     st.markdown("""
-                    1. Posiziona la persona supina su una superficie rigida
-                    2. Metti le mani al centro del torace (metà inferiore dello sterno)
-                    3. Comprimi il torace di 5-6 cm
-                    4. Frequenza: 100-120 compressioni al minuto
-                    5. Dopo 30 compressioni, effettua 2 ventilazioni (se addestrato)
-                    """)
+                    <ol style="font-size: 28px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;">
+                        <li>Posiziona la persona supina su una superficie rigida</li>
+                        <li>Metti le mani al centro del torace (metà inferiore dello sterno)</li>
+                        <li>Comprimi il torace di 5-6 cm</li>
+                        <li>Frequenza: 100-120 compressioni al minuto</li>
+                        <li>Dopo 30 compressioni, effettua 2 ventilazioni (se addestrato)</li>
+                        <li>Se non addestrato, continua solo con le compressioni</li>
+                    </ol>
+                    """, unsafe_allow_html=True)
 
                 with tab2:
-                    # Carichiamo SVG direttamente come stringa
-                    with open("images/rcp_bambini.svg", "r") as svg_file:
-                        svg_content = svg_file.read()
-                        
-                    st.markdown(f"""
-                    <div style="text-align: center;">
-                        {svg_content}
-                        <p style="margin-top: 10px; font-style: italic;">RCP per bambini</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    # Utilizziamo la nuova immagine fornita dall'utente
+                    try:
+                        st.image("attached_assets/image_1743847188766.png", caption="RCP per bambini", width=1000)
+                    except Exception as e:
+                        st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                        # Fallback alla vecchia immagine
+                        st.image("attached_assets/image_1743605409566.png", caption="RCP per bambini", width=900)
                     
                     st.markdown("""
-                    1. Usa una o due mani in base alla corporatura del bambino
-                    2. Comprimi il torace di circa 5 cm
-                    3. Frequenza: 100-120 compressioni al minuto
-                    4. Rapporto compressioni/ventilazioni: 30:2
-                    """)
+                    <ol style="font-size: 28px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;">
+                        <li>Posiziona il bambino supino su una superficie rigida</li>
+                        <li>Usa una o due mani al centro del torace</li>
+                        <li>Comprimi il torace di circa 5 cm</li>
+                        <li>Frequenza: 100-120 compressioni al minuto</li>
+                        <li>Rapporto 30 compressioni e 2 ventilazioni</li>
+                    </ol>
+                    """, unsafe_allow_html=True)
 
                 with tab3:
-                    # Carichiamo SVG direttamente come stringa
-                    with open("images/rcp_lattanti.svg", "r") as svg_file:
-                        svg_content = svg_file.read()
-                        
-                    st.markdown(f"""
-                    <div style="text-align: center;">
-                        {svg_content}
-                        <p style="margin-top: 10px; font-style: italic;">RCP per lattanti</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    # Utilizziamo la nuova immagine fornita dall'utente
+                    try:
+                        st.image("attached_assets/image_1743847226155.png", caption="RCP per lattanti", width=1000)
+                    except Exception as e:
+                        st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                        # Fallback alla vecchia immagine
+                        st.image("attached_assets/image_1743605441292.png", caption="RCP per lattanti", width=900)
                     
                     st.markdown("""
-                    1. Usa due dita per le compressioni
-                    2. Comprimi il torace di circa 4 cm
-                    3. Frequenza: 100-120 compressioni al minuto
-                    4. Rapporto compressioni/ventilazioni: 30:2
-                    """)
+                    <ol style="font-size: 28px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;">
+                        <li>Posiziona il lattante supino su una superficie rigida</li>
+                        <li>Usa due dita al centro del torace, appena sotto la linea dei capezzoli</li>
+                        <li>Comprimi il torace di circa 4 cm</li>
+                        <li>Frequenza: 100-120 compressioni al minuto</li>
+                        <li>Rapporto 30 compressioni e 2 ventilazioni (coprendo bocca e naso)</li>
+                    </ol>
+                    """, unsafe_allow_html=True)
 
-            with st.expander("🩹 Gestione del sanguinamento"):
-                # Carichiamo SVG direttamente come stringa
-                with open("images/sanguinamento.svg", "r") as svg_file:
-                    svg_content = svg_file.read()
-                    
-                st.markdown(f"""
-                <div style="text-align: center;">
-                    {svg_content}
-                    <p style="margin-top: 10px; font-style: italic;">Gestione del sanguinamento</p>
-                </div>
-                """, unsafe_allow_html=True)
+            with st.expander("🩹 GESTIONE DEL SANGUINAMENTO", expanded=False):
+                # Utilizziamo l'immagine fornita dall'utente
+                try:
+                    st.image("attached_assets/image_1743844502745.png", caption="Gestione del sanguinamento", width=700)
+                except Exception as e:
+                    st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                    # Fallback a immagine alternativa
+                    st.image("attached_assets/image_1743605555594.png", caption="Gestione del sanguinamento", width=700)
                 
                 st.markdown("""
-                1. Indossa guanti monouso se disponibili
-                2. Applica pressione diretta sulla ferita con garza sterile
-                3. Se il sangue attraversa la garza, aggiungi altre garze sopra
-                4. Mantieni la pressione per almeno 10 minuti
-                5. Se possibile, solleva l'arto ferito sopra il livello del cuore
-                """)
-
-            with st.expander("↪️ Posizione laterale di sicurezza"):
-                # Carichiamo SVG direttamente come stringa
-                with open("images/posizione_laterale_sicurezza.svg", "r") as svg_file:
-                    svg_content = svg_file.read()
-                    
-                st.markdown(f"""
-                <div style="text-align: center;">
-                    {svg_content}
-                    <p style="margin-top: 10px; font-style: italic;">Posizione laterale di sicurezza</p>
-                </div>
+                <ol style="font-size: 28px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;">
+                    <li>Indossa guanti monouso se disponibili</li>
+                    <li>Applica pressione diretta sulla ferita con garza sterile</li>
+                    <li>Se il sangue attraversa la garza, aggiungi altre garze sopra</li>
+                    <li>Mantieni la pressione per almeno 10 minuti</li>
+                    <li>Se possibile, solleva l'arto ferito sopra il livello del cuore</li>
+                </ol>
                 """, unsafe_allow_html=True)
+
+            with st.expander("↪️ POSIZIONE LATERALE DI SICUREZZA", expanded=False):
+                # Utilizziamo l'immagine fornita dall'utente
+                try:
+                    st.image("attached_assets/image_1743844393469.png", caption="Posizione laterale di sicurezza", width=700)
+                except Exception as e:
+                    st.warning(f"Errore nel caricamento dell'immagine: {e}")
+                    # Fallback a immagine alternativa
+                    st.image("attached_assets/image_1743605579661.png", caption="Posizione laterale di sicurezza", width=700)
                 
                 st.markdown("""
-                1. Inginocchiati a fianco della persona
-                2. Posiziona il braccio più vicino a te ad angolo retto
-                3. Porta l'altro braccio sul petto
-                4. Piega la gamba più lontana
-                5. Ruota la persona verso di te
-                6. Stabilizza la posizione
-                """)
+                <ol style="font-size: 28px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;">
+                    <li>Inginocchiati a fianco della persona</li>
+                    <li>Posiziona il braccio più vicino a te ad angolo retto</li>
+                    <li>Porta l'altro braccio sul petto</li>
+                    <li>Piega la gamba più lontana</li>
+                    <li>Ruota la persona verso di te</li>
+                    <li>Stabilizza la posizione</li>
+                </ol>
+                """, unsafe_allow_html=True)
 
             st.warning("""
             ⚠️ **IMPORTANTE**: Queste istruzioni sono solo una guida di base.
@@ -494,67 +525,7 @@ def show():
             """)
         show_manovre()
 
-        # Manovra di Heimlich per adulti con diagramma
-        st.subheader("Manovra di Heimlich (disostruzione delle vie aeree) - Adulti")
 
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            st.markdown("**Se la persona è cosciente:**")
-            st.markdown("""
-            1. Posizionati dietro la persona con le braccia intorno alla vita
-            2. Chiudi una mano a pugno e posizionala tra l'ombelico e lo sterno
-            3. Afferra il pugno con l'altra mano
-            4. Esegui spinte rapide verso l'interno e verso l'alto
-            5. Ripeti fino a quando l'oggetto viene espulso o la persona perde coscienza
-            """)
-
-        with col2:
-            # Utilizziamo la nuova funzione per immagini cliccabili
-            display_clickable_image("attached_assets/MANOVRA-DI-HEIMLICH-1024x480.jpg", "Manovra di Heimlich - Sequenza corretta di esecuzione", width=700, key_suffix="main_heimlich_adulti_1")
-            
-            # Immagine aggiuntiva con funzione cliccabile
-            display_clickable_image("attached_assets/fc3a00c3-f5c0-4d12-8860-e7611e8f98cb.jpg", "Manovra di Heimlich - Posizione alternativa", width=400, key_suffix="main_heimlich_adulti_2")
-
-        st.markdown("**Se la persona è incosciente:**")
-        st.markdown("""
-        1. Posiziona la persona supina
-        2. Inizia la RCP (30 compressioni e 2 ventilazioni)
-        3. Prima di ogni ventilazione, controlla se vedi il corpo estraneo in bocca
-        """)
-
-        # Manovra di Heimlich per bambini
-        st.subheader("Manovra di Heimlich - Bambini (età 1-8 anni)")
-
-        col1, col2 = st.columns([2, 3])
-        with col1:
-            st.markdown("""
-            1. La tecnica è simile a quella per gli adulti ma con minore forza
-            2. Posizionati dietro il bambino, con le braccia intorno alla vita
-            3. Posiziona il pugno tra l'ombelico e lo sterno
-            4. Esegui spinte graduali verso l'interno e verso l'alto
-            """)
-
-        with col2:
-            # Utilizziamo la nuova funzione per immagini cliccabili
-            display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=500, key_suffix="main_heimlich_bambini")
-
-        # Disostruzione lattanti con illustrazione
-        st.subheader("Disostruzione lattanti (età < 1 anno)")
-
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            st.markdown("""
-            1. Posiziona il lattante a faccia in giù sul tuo avambraccio
-            2. Sostieni la testa e il collo con la mano
-            3. Dai 5 colpi interspallari con il palmo della mano
-            4. Se inefficace, gira il lattante supino sull'altro avambraccio
-            5. Esegui 5 compressioni toraciche con due dita al centro del torace
-            6. Alterna 5 colpi interspallari a 5 compressioni toraciche
-            """)
-
-        with col2:
-            # Utilizziamo la nuova funzione per immagini cliccabili
-            display_clickable_image("attached_assets/Lattante.jpg", "Disostruzione delle vie aeree nei lattanti", width=500, key_suffix="main_lattante")
 
         # RCP con video tutorial
         st.subheader("RCP (Rianimazione Cardiopolmonare)")

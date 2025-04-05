@@ -326,120 +326,12 @@ def show():
             "livello_allerta": "Arancione",
             "pericolosita": "Media",
             "descrizione": "L'Etna è il vulcano attivo più alto d'Europa e uno dei più attivi al mondo. Le sue eruzioni sono frequenti ma generalmente non minacciano centri abitati grazie ai flussi lavici relativamente lenti. Tuttavia, le emissioni di cenere possono causare problemi alle infrastrutture e all'agricoltura locale.",
-            "webcam": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/videocamere-etna",
+            "webcam": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/videocamere",
             "monitoraggio": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza",
             "bollettino_settimanale": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
-            "sismicita": "Alta - Frequenti sciami sismici legati all'attività eruttiva",
-            "sollevamento": "Variabile - Deformazioni legate ai cicli eruttivi",
-            "danni": "Occasionali danni da caduta cenere e materiale vulcanico"
-        },
-        "Stromboli": {
-            "regione": "Sicilia",
-            "lat": 38.789,
-            "lon": 15.213,
-            "altezza": 926,
-            "tipo": "Stratovulcano",
-            "ultima_eruzione": "Attivo",
-            "stato": "Attivo",
-            "livello_allerta": "Arancione",
-            "pericolosita": "Media",
-            "descrizione": "Lo Stromboli è noto per la sua attività esplosiva regolare, tanto da aver dato il nome alle eruzioni 'stromboliane'. In attività continua da almeno 2000 anni, è uno dei vulcani più attivi e studiati al mondo. Le sue esplosioni regolari gli hanno valso il soprannome di 'Faro del Mediterraneo'. Recenti eruzioni più violente nel 2019 e 2022 hanno causato preoccupazione.",
-            "webcam": "http://193.206.127.20/Stromboli_Punta_Labronzo.jpg",
-            "monitoraggio": "http://lgs.geo.unifi.it/index.php/monitoraggio",
-            "bollettino_settimanale": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
-            "sismicita": "Continua - Tremore vulcanico legato alle esplosioni sommitali",
-            "sollevamento": "Minimo - Deformazioni del suolo limitate",
-            "danni": "Recenti episodi parossistici hanno causato danni e un morto (2019)"
-        },
-        "Vulcano": {
-            "regione": "Sicilia",
-            "lat": 38.404,
-            "lon": 14.962,
-            "altezza": 500,
-            "tipo": "Vulcano complesso",
-            "ultima_eruzione": "1890",
-            "stato": "Quiescente con crisi idrotermale",
-            "livello_allerta": "Giallo",
-            "pericolosita": "Media-Alta",
-            "descrizione": "L'isola di Vulcano ha dato il nome a tutti i vulcani della Terra. Dopo una lunga fase di quiete, dal 2021 sono in corso anomalie nei parametri monitorati, con un incremento delle temperature fumaroliche, del flusso di gas e dell'attività sismica. Questi segnali hanno portato a un aumento del livello di allerta e a restrizioni in alcune aree dell'isola.",
-            "webcam": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/videocamere-vulcano",
-            "monitoraggio": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza",
-            "bollettino_settimanale": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
-            "sismicita": "Bassa con incrementi recenti",
-            "sollevamento": "Minimo ma in monitoraggio costante",
-            "danni": "Nessuno strutturale, restrizioni d'accesso per emissioni gas"
-        },
-        "Ischia": {
-            "regione": "Campania",
-            "lat": 40.731,
-            "lon": 13.897,
-            "altezza": 789,
-            "tipo": "Complesso vulcanico",
-            "ultima_eruzione": "1302",
-            "stato": "Quiescente",
-            "livello_allerta": "Verde",
-            "pericolosita": "Media",
-            "descrizione": "L'isola di Ischia è interamente di origine vulcanica, dominata dal Monte Epomeo. L'attività vulcanica ha plasmato l'isola per oltre 150.000 anni. Attualmente il sistema vulcanico è quiescente, ma l'isola presenta significativa attività sismica (terremoto del 2017) e idrotermale, con numerose fumarole e sorgenti termali che alimentano attività turistiche legate alle terme.",
-            "webcam": "http://www.ov.ingv.it/ov/it/ischia/webcam-ischia.html",
-            "monitoraggio": "http://www.ov.ingv.it/ov/it/ischia/monitoraggio.html",
-            "bollettino_settimanale": "http://www.ov.ingv.it/ov/bollettini-settimanali-ischia.html",
-            "sismicita": "Media - Eventi sismici periodici",
-            "sollevamento": "Lento - Aree con subsidenza e altre con sollevamento",
-            "danni": "Significativi danni da terremoto (2017), non legati a eruzioni"
-        },
-        "Pantelleria": {
-            "regione": "Sicilia",
-            "lat": 36.771,
-            "lon": 11.989,
-            "altezza": 836,
-            "tipo": "Vulcano a scudo",
-            "ultima_eruzione": "1891 (sottomarina)",
-            "stato": "Quiescente",
-            "livello_allerta": "Verde",
-            "pericolosita": "Bassa",
-            "descrizione": "Pantelleria è completamente vulcanica, con l'ultima eruzione subaerea risalente a circa 8.000 anni fa. Nel 2011 vi è stata una piccola eruzione sottomarina circa 5 km al largo dell'isola. L'attività vulcanica attuale si manifesta principalmente in fenomeni idrotermali con fumarole e sorgenti calde, in particolare nel lago di Venere (uno specchio d'acqua all'interno di una caldera vulcanica) e attraverso piccoli eventi sismici.",
-            "webcam": "Non disponibile",
-            "monitoraggio": "https://www.ingv.it/monitoraggio-e-infrastrutture/reti/rete-sismica-nazionale",
-            "bollettino_settimanale": "Non pubblicato per questo vulcano",
-            "sismicita": "Bassa - Sporadici eventi sismici",
-            "sollevamento": "Minimo - Deformazioni trascurabili",
-            "danni": "Nessuno recente"
-        },
-        "Lipari-Vulcanello": {
-            "regione": "Sicilia",
-            "lat": 38.489,
-            "lon": 14.953,
-            "altezza": 602,
-            "tipo": "Complesso vulcanico",
-            "ultima_eruzione": "1230",
-            "stato": "Quiescente",
-            "livello_allerta": "Verde",
-            "pericolosita": "Bassa",
-            "descrizione": "L'isola di Lipari rappresenta la parte emersa del più grande complesso vulcanico delle Isole Eolie. L'ultima attività eruttiva ha prodotto l'ossidiana di Pomiciazzo, molto apprezzata per la sua qualità. Vulcanello, piccola penisola a nord dell'isola, è invece un vulcano più giovane formatosi in epoca storica. Attualmente il sistema è quiescente con attività limitata a fumarole e sorgenti termali.",
-            "webcam": "Non disponibile",
-            "monitoraggio": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza",
-            "bollettino_settimanale": "Non pubblicato per questo vulcano",
-            "sismicita": "Molto bassa",
-            "sollevamento": "Non significativo",
-            "danni": "Nessuno recente"
-        },
-        "Ferdinandea": {
-            "regione": "Sicilia - Canale di Sicilia",
-            "lat": 37.10,
-            "lon": 12.70,
-            "altezza": -8,  # Metri sotto il livello del mare
-            "tipo": "Vulcano sottomarino",
-            "ultima_eruzione": "1831",
-            "stato": "Quiescente",
-            "livello_allerta": "Verde",
-            "pericolosita": "Bassa",
-            "descrizione": "L'Isola Ferdinandea (o Banco Graham) è un vulcano sottomarino che durante l'eruzione del 1831 formò un'isola temporanea alta circa 60 metri. L'isola fu rivendicata da Regno Unito, Francia, Spagna e Regno delle Due Sicilie ma scomparve dopo pochi mesi a causa dell'erosione marina. La cima del vulcano si trova oggi a circa 8 metri sotto il livello del mare. Nel 2002 e 2006 si sono verificate piccole eruzioni sottomarine nell'area, senza emergenza.",
-            "webcam": "Non disponibile",
-            "monitoraggio": "https://www.ingv.it/monitoraggio-e-infrastrutture/reti/rete-sismica-nazionale",
-            "bollettino_settimanale": "Non pubblicato per questo vulcano",
-            "sismicita": "Sporadica",
-            "sollevamento": "Non monitorato in superficie",
-            "danni": "Nessuno recente"
+            "sismicita": "Media-Alta - Eventi frequenti legati all'attività eruttiva",
+            "sollevamento": "Variabile - Deformazioni correlate alle fasi eruttive",
+            "danni": "Occasionali danni a strutture in quota e all'agricoltura"
         },
         "Stromboli": {
             "regione": "Sicilia",
@@ -614,7 +506,7 @@ def show():
             # Implementazione sismogrammi in tempo reale da INGV
             st.markdown("""
             <iframe width="100%" height="600" frameborder="0" 
-            src="http://www.ov.ingv.it/ov/it/campi-flegrei/monitoraggio/sismogrammi-tempo-reale-flegrei.html"></iframe>
+            src="http://www.ov.ingv.it/ov/campi-flegrei-bradisismo.html"></iframe>
             """, unsafe_allow_html=True)
             
             # Bradisismo (sollevamento) in tempo reale
@@ -632,16 +524,19 @@ def show():
             st.markdown("### Bollettino settimanale bradisismo")
             st.markdown("""
             <iframe width="100%" height="500" frameborder="0" 
-            src="http://www.ov.ingv.it/ov/it/bollettini/bollettini-settimanali-campi-flegrei.html"></iframe>
+            src="http://www.ov.ingv.it/ov/bollettini-campi-flegrei.html"></iframe>
             """, unsafe_allow_html=True)
             
         elif vulcano_selezionato == "Etna":
             st.markdown("### Monitoraggio sismico dell'Etna")
             
-            # Informazioni sul tremore vulcanico
-            st.markdown("**Monitoraggio del tremore vulcanico:**")
-            st.markdown("Il tremore vulcanico è un'oscillazione continua del suolo registrata dalle stazioni sismiche intorno all'Etna. Variazioni nell'ampiezza (RMS) sono importanti indicatori dell'attività magmatica interna e possono precedere eventi eruttivi.")
-            st.markdown("Per consultare i dati aggiornati, visita la [pagina ufficiale del tremore vulcanico dell'INGV](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/tremore-vulcanico).")
+            # Utilizziamo l'URL diretto per mostrare il tremore vulcanico
+            try:
+                st.markdown("**Tremore vulcanico in tempo reale:**")
+                st.markdown("Questo grafico mostra l'ampiezza del tremore vulcanico (RMS) registrato dalle stazioni sismiche sull'Etna nelle ultime 24 ore. Picchi nell'ampiezza indicano un'intensificazione dell'attività vulcanica.")
+                st.markdown("![Tremore vulcanico Etna](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/tremore-vulcanico)")
+            except Exception as e:
+                st.error(f"Impossibile caricare l'immagine in tempo reale del tremore vulcanico: {e}")
             
             # Ottieni eventi sismici recenti
             etna_events = get_etna_recent_events()
@@ -726,15 +621,13 @@ def show():
         elif vulcano_selezionato == "Stromboli":
             st.markdown("### Monitoraggio Stromboli in tempo reale")
             
-            # Informazioni sul tremore vulcanico dello Stromboli
-            st.markdown("#### Monitoraggio sismico e tremore vulcanico")
-            st.markdown("Il sistema di monitoraggio sismico dello Stromboli rileva sia i terremoti associati all'attività vulcanica sia il tremore vulcanico continuo, che rappresenta un indicatore importante dell'attività interna del vulcano.")
-            st.markdown("Per consultare i dati aggiornati sul tremore vulcanico, visita la [pagina ufficiale INGV dedicata](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/tremore-vulcanico).")
+            # Tremore vulcanico in tempo reale
+            st.markdown("#### Tremore vulcanico - Aggiornamento continuo")
+            st.markdown("![Tremore vulcanico](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/tremore-vulcanico)")
             
-            # Informazioni sulle termocamere
-            st.markdown("#### Monitoraggio termico dell'attività")
-            st.markdown("Le termocamere installate sull'isola permettono di rilevare le variazioni di temperatura associate all'attività vulcanica anche quando non sono visibili ad occhio nudo o in condizioni di scarsa visibilità.")
-            st.markdown("Per consultare le immagini delle termocamere, visita la [pagina ufficiale INGV dedicata](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/thermal-cam-str).")
+            # Immagini infrarosse da stazione fissa
+            st.markdown("#### Termocamera in tempo reale - Visione termica dell'attività")
+            st.markdown("![Termogramma Stromboli](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/thermal-cam-str)")
             
             # Ultimi eventi sismici nell'area di Stromboli
             st.markdown("### Ultimi eventi sismici")
@@ -772,30 +665,52 @@ def show():
         # Collegamenti a webcam in tempo reale
         st.markdown("### Webcam in tempo reale")
         
-        # Webcam INGV disponibili solo attraverso il portale ufficiale
-        st.info(f"""
-        Le webcam ufficiali per il monitoraggio di {vulcano_selezionato} sono disponibili direttamente 
-        sul sito dell'INGV. Per visualizzare i contenuti in diretta aggiornati, ti consigliamo di visitare:
-        
-        [Portale Webcam INGV {vulcano_selezionato}]({info_vulcano['monitoraggio']})
-        """)
-        
-        # Informazioni aggiuntive specifiche per ciascun vulcano
         if vulcano_selezionato == "Vesuvio":
-            st.markdown("**Monitoraggio visivo da stazioni fisse:**")
-            st.markdown("Il Vesuvio è costantemente monitorato attraverso una rete di stazioni di osservazione dell'INGV-Osservatorio Vesuviano, con telecamere termiche e visibili posizionate in punti strategici.")
+            st.markdown("#### Vesuvio - Vista Cratere (aggiornamento continuo)")
+            st.markdown("""
+            <iframe width="100%" height="380" src="https://www.youtube.com/embed/oWzdgBNfhQU" 
+            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+            gyroscope; picture-in-picture" allowfullscreen></iframe>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("#### Vesuvio - Vista dalla stazione INGV OVO (aggiornamento ogni 10 minuti)")
+            st.markdown("![Webcam Vesuvio OVO](https://www.ov.ingv.it/ov/images/webcam/vesuvio.jpg)")
             
         elif vulcano_selezionato == "Etna":
-            st.markdown("**Stazioni di osservazione principali:**")
-            st.markdown("L'Etna è monitorato attraverso stazioni posizionate alla Montagnola, ai Crateri Sommitali e presso la sede INGV di Catania.")
+            st.markdown("#### Etna - Vista Cratere di Sud-Est (aggiornamento continuo)")
+            st.markdown("""
+            <iframe width="100%" height="380" src="https://www.youtube.com/embed/MtPR5i1QObs" 
+            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+            gyroscope; picture-in-picture" allowfullscreen></iframe>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("#### Etna - Vista dalla Montagnola (aggiornamento ogni 10 minuti)")
+            st.markdown("![Webcam Etna Montagnola](https://www.ct.ingv.it/camera/meta/Montagnola.jpg)")
+            
+            st.markdown("#### Etna - Vista Cratere di Nord-Est (aggiornamento ogni 10 minuti)")
+            st.markdown("![Webcam Etna Nord-Est](https://www.ct.ingv.it/camera/meta/Etna_NSEC.jpg)")
             
         elif vulcano_selezionato == "Stromboli":
-            st.markdown("**Monitoraggio visivo dello Stromboli:**")
-            st.markdown("Il sistema di monitoraggio include stazioni sulla Sciara del Fuoco e sui crateri sommitali. Le osservazioni visive sono integrate con analisi termiche per il rilevamento precoce dell'attività eruttiva.")
+            st.markdown("#### Stromboli - Vista Cratere (aggiornamento continuo)")
+            st.markdown("""
+            <iframe width="100%" height="380" src="https://www.youtube.com/embed/USQeR4YPS2A" 
+            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+            gyroscope; picture-in-picture" allowfullscreen></iframe>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("#### Stromboli - Vista Sciara del Fuoco (aggiornamento ogni 10 minuti)")
+            st.markdown("![Webcam Stromboli](https://owncloud.ct.ingv.it/webcams/Web-Stromboli-SDF.jpg)")
             
         elif vulcano_selezionato == "Campi Flegrei":
-            st.markdown("**Rete di monitoraggio visivo:**")
-            st.markdown("I Campi Flegrei sono monitorati da stazioni posizionate alla Solfatara, a Pozzuoli e in altri punti chiave della caldera, gestite dall'INGV-Osservatorio Vesuviano.")
+            st.markdown("#### Campi Flegrei - Vista Solfatara (aggiornamento continuo)")
+            st.markdown("""
+            <iframe width="100%" height="380" src="https://www.youtube.com/embed/vAuY_zG5dTE" 
+            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+            gyroscope; picture-in-picture" allowfullscreen></iframe>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("#### Campi Flegrei - Vista dalla stazione di Pozzuoli (aggiornamento ogni 10 minuti)")
+            st.markdown("![Webcam Campi Flegrei](https://www.ov.ingv.it/ov/images/webcam/pozzuoli.jpg)")
             
         elif vulcano_selezionato == "Marsili":
             st.markdown("#### Marsili - Vista del CNR sulle operazioni di monitoraggio")
