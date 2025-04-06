@@ -1,0 +1,40 @@
+2025-04-04 22:13:41,264 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-04 22:13:41,458 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=50 "HTTP/2 200 OK"
+2025-04-04 22:13:42,466 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=200 "HTTP/2 200 OK"
+2025-04-04 22:13:56,351 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-04 22:14:04,017 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-04 22:14:04,515 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=50 "HTTP/2 200 OK"
+2025-04-04 22:14:04,579 - moderazione - INFO - Moderazione testo (standard): idiota...
+2025-04-04 22:14:04,609 - moderazione - INFO - Applicata moderazione linguaggio: idiota -> ******
+2025-04-04 22:14:06,437 - moderazione - INFO - Moderazione completata per 98f92460-41a2-4942-9e6c-f9f146c097ba - messaggio: moderato
+2025-04-04 22:14:06,622 - httpx - INFO - HTTP Request: POST https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages "HTTP/2 201 Created"
+2025-04-04 22:14:07,818 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-04 22:14:08,303 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=50 "HTTP/2 200 OK"
+2025-04-04 22:14:08,495 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=200 "HTTP/2 200 OK"
+2025-04-04 22:14:24,007 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-04 22:14:24,206 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=50 "HTTP/2 200 OK"
+2025-04-04 22:14:24,217 - moderazione - INFO - Moderazione testo (standard): sei uno stronzo
+
+...
+2025-04-04 22:14:24,218 - moderazione - INFO - Applicata moderazione linguaggio: sei uno stronzo
+
+ -> sei uno *******
+
+
+2025-04-04 22:14:24,219 - moderazione - INFO - Moderazione completata per 98f92460-41a2-4942-9e6c-f9f146c097ba - messaggio: moderato
+2025-04-04 22:14:24,407 - httpx - INFO - HTTP Request: POST https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages "HTTP/2 201 Created"
+2025-04-04 22:14:25,547 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-04 22:14:26,031 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=50 "HTTP/2 200 OK"
+2025-04-04 22:14:26,575 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=200 "HTTP/2 200 OK"
+2025-04-05 08:12:50,111 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-05 08:12:50,596 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=50 "HTTP/2 200 OK"
+2025-04-05 08:12:51,091 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=200 "HTTP/2 200 OK"
+2025-04-05 09:00:04,644 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-05 09:00:05,152 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=50 "HTTP/2 200 OK"
+2025-04-05 09:00:05,336 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=200 "HTTP/2 200 OK"
+2025-04-05 09:00:19,065 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/event_reports?select=%2A&order=data_ora.desc&limit=50 "HTTP/2 200 OK"
+2025-04-05 09:10:09,058 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=count&limit=1 "HTTP/2 206 Partial Content"
+2025-04-05 09:10:09,606 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=50 "HTTP/2 200 OK"
+2025-04-05 09:10:10,100 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/chat_messages?select=%2A&order=timestamp.desc&limit=200 "HTTP/2 200 OK"
+2025-04-05 12:21:56,645 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/event_reports?select=%2A&order=data_ora.desc&limit=50 "HTTP/2 200 OK"
+2025-04-05 12:22:03,864 - httpx - INFO - HTTP Request: GET https://hqrdtuktmkemaitrusxw.supabase.co/rest/v1/event_reports?select=%2A&order=data_ora.desc&limit=50 "HTTP/2 200 OK"

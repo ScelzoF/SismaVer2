@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="300" viewBox="0 0 400 300">
+  <!-- Sfondo -->
+  <rect width="400" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  
+  <!-- Figura lattante stilizzata -->
+  <g transform="translate(200, 150)">
+    <!-- Corpo (realistica silhouette lattante) -->
+    <path d="M -20,-20 C -25,-15 -25,30 -20,40 C -15,45 -5,45 0,45 C 5,45 15,45 20,40 C 25,30 25,-15 20,-20 C 15,-25 -15,-25 -20,-20 Z" fill="#d3d3d3" stroke="#6c757d" stroke-width="2"/>
+    
+    <!-- Testa -->
+    <ellipse cx="0" cy="-35" rx="15" ry="17" fill="#d3d3d3" stroke="#6c757d" stroke-width="2"/>
+    
+    <!-- Punto indicato sullo sterno - Linea capezzoli -->
+    <g>
+      <line x1="-10" y1="-5" x2="10" y2="-5" stroke="#6c757d" stroke-width="0.5" stroke-dasharray="1,1"/>
+      <circle cx="-10" cy="-5" r="1" fill="#6c757d"/>
+      <circle cx="10" cy="-5" r="1" fill="#6c757d"/>
+      <text x="25" y="-5" font-family="Arial" font-size="8" fill="#6c757d">Linea capezzoli</text>
+    </g>
+    
+    <!-- Punto compressione -->
+    <circle cx="0" cy="0" r="4" fill="#dc3545" stroke="#6c757d" stroke-width="1"/>
+    
+    <!-- Due dita per compressione -->
+    <g transform="translate(0, 0)">
+      <rect x="-6" y="-8" width="4" height="15" rx="2" fill="#e7f5ff" stroke="#0d6efd" stroke-width="1"/>
+      <rect x="2" y="-8" width="4" height="15" rx="2" fill="#e7f5ff" stroke="#0d6efd" stroke-width="1"/>
+    </g>
+    
+    <!-- Simbolo croce rossa -->
+    <g transform="translate(30, -30)">
+      <circle cx="0" cy="0" r="8" fill="white" stroke="#dc3545" stroke-width="1.5"/>
+      <rect x="-1.2" y="-5" width="2.4" height="10" fill="#dc3545" rx="0.8" ry="0.8"/>
+      <rect x="-5" y="-1.2" width="10" height="2.4" fill="#dc3545" rx="0.8" ry="0.8"/>
+    </g>
+  </g>
+  
+  <!-- Indicazioni sulla profondità di compressione -->
+  <g transform="translate(290, 150)">
+    <text x="0" y="-30" font-family="Arial" font-size="12" fill="#343a40" text-anchor="start">Profondità:</text>
+    <text x="0" y="-15" font-family="Arial" font-size="12" fill="#dc3545" font-weight="bold" text-anchor="start">~4 cm</text>
+    
+    <line x1="-20" y1="0" x2="20" y2="0" stroke="#343a40" stroke-width="1"/>
+    <line x1="-20" y1="20" x2="20" y2="20" stroke="#343a40" stroke-width="1"/>
+    <line x1="0" y1="0" x2="0" y2="20" stroke="#343a40" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="25" y="10" font-family="Arial" font-size="10" fill="#343a40" text-anchor="start">4 cm</text>
+  </g>
+  
+  <!-- Informazioni sulla frequenza -->
+  <g transform="translate(200, 245)">
+    <rect x="-100" y="0" width="200" height="45" rx="5" fill="#e7f5ff" stroke="#0d6efd" stroke-width="1"/>
+    <text x="0" y="15" font-family="Arial" font-size="12" fill="#343a40" text-anchor="middle" font-weight="bold">Frequenza: 100-120 compressioni/min</text>
+    <text x="0" y="35" font-family="Arial" font-size="12" fill="#343a40" text-anchor="middle">Rapporto: 30 compressioni : 2 ventilazioni</text>
+  </g>
+  
+  <!-- Titolo -->
+  <text x="200" y="30" font-family="Arial" font-size="18" font-weight="bold" fill="#212529" text-anchor="middle">RCP - Rianimazione Cardiopolmonare Lattanti</text>
+  <text x="200" y="50" font-family="Arial" font-size="12" fill="#6c757d" text-anchor="middle">(< 1 anno)</text>
+  
+  <!-- Punti principali sintetici -->
+  <g transform="translate(85, 80)">
+    <rect x="-50" y="-15" width="130" height="140" rx="5" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+    <text x="15" y="0" font-family="Arial" font-size="12" fill="#343a40" font-weight="bold">Esecuzione:</text>
+    <text x="15" y="20" font-family="Arial" font-size="11" fill="#343a40">1. Superficie rigida</text>
+    <text x="15" y="40" font-family="Arial" font-size="11" fill="#343a40">2. Due dita al centro del</text>
+    <text x="15" y="55" font-family="Arial" font-size="11" fill="#343a40">   torace, sotto la linea</text>
+    <text x="15" y="70" font-family="Arial" font-size="11" fill="#343a40">   dei capezzoli</text>
+    <text x="15" y="90" font-family="Arial" font-size="11" fill="#343a40">3. Comprimi 4 cm</text>
+    <text x="15" y="110" font-family="Arial" font-size="11" fill="#343a40">4. Rilascia completamente</text>
+  </g>
+  
+  <!-- Indicazioni per ventilazione -->
+  <g transform="translate(320, 100)">
+    <rect x="-60" y="-20" width="120" height="70" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1"/>
+    <text x="0" y="0" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle" font-weight="bold">Ventilazione:</text>
+    <text x="0" y="15" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle">• Copri bocca e naso</text>
+    <text x="0" y="30" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle">• Soffia delicatamente</text>
+    <text x="0" y="45" font-family="Arial" font-size="10" fill="#dc3545" text-anchor="middle">• Osserva il torace sollevarsi</text>
+  </g>
+</svg>

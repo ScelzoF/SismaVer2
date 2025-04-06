@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="300" viewBox="0 0 400 300">
+  <!-- Sfondo -->
+  <rect width="400" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  
+  <!-- Figura bambino stilizzata -->
+  <g transform="translate(200, 150)">
+    <!-- Corpo (realistica silhouette bambino) -->
+    <path d="M -25,-30 C -35,-20 -35,40 -25,55 C -20,60 -10,60 0,60 C 10,60 20,60 25,55 C 35,40 35,-20 25,-30 C 20,-40 -20,-40 -25,-30 Z" fill="#d3d3d3" stroke="#6c757d" stroke-width="2"/>
+    
+    <!-- Testa -->
+    <ellipse cx="0" cy="-50" rx="20" ry="23" fill="#d3d3d3" stroke="#6c757d" stroke-width="2"/>
+    
+    <!-- Punto indicato sullo sterno - metà inferiore -->
+    <circle cx="0" cy="-5" r="5" fill="#dc3545" stroke="#6c757d" stroke-width="1"/>
+    
+    <!-- Indicazione della posizione delle mani -->
+    <g transform="translate(0, -5)">
+      <path d="M -12,-4 C -12,4 12,4 12,-4" fill="none" stroke="#0d6efd" stroke-width="2"/>
+      <!-- Una sola mano per bambino o due dita -->
+      <rect x="-12" y="-8" width="24" height="8" rx="3" fill="#e7f5ff" stroke="#0d6efd" stroke-width="1"/>
+    </g>
+    
+    <!-- Simbolo croce rossa -->
+    <g transform="translate(30, -45)">
+      <circle cx="0" cy="0" r="10" fill="white" stroke="#dc3545" stroke-width="1.5"/>
+      <rect x="-1.5" y="-6" width="3" height="12" fill="#dc3545" rx="1" ry="1"/>
+      <rect x="-6" y="-1.5" width="12" height="3" fill="#dc3545" rx="1" ry="1"/>
+    </g>
+  </g>
+  
+  <!-- Indicazioni sulla profondità di compressione -->
+  <g transform="translate(290, 150)">
+    <text x="0" y="-30" font-family="Arial" font-size="12" fill="#343a40" text-anchor="start">Profondità:</text>
+    <text x="0" y="-15" font-family="Arial" font-size="12" fill="#dc3545" font-weight="bold" text-anchor="start">~5 cm</text>
+    
+    <line x1="-20" y1="0" x2="20" y2="0" stroke="#343a40" stroke-width="1"/>
+    <line x1="-20" y1="25" x2="20" y2="25" stroke="#343a40" stroke-width="1"/>
+    <line x1="0" y1="0" x2="0" y2="25" stroke="#343a40" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="25" y="15" font-family="Arial" font-size="10" fill="#343a40" text-anchor="start">5 cm</text>
+  </g>
+  
+  <!-- Informazioni sulla frequenza -->
+  <g transform="translate(200, 245)">
+    <rect x="-100" y="0" width="200" height="45" rx="5" fill="#e7f5ff" stroke="#0d6efd" stroke-width="1"/>
+    <text x="0" y="15" font-family="Arial" font-size="12" fill="#343a40" text-anchor="middle" font-weight="bold">Frequenza: 100-120 compressioni/min</text>
+    <text x="0" y="35" font-family="Arial" font-size="12" fill="#343a40" text-anchor="middle">Rapporto: 30 compressioni : 2 ventilazioni</text>
+  </g>
+  
+  <!-- Titolo -->
+  <text x="200" y="30" font-family="Arial" font-size="18" font-weight="bold" fill="#212529" text-anchor="middle">RCP - Rianimazione Cardiopolmonare Bambini</text>
+  <text x="200" y="50" font-family="Arial" font-size="12" fill="#6c757d" text-anchor="middle">(1-8 anni)</text>
+  
+  <!-- Punti principali sintetici -->
+  <g transform="translate(85, 80)">
+    <rect x="-50" y="-15" width="130" height="140" rx="5" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+    <text x="15" y="0" font-family="Arial" font-size="12" fill="#343a40" font-weight="bold">Esecuzione:</text>
+    <text x="15" y="20" font-family="Arial" font-size="11" fill="#343a40">1. Superficie rigida</text>
+    <text x="15" y="40" font-family="Arial" font-size="11" fill="#343a40">2. Centro del torace</text>
+    <text x="15" y="60" font-family="Arial" font-size="11" fill="#343a40">3. Una o due mani</text>
+    <text x="15" y="80" font-family="Arial" font-size="11" fill="#343a40">4. Comprimi 5 cm</text>
+    <text x="15" y="100" font-family="Arial" font-size="11" fill="#343a40">5. Rilascia completamente</text>
+    <text x="15" y="120" font-family="Arial" font-size="11" fill="#343a40">6. Adatta forza all'età</text>
+  </g>
+  
+  <!-- Indicazione tecniche alternative -->
+  <g transform="translate(320, 85)">
+    <rect x="-50" y="-15" width="105" height="50" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1"/>
+    <text x="0" y="0" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle" font-weight="bold">Tecniche alternative:</text>
+    <text x="0" y="15" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle">• Una mano (più piccoli)</text>
+    <text x="0" y="30" font-family="Arial" font-size="10" fill="#343a40" text-anchor="middle">• Due mani (più grandi)</text>
+  </g>
+</svg>
