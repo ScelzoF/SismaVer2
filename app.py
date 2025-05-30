@@ -408,3 +408,22 @@ st.markdown(f"""
 <p>🔄 Ultimo aggiornamento: {ora_attuale.strftime('%d/%m/%Y %H:%M:%S')} (IT)</p>
 </div>
 """, unsafe_allow_html=True)
+
+# === KEEP-ALIVE ===
+import streamlit.components.v1 as components
+
+components.html("""
+<script>
+setInterval(() => {
+    fetch("/_stcore/health");
+}, 60000); // ogni 60 secondi
+</script>
+""", height=0)
+
+import time
+if 'last_ping' not in st.session_state:
+    st.session_state['last_ping'] = time.time()
+
+if time.time() - st.session_state['last_ping'] > 60:
+    st.session_state['last_ping'] = time.time()
+    _ = st.empty()
