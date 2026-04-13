@@ -272,7 +272,34 @@ def show():
             st.error("Impossibile recuperare i dati meteo. Controlla la connessione.")
 
         return  # Open-Meteo completato, non serve OpenWeather
-    
+
+    # ── Interfaccia utente per OpenWeather (quando API_KEY è disponibile) ────
+    metodo = st.radio(
+        "🔍 Metodo:",
+        ["📍 Usa posizione attuale", "🏙️ Inserisci città"],
+        key="meteo_method_ow"
+    )
+    url = None
+    coords = None
+    city_name = None
+
+    if metodo == "📍 Usa posizione attuale":
+        with st.spinner("Recupero posizione GPS..."):
+            coords = streamlit_js_eval(
+                js_expressions='new Promise((res) => { if (!navigator.geolocation) return res(null); navigator.geolocation.getCurrentPosition((pos) => res({lat: pos.coords.latitude, lon: pos.coords.longitude}), () => res(null), {timeout: 8000}); })',
+                key="geo_ow"
+            )
+        if coords and "lat" in coords and "lon" in coords:
+            url = f"https://api.openweathermap.org/data/2.5/weather?lat={coords['lat']}&lon={coords['lon']}&appid={API_KEY}&units=metric&lang=it"
+        else:
+            st.info("GPS non disponibile — inserisci la città manualmente.")
+            metodo = "🏙️ Inserisci città"
+
+    if metodo == "🏙️ Inserisci città":
+        city_name = st.text_input("🏙️ Inserisci città", value="Napoli", key="city_ow")
+        if city_name:
+            url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={API_KEY}&units=metric&lang=it"
+
     # Se abbiamo URL valido e API_KEY, procediamo con il recupero dati reali
     if url and API_KEY:
         col1, col2 = st.columns([2, 1])
