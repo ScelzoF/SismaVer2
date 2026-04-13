@@ -1,0 +1,17 @@
+# Runtime data
+data/visit_counter.txt
+data/chat_local.json
+data/duplicates/
+data/ratelimit/
+logs/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Replit
+.replit
+replit.nix

@@ -76,8 +76,13 @@ def show():
         # Inizializza connessione Supabase se disponibile (senza probe: fallback silenzioso)
         supabase = None
         if supabase_available:
-            supabase_url = os.environ.get("SUPABASE_URL", "https://ycdwgehifbyxarrsofmz.supabase.co")
-            supabase_key = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZHdnZWhpZmJ5eGFycnNvZm16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjY3NTcsImV4cCI6MjA5MTY0Mjc1N30.Gsa-tYQNdsQ6y25JL0tIGUEZcH1-9MSTCB6epECqYkw")
+            supabase_url = os.environ.get("SUPABASE_URL", "")
+            supabase_key = os.environ.get("SUPABASE_KEY", "")
+            try:
+                supabase_url = st.secrets.get("SUPABASE_URL", supabase_url)
+                supabase_key = st.secrets.get("SUPABASE_KEY", supabase_key)
+            except Exception:
+                pass
             if supabase_url and supabase_key:
                 try:
                     supabase = create_client(supabase_url, supabase_key)
@@ -279,8 +284,8 @@ def show():
         # Se disponibile Supabase, carica da lì, altrimenti da file locale
         if supabase_available:
             try:
-                supabase_url = os.environ.get("SUPABASE_URL", "https://ycdwgehifbyxarrsofmz.supabase.co")
-                supabase_key = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZHdnZWhpZmJ5eGFycnNvZm16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjY3NTcsImV4cCI6MjA5MTY0Mjc1N30.Gsa-tYQNdsQ6y25JL0tIGUEZcH1-9MSTCB6epECqYkw")
+                supabase_url = os.environ.get("SUPABASE_URL", "")
+                supabase_key = os.environ.get("SUPABASE_KEY", "")
                 
                 if supabase_url and supabase_key:
                     try:

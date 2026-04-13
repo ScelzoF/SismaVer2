@@ -19,4 +19,4 @@ jobs:
           echo "Pinging Supabase SismaVer2..."
           curl -s -o /dev/null -w "Status: %{http_code}" --max-time 10 \
             "https://ycdwgehifbyxarrsofmz.supabase.co/rest/v1/" \
-            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZHdnZWhpZmJ5eGFycnNvZm16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjY3NTcsImV4cCI6MjA5MTY0Mjc1N30.Gsa-tYQNdsQ6y25JL0tIGUEZcH1-9MSTCB6epECqYkw" || true
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" || true
