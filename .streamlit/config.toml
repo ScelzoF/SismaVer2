@@ -1,0 +1,8 @@
+[server]
+enableCORS = false
+enableXsrfProtection = false
+headless = true
+port = 6000
+
+[browser]
+gatherUsageStats = false
