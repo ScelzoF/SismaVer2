@@ -1,0 +1,26 @@
+
+User-agent: *
+Allow: /
+
+# Sitemap XML
+Sitemap: https://sos-italia.streamlit.app/sitemap.xml
+
+# Crawler specifici
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
+
+# Proteggi cartelle private
+Disallow: /data/
+Disallow: /logs/
+Disallow: /.streamlit/
+Disallow: /modules/*.py
+Allow: /modules/seo_utils.py
