@@ -167,7 +167,7 @@ def get_vulcano_recent_events(vulcano_name, lat, lon, days=30, max_radius=0.2):
                             else:
                                 dt = datetime.fromisoformat(str(time_val).replace("Z", "+00:00"))
                                 dt = dt.astimezone(FUSO_ORARIO_ITALIA)
-                            formatted_time = dt.strftime("%Y-%m-%d %H:%M")
+                            formatted_time = dt.strftime("%d/%m/%Y %H:%M")
                         except:
                             formatted_time = str(time_val)
                     
@@ -188,7 +188,7 @@ def get_vulcano_recent_events(vulcano_name, lat, lon, days=30, max_radius=0.2):
                         try:
                             dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
                             dt = dt.astimezone(FUSO_ORARIO_ITALIA)
-                            formatted_time = dt.strftime("%Y-%m-%d %H:%M")
+                            formatted_time = dt.strftime("%d/%m/%Y %H:%M")
                         except:
                             formatted_time = date_str
                     else:
