@@ -2,14 +2,15 @@
 Chat backend con fallback locale per SismaVer2.
 
 Strategia:
-  1. Prova a connettersi a Supabase (timeout 5 s).
+  1. Prova a connettersi a Supabase (timeout 2 s hard — thread con join).
   2. Se Supabase non è raggiungibile (DNS, timeout, tabella assente…)
      passa automaticamente al backend locale (file JSON in data/).
-  3. I messaggi locali NON vengono mai cancellati; restano disponibili
-     anche quando Supabase torna online (la chat locale è persistente
-     nella sessione Streamlit Cloud).
+  3. Il fallback locale gestisce le regioni tramite il campo 'regione'
+     in ogni messaggio (unico file, filtro per regione) — stessa struttura
+     della tabella Supabase.
 """
 
+import concurrent.futures
 import json
 import os
 import re
@@ -24,7 +25,7 @@ from pathlib import Path
 _DATA_DIR = Path(__file__).parent.parent / "data"
 _LOCAL_CHAT_FILE = _DATA_DIR / "chat_local.json"
 _MAX_LOCAL_MESSAGES = 500   # evita crescita illimitata del file
-_SUPABASE_TIMEOUT = 5       # secondi
+_SUPABASE_TIMEOUT = 2       # secondi — fail fast se DNS morto
 
 FUSO_ITALIA = timezone(timedelta(hours=2))   # UTC+2 ora legale; cambia a 1 in inverno
 
@@ -153,27 +154,32 @@ class SupabaseBackend:
 # ---------------------------------------------------------------------------
 def get_backend(supabase_url: str, supabase_key: str):
     """
-    Tenta la connessione a Supabase.
+    Tenta la connessione a Supabase con timeout hard di _SUPABASE_TIMEOUT secondi.
+    Se Supabase non risponde entro il timeout (es. DNS morto), cade subito
+    sul LocalBackend senza bloccare l'app.
     Ritorna (SupabaseBackend, True, "") oppure (LocalBackend, False, motivo).
     """
-    try:
+    def _probe():
         from supabase import create_client
-
         if not supabase_url.startswith("https://"):
             raise ValueError("URL non valido")
-
         client = create_client(supabase_url, supabase_key)
-
-        # Probe: leggi un singolo record (timeout implicito del client HTTP)
+        # Probe reale: DNS + TCP + auth + query → fallisce se tutto è morto
         client.table("chat_messages").select("id").limit(1).execute()
+        return client
 
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+            future = ex.submit(_probe)
+            client = future.result(timeout=_SUPABASE_TIMEOUT)
         return SupabaseBackend(client), True, ""
 
+    except concurrent.futures.TimeoutError:
+        return LocalBackend(), False, "timeout connessione (>2s)"
     except Exception as exc:
         motivo = str(exc)
-        # Semplifica messaggi DNS / network per l'utente finale
         if "Name or service not known" in motivo or "Errno -2" in motivo:
             motivo = "server Supabase non raggiungibile (rete)"
         elif "does not exist" in motivo:
-            motivo = "tabella chat_messages non trovata su Supabase"
+            motivo = "tabella chat_messages non trovata"
         return LocalBackend(), False, motivo
