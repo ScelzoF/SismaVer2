@@ -1,5 +1,6 @@
 
 import streamlit as st
+from datetime import datetime
 
 def show():
     st.title("📋 Note di Rilascio - SismaVer2")
@@ -7,10 +8,10 @@ def show():
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     
     st.markdown("""
-    ## Versione attuale: 2.3.3 (6 Aprile 2025)
+    ## Versione attuale: 2.4.0 (Aprile 2026)
     
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
-    completo di monitoraggio e prevenzione per il territorio italiano.
+    completo di monitoraggio e prevenzione per il territorio italiana.
     
     L'applicazione integra dati in tempo reale da fonti ufficiali, offrendo un servizio affidabile 
     e aggiornato per tutti i cittadini, con copertura nazionale e funzionalità avanzate.
@@ -20,6 +21,35 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
         
+        # Versione 2.4.0 — NUOVA
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#00796B; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.4.0</h3>
+                <p>Aprile 2026</p>
+                <span style="font-size:11px; background:#004D40; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.4.0 (Aprile 2026)
+            #### Manutenzione, migrazione e ottimizzazioni
+            
+            - 🗄️ **Migrazione Supabase** — Database migrato su nuovo progetto attivo (zero downtime)
+            - 🌦️ **Meteo senza API key** — Integrazione Open-Meteo gratuita con geocoding e previsioni 7 giorni
+            - 📍 **GPS corretto** — Geolocalizzazione browser riscritta con Promise e timeout (compatibile tutti i browser)
+            - 📅 **Date dinamiche INGV** — Iframe sismici vulcani (Vesuvio, Campi Flegrei, Stromboli) mostrano sempre ultimi 7 giorni
+            - 💬 **Chat regionale isolata** — Messaggi filtrati per regione, nessuna perdita cross-regionale
+            - 📆 **Date formato italiano** — Timestamp in formato dd/mm/yyyy HH:MM in tutta l'app
+            - 🔢 **Contatore visite univoco** — Una sola visita conteggiata per sessione
+            - ©️ **Copyright dinamico** — Anno nel footer aggiornato automaticamente ogni anno
+            - 🖼️ **Viewer immagini** — Sostituito popup JS (deprecato) con expander nativo Streamlit
+            - ⚡ **Keep-alive GitHub Actions** — Ping automatico ogni 6 ore per evitare lo sleep dell'app
+            """)
+            
+        st.markdown("---")
+
         # Versione 2.3.3
         col1, col2 = st.columns([1, 3])
         with col1:

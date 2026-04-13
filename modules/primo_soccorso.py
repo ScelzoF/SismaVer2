@@ -178,27 +178,24 @@ def show():
             # Visualizza immagine ottimizzata
             st.image(img, caption=caption, width=width)
             
-            # Crea pulsante per ingrandimento con UI migliorata
-            if st.button(f"🔍 Visualizza a schermo intero", key=f"btn_{unique_id}"):
-                # Carica l'immagine in base64 con cache
+            # Expander nativo Streamlit per visualizzazione ingrandita
+            with st.expander(f"🔍 Visualizza {caption} ingrandita"):
+                st.image(img, caption=caption, use_container_width=True)
+            
+            if False:  # Codice popup rimosso (st.components.v1.html deprecato)
                 img_base64 = get_image_as_base64(actual_path)
-                
-                # HTML responsive per mobile e desktop con correzione per errore DOM selector
                 popup_html = f"""
                 <script>
                 (function() {{
                     try {{
-                        // Ottimizzazione multi-dispositivo
                         var screenWidth = window.innerWidth;
                         var screenHeight = window.innerHeight;
                         var popupWidth = Math.min(800, screenWidth * 0.9);
                         var popupHeight = Math.min(600, screenHeight * 0.9);
-                        
                         var img_win = window.open("", "_blank", 
                             "width=" + popupWidth + 
                             ",height=" + popupHeight + 
                             ",scrollbars=yes,resizable=yes,status=no,location=no,toolbar=no,menubar=no");
-                        
                         if (img_win) {{
                             img_win.document.write(`
                                 <html>
