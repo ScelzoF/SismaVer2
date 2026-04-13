@@ -24,8 +24,8 @@ def show():
     st.title("💬 Chat Pubblica - SismaVer2")
 
     # Inizializzazione supabase con valori predefiniti
-    supabase_url = os.environ.get("SUPABASE_URL", "https://hqrdtuktmkemaitrusxw.supabase.co")
-    supabase_key = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxcmR0dWt0bWtlbWFpdHJ1c3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2Mzc2NDMsImV4cCI6MjA1ODIxMzY0M30.SDYaTicz0dWnocfa6oB7_QhB5f3ExRLTaCqtAHkQUgE")
+    supabase_url = os.environ.get("SUPABASE_URL", "https://ycdwgehifbyxarrsofmz.supabase.co")
+    supabase_key = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZHdnZWhpZmJ5eGFycnNvZm16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjY3NTcsImV4cCI6MjA5MTY0Mjc1N30.Gsa-tYQNdsQ6y25JL0tIGUEZcH1-9MSTCB6epECqYkw")
 
     # Messaggio informativo sullo stato delle API
     if supabase_url and supabase_key:
