@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", message=".*components.v1.*")
+
 import streamlit as st
 import os
 import sys

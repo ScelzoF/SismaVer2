@@ -182,60 +182,6 @@ def show():
             with st.expander(f"🔍 Visualizza {caption} ingrandita"):
                 st.image(img, caption=caption, use_container_width=True)
             
-            if False:  # Codice popup rimosso (st.components.v1.html deprecato)
-                img_base64 = get_image_as_base64(actual_path)
-                popup_html = f"""
-                <script>
-                (function() {{
-                    try {{
-                        var screenWidth = window.innerWidth;
-                        var screenHeight = window.innerHeight;
-                        var popupWidth = Math.min(800, screenWidth * 0.9);
-                        var popupHeight = Math.min(600, screenHeight * 0.9);
-                        var img_win = window.open("", "_blank", 
-                            "width=" + popupWidth + 
-                            ",height=" + popupHeight + 
-                            ",scrollbars=yes,resizable=yes,status=no,location=no,toolbar=no,menubar=no");
-                        if (img_win) {{
-                            img_win.document.write(`
-                                <html>
-                                    <head>
-                                        <title>{caption}</title>
-                                        <style>
-                                            body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }}
-                                            h2 {{ margin-bottom: 20px; }}
-                                            img {{ max-width: 95%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; }}
-                                            .close-btn {{ 
-                                                display: inline-block; 
-                                                padding: 10px 20px; 
-                                                margin-top: 20px; 
-                                                background-color: #f44336; 
-                                                color: white; 
-                                                border: none; 
-                                                border-radius: 4px; 
-                                                cursor: pointer; 
-                                            }}
-                                        </style>
-                                    </head>
-                                    <body>
-                                        <h2>{caption}</h2>
-                                        <img src="data:image/png;base64,{img_base64}" alt="{caption}">
-                                        <br>
-                                        <button class="close-btn" onclick="window.close()">Chiudi finestra</button>
-                                    </body>
-                                </html>
-                            `);
-                            img_win.document.close();
-                        }} else {{
-                            console.log("Non è stato possibile aprire la finestra popup. Il browser potrebbe bloccare i popup.");
-                        }}
-                    }} catch (e) {{
-                        console.error("Errore durante l'apertura dell'immagine:", e);
-                    }}
-                }})();
-                </script>
-                """
-                st.components.v1.html(popup_html, height=0)
         
         except Exception as e:
             st.warning(f"Errore nel caricamento dell'immagine: {e}")
