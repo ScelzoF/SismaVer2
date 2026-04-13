@@ -23,9 +23,7 @@ st.set_page_config(
 # Misura le prestazioni di caricamento
 start_time = time.time()
 
-# Ottimizzazioni SEO complete
-add_seo_metatags()
-add_schema_markup()
+# Ottimizzazioni SEO (una sola volta)
 
 # Aggiungi meta tag verifica Google Search Console
 st.markdown("""
@@ -49,19 +47,12 @@ query_params = st.query_params
 
 # Servi robots.txt e sitemap.xml
 if 'seo_endpoint' in query_params:
-    if query_params['seo_endpoint'] == 'robots':
+    if query_params.get('seo_endpoint') == 'robots':
         st.text(serve_robots_txt())
         st.stop()
-    elif query_params['seo_endpoint'] == 'sitemap':
+    elif query_params.get('seo_endpoint') == 'sitemap':
         st.text(serve_sitemap_xml())
         st.stop()
-
-# Genera e servi sitemap.xml e robots.txt
-if 'seo_endpoint' in query_params:
-    if query_params.get('seo_endpoint') == 'sitemap':
-        st.markdown(serve_sitemap_xml(), unsafe_allow_html=True)
-    elif query_params.get('seo_endpoint') == 'robots':
-        st.markdown(serve_robots_txt(), unsafe_allow_html=True)
 
 # Importa moduli di sicurezza
 try:
@@ -117,12 +108,9 @@ if SECURITY_ENABLED:
     cleanup_expired_tokens()
 
 
-# Integrazione metatag SEO e schema markup per i motori di ricerca
 try:
     from modules.seo_utils import add_seo_metatags, add_schema_markup
-    # Aggiungi metatag per SEO
     add_seo_metatags()
-    # Aggiungi markup strutturato JSON-LD
     add_schema_markup()
 except ImportError:
     pass
@@ -252,10 +240,7 @@ with st.sidebar:
 
     # Banner allerta
     st.markdown("""---""")
-    if random.random() > 0.9:  # Mostra allerta casualmente per simulazione (ridotto al 10%)
-        st.warning("⚠️ Allerta in corso: forti temporali in Lombardia")
-    else:
-        st.success("✅ Nessuna allerta critica in corso")
+    st.success("✅ Nessuna allerta critica in corso")
 
     # Data e ora con fuso orario italiano
     ora_attuale = datetime.now(FUSO_ORARIO_ITALIA)
@@ -392,50 +377,23 @@ except Exception as e:
 # Messaggio sul tempo di caricamento (solo per debug)
 # print(f"⏱️ Tempo totale caricamento: {time.time() - start_time:.3f}s")
 
-# Incrementa contatore visite
-from modules.security import increment_visit_counter
-visit_count = increment_visit_counter()
+# Contatore visite: incrementa solo una volta per sessione browser (non ad ogni rerun)
+from modules.security import increment_visit_counter, read_visit_counter
+if "visit_counted" not in st.session_state:
+    st.session_state.visit_counted = True
+    visit_count = increment_visit_counter()
+else:
+    visit_count = read_visit_counter()
 
 # Footer
 st.markdown(f"""
 <div class="footer">
 <p>🇮🇹 SismaVer2 - Sistema Nazionale di Monitoraggio e Prevenzione</p>
 <p>© 2025 – Versione 2.3.2 (Aprile 2025) – Dati da fonti ufficiali</p>
-<p><a href="https://github.com/sismaver-project/sismaver2" target="_blank">GitHub</a> · 
+<p><a href="https://github.com/ScelzoF/SismaVer2" target="_blank">GitHub</a> · 
 <a href="mailto:meteotorre@gmail.com">Contatti</a> · 
 <a href="https://www.protezionecivile.gov.it/it/privacy" target="_blank">Privacy</a></p>
 <p>👥 Visite totali: {visit_count:,}</p>
 <p>🔄 Ultimo aggiornamento: {ora_attuale.strftime('%d/%m/%Y %H:%M:%S')} (IT)</p>
 </div>
 """, unsafe_allow_html=True)
-
-# === KEEP-ALIVE ===
-import streamlit.components.v1 as components
-
-components.html("""
-<script>
-setInterval(() => {
-    fetch("/_stcore/health");
-}, 60000); // ogni 60 secondi
-</script>
-""", height=0)
-
-import time
-if 'last_ping' not in st.session_state:
-    st.session_state['last_ping'] = time.time()
-
-if time.time() - st.session_state['last_ping'] > 60:
-    st.session_state['last_ping'] = time.time()
-    _ = st.empty()
-
-
-# === SUPABASE AUTO REFRESH ===
-try:
-    import time
-    if 'last_refresh' in st.session_state and time.time() - st.session_state['last_refresh'] > 3000:
-        new_session = supabase.auth.refresh_session(st.session_state['refresh_token'])
-        st.session_state['access_token'] = new_session.access_token
-        st.session_state['refresh_token'] = new_session.refresh_token
-        st.session_state['last_refresh'] = time.time()
-except Exception as e:
-    st.warning(f"Errore nel refresh della sessione: {e}")

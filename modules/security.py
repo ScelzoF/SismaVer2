@@ -1,30 +1,39 @@
 
-def increment_visit_counter():
-    import os
+import os as _os
 
-    path = "data"
-    filename = "visit_counter.txt"
-    counter_path = os.path.join(path, filename)
+_COUNTER_PATH = _os.path.join("data", "visit_counter.txt")
 
-    # Assicurati che la cartella esista
+
+def _ensure_data_dir():
     try:
-        os.makedirs(path, exist_ok=True)
-    except:
-        return 0
+        _os.makedirs("data", exist_ok=True)
+        return True
+    except Exception:
+        return False
 
-    count = 0
+
+def read_visit_counter():
+    """Legge il contatore senza incrementarlo."""
     try:
-        # Leggi il valore attuale se il file esiste
-        if os.path.exists(counter_path):
-            with open(counter_path, "r") as f:
+        if _os.path.exists(_COUNTER_PATH):
+            with open(_COUNTER_PATH, "r") as f:
                 content = f.read().strip()
                 if content.isdigit():
-                    count = int(content)
-        # Incrementa
-        count += 1
-        with open(counter_path, "w") as f:
-            f.write(str(count))
-    except:
-        return 0
+                    return int(content)
+    except Exception:
+        pass
+    return 0
 
+
+def increment_visit_counter():
+    """Incrementa il contatore di una unità e restituisce il nuovo valore."""
+    if not _ensure_data_dir():
+        return 0
+    count = read_visit_counter()
+    count += 1
+    try:
+        with open(_COUNTER_PATH, "w") as f:
+            f.write(str(count))
+    except Exception:
+        return 0
     return count
