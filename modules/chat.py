@@ -211,7 +211,7 @@ CREATE INDEX idx_chat_messages_regione ON public.chat_messages(regione);
     # Geolocalizzazione per associare la posizione ai messaggi
     try:
         coords = streamlit_js_eval(
-            js_expressions='navigator.geolocation.getCurrentPosition((pos) => ({lat: pos.coords.latitude, lon: pos.coords.longitude}))',
+            js_expressions='new Promise((res) => { if (!navigator.geolocation) return res(null); navigator.geolocation.getCurrentPosition((pos) => res({lat: pos.coords.latitude, lon: pos.coords.longitude}), () => res(null), {timeout: 8000}); })',
             key="geo_chat"
         )
     except:

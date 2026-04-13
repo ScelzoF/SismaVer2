@@ -569,6 +569,12 @@ def show():
     with tab1:
         st.markdown("### 📊 Monitoraggio sismico in tempo reale")
         
+        # Date dinamiche: ultimi 7 giorni
+        _oggi = datetime.now(FUSO_ORARIO_ITALIA)
+        _sette_gg_fa = _oggi - timedelta(days=7)
+        _d_start = _sette_gg_fa.strftime('%Y-%m-%d')
+        _d_end = _oggi.strftime('%Y-%m-%d')
+        
         if vulcano_selezionato == "Vesuvio":
             # Sismicità Vesuvio in tempo reale da INGV
             st.markdown("#### Sismicità del Vesuvio - Rete sismica INGV Osservatorio Vesuviano")
@@ -577,8 +583,8 @@ def show():
             
             # Ultima settimana sismica
             st.subheader("Ultima settimana sismica")
-            st.markdown("""
-            <iframe width="100%" height="600" src="https://terremoti.ingv.it/events?starttime=2025-03-29+00%3A00%3A00&endtime=2025-04-05+23%3A59%3A59&minmag=-1&maxmag=10&mindepth=-10&maxdepth=1000&minlat=40.721&maxlat=40.921&minlon=14.326&maxlon=14.526&minversion=100&limit=30&orderby=ot-desc&lat=40.821&lon=14.426&maxradiuskm=10&wheretype=area&box_search=Vesuvio" frameborder="0"></iframe>
+            st.markdown(f"""
+            <iframe width="100%" height="600" src="https://terremoti.ingv.it/events?starttime={_d_start}+00%3A00%3A00&endtime={_d_end}+23%3A59%3A59&minmag=-1&maxmag=10&mindepth=-10&maxdepth=1000&minlat=40.721&maxlat=40.921&minlon=14.326&maxlon=14.526&minversion=100&limit=30&orderby=ot-desc&lat=40.821&lon=14.426&maxradiuskm=10&wheretype=area&box_search=Vesuvio" frameborder="0"></iframe>
             """, unsafe_allow_html=True)
             
             # Ottieni eventi dal Vesuvio
@@ -607,8 +613,8 @@ def show():
             
             # Sismicità recente in tempo reale
             st.subheader("Ultimi eventi sismici nell'area flegrea")
-            st.markdown("""
-            <iframe width="100%" height="600" src="https://terremoti.ingv.it/events?starttime=2025-03-29+00%3A00%3A00&endtime=2025-04-05+23%3A59%3A59&minmag=-1&maxmag=10&mindepth=-10&maxdepth=1000&minlat=40.75&maxlat=40.9&minlon=14.0&maxlon=14.3&minversion=100&limit=30&orderby=ot-desc&lat=40.827&lon=14.139&maxradiuskm=10&wheretype=area&box_search=Campi+Flegrei" frameborder="0"></iframe>
+            st.markdown(f"""
+            <iframe width="100%" height="600" src="https://terremoti.ingv.it/events?starttime={_d_start}+00%3A00%3A00&endtime={_d_end}+23%3A59%3A59&minmag=-1&maxmag=10&mindepth=-10&maxdepth=1000&minlat=40.75&maxlat=40.9&minlon=14.0&maxlon=14.3&minversion=100&limit=30&orderby=ot-desc&lat=40.827&lon=14.139&maxradiuskm=10&wheretype=area&box_search=Campi+Flegrei" frameborder="0"></iframe>
             """, unsafe_allow_html=True)
             
             # Ultima settimana flegrea
@@ -721,8 +727,8 @@ def show():
             
             # Ultimi eventi sismici nell'area di Stromboli
             st.markdown("### Ultimi eventi sismici")
-            st.markdown("""
-            <iframe width="100%" height="500" src="https://terremoti.ingv.it/events?starttime=2025-03-29+00%3A00%3A00&endtime=2025-04-05+23%3A59%3A59&minmag=-1&maxmag=10&mindepth=-10&maxdepth=1000&minlat=38.7&maxlat=38.9&minlon=15.1&maxlon=15.3&minversion=100&limit=30&orderby=ot-desc&lat=38.789&lon=15.213&maxradiuskm=10&wheretype=area&box_search=Stromboli" frameborder="0"></iframe>
+            st.markdown(f"""
+            <iframe width="100%" height="500" src="https://terremoti.ingv.it/events?starttime={_d_start}+00%3A00%3A00&endtime={_d_end}+23%3A59%3A59&minmag=-1&maxmag=10&mindepth=-10&maxdepth=1000&minlat=38.7&maxlat=38.9&minlon=15.1&maxlon=15.3&minversion=100&limit=30&orderby=ot-desc&lat=38.789&lon=15.213&maxradiuskm=10&wheretype=area&box_search=Stromboli" frameborder="0"></iframe>
             """, unsafe_allow_html=True)
             
             # Accesso diretto ai bollettini
