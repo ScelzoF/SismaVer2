@@ -136,125 +136,142 @@ def show():
         except Exception as e:
             return None, f"Errore di connessione geocoding: {str(e)[:50]}..."
     
-    # Sistema di gestione chiavi API con fallback e diagnostica avanzata
+    # ── Chiave API OpenWeather (opzionale) ───────────────────────────────────
     API_KEY = os.environ.get("OPENWEATHER_API_KEY")
     API_STATUS = "OK"
-    
+
     if not API_KEY:
         try:
             API_KEY = st.secrets["OPENWEATHER_API_KEY"]
-        except:
+        except Exception:
             API_STATUS = "MISSING"
-            st.error("🔑 Chiave API OpenWeather mancante. Configura la chiave nelle variabili d'ambiente.")
-            st.info("Per ottenere una chiave API gratuita, visita: https://openweathermap.org/api")
-            
-    # Verifica validità chiave API
+
+    # Verifica validità chiave API (solo se presente)
     if API_KEY and API_STATUS == "OK":
         test_url = f"https://api.openweathermap.org/data/2.5/weather?q=Rome&appid={API_KEY}&units=metric&lang=it"
         try:
             test_response = requests.get(test_url, timeout=5)
             if test_response.status_code == 401:
                 API_STATUS = "INVALID"
-                st.error("🔑 Chiave API OpenWeather non valida o scaduta. Verifica le tue credenziali.")
-        except:
-            # Ignoriamo errori di connessione nel test, potrebbe essere un problema temporaneo
+                API_KEY = None
+        except Exception:
             pass
-            
-            # Form per inserimento manuale della chiave (temporaneo)
-            with st.form("api_key_form"):
-                api_key_input = st.text_input("Inserisci chiave API OpenWeather", type="password")
-                submit_button = st.form_submit_button("Usa chiave")
-                
-                if submit_button and api_key_input:
-                    API_KEY = api_key_input
-                    st.success("Chiave API impostata temporaneamente. La chiave sarà valida solo per questa sessione.")
-                    st.info("Per un utilizzo permanente, configura la chiave nelle variabili d'ambiente.")
-                    st.rerun()
-    
-    # Visualizzazione iniziale con indicazione esplicita
-    st.info("👇 Seleziona una città o usa la tua posizione per visualizzare i dati meteo in tempo reale")
-    
-    # Indichiamo chiaramente che questi sono valori esemplificativi in attesa dei dati reali
-    st.warning("⚠️ I dati meteo qui sotto sono esemplificativi. Seleziona una località per dati meteo reali e aggiornati.")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.metric("Temperatura attuale", "21°C", "-2°C")
-        st.metric("Precipitazioni", "0mm", "stabile")
-    
-    with col2:
-        st.metric("Vento", "12 km/h", "+3 km/h")
-        st.metric("Umidità", "65%", "+5%")
-    
-    # Selezione del metodo di ricerca
-    metodo = st.radio("🔍 Metodo:", ["📍 Usa posizione attuale", "🏙️ Inserisci città"])
-    
-    # Coordinate per la visualizzazione in caso di ottenimento tramite posizione
-    coords = None
-    city_name = None
-    url = None
-    
-    if metodo == "📍 Usa posizione attuale":
-        with st.spinner("Recupero della posizione in corso..."):
-            coords = streamlit_js_eval(js_expressions='navigator.geolocation.getCurrentPosition((pos) => ({lat: pos.coords.latitude, lon: pos.coords.longitude}))', key="geo")
-            if coords and "lat" in coords and "lon" in coords:
-                url = f"https://api.openweathermap.org/data/2.5/weather?lat={coords['lat']}&lon={coords['lon']}&appid={API_KEY}&units=metric&lang=it"
-                # Recupera il nome della città usando la funzione caching
-                geocode_url = f"https://api.openweathermap.org/geo/1.0/reverse?lat={coords['lat']}&lon={coords['lon']}&limit=1&appid={API_KEY}"
-                try:
-                    geo_data, geo_error = fetch_geocode_data(geocode_url)
-                    city_name = geo_data[0]['name'] if geo_data else "Posizione attuale"
-                except:
-                    city_name = "Posizione attuale"
-            else:
-                st.warning("⚠️ Geolocalizzazione non disponibile. Prova a inserire manualmente una città.")
-    else:
-        city_name = st.text_input("🏙️ Inserisci città", value="Napoli")
-        if city_name:
-            url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={API_KEY}&units=metric&lang=it"
-            # Recupera anche le coordinate per la visualizzazione della mappa
-            geocode_url = f"https://api.openweathermap.org/geo/1.0/direct?q={city_name}&limit=1&appid={API_KEY}"
+
+    # ── Se API OpenWeather non disponibile → usa Open-Meteo (gratuito) ───────
+    if not API_KEY:
+        _WMO = {
+            0: ("☀️", "Sereno"), 1: ("🌤️", "Prev. sereno"), 2: ("⛅", "Parz. nuvoloso"),
+            3: ("☁️", "Nuvoloso"), 45: ("🌫️", "Nebbia"), 48: ("🌫️", "Nebbia"),
+            51: ("🌦️", "Pioggerella"), 53: ("🌦️", "Pioggerella"), 55: ("🌦️", "Pioggerella"),
+            61: ("🌧️", "Pioggia leggera"), 63: ("🌧️", "Pioggia"), 65: ("🌧️", "Pioggia forte"),
+            71: ("🌨️", "Neve leggera"), 73: ("🌨️", "Neve"), 75: ("🌨️", "Neve forte"),
+            80: ("🌦️", "Rovesci"), 81: ("🌧️", "Rovesci"), 82: ("⛈️", "Rovesci forti"),
+            95: ("⛈️", "Temporale"), 96: ("⛈️", "Temporale+grandine"), 99: ("⛈️", "Temporale forte"),
+        }
+
+        def _wmo(code):
+            return _WMO.get(int(code) if code else 0, ("🌡️", "Variabile"))
+
+        def _fetch_openmeteo(lat, lon):
             try:
-                # Utilizzo della funzione di cache per geocoding
-                geo_data, geo_error = fetch_geocode_data(geocode_url)
-                if geo_data and len(geo_data) > 0:
-                    coords = {"lat": geo_data[0]['lat'], "lon": geo_data[0]['lon']}
-            except Exception as e:
-                print(f"Errore geocoding: {e}")
+                url_om = (
+                    f"https://api.open-meteo.com/v1/forecast"
+                    f"?latitude={lat}&longitude={lon}"
+                    f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,weather_code"
+                    f"&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum"
+                    f"&timezone=Europe%2FRome&forecast_days=7"
+                )
+                r = requests.get(url_om, timeout=8)
+                if r.status_code == 200:
+                    return r.json()
+            except Exception:
+                pass
+            return None
+
+        def _geocode_city(city):
+            try:
+                r = requests.get(
+                    f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1&language=it",
+                    timeout=5
+                )
+                results = r.json().get("results", [])
+                if results:
+                    return results[0]["latitude"], results[0]["longitude"], results[0].get("name", city)
+            except Exception:
+                pass
+            return None, None, city
+
+        st.caption("🌐 Dati: Open-Meteo (gratuito, nessuna API key) · Aggiornamento automatico")
+
+        metodo = st.radio("🔍 Metodo:", ["📍 Usa posizione attuale", "🏙️ Inserisci città"], key="meteo_method_om")
+
+        lat_om, lon_om, city_label = 41.0, 14.25, "Napoli"
+        coords = None
+
+        if metodo == "📍 Usa posizione attuale":
+            with st.spinner("Recupero posizione GPS..."):
+                coords = streamlit_js_eval(
+                    js_expressions='navigator.geolocation.getCurrentPosition((pos) => ({lat: pos.coords.latitude, lon: pos.coords.longitude}))',
+                    key="geo_om"
+                )
+            if coords and "lat" in coords:
+                lat_om, lon_om = coords["lat"], coords["lon"]
+                city_label = "Posizione attuale"
+            else:
+                st.info("GPS non disponibile — mostro dati per Napoli.")
         else:
-            st.info("⚠️ Inserisci il nome di una città per visualizzare il meteo.")
-    
-    # Previsioni meteo giornaliere
-    st.subheader("🌡️ Previsioni meteo giornaliere")
-    
-    # Dati statici come fallback iniziale
-    fallback_previsioni = {
-        "Oggi": {"temp": "21°C", "icon": "☀️", "prec": "0%"},
-        "Domani": {"temp": "23°C", "icon": "⛅", "prec": "10%"},
-        "Dopodomani": {"temp": "20°C", "icon": "🌧️", "prec": "40%"},
-        "Fra 3 giorni": {"temp": "18°C", "icon": "🌧️", "prec": "60%"},
-        "Fra 4 giorni": {"temp": "19°C", "icon": "⛅", "prec": "20%"},
-    }
-    
-    # Imposta 5 colonne per le previsioni
-    forecast_cols = st.columns(5)
-    
-    # Se non abbiamo selezionato città o posizione, mostriamo dati fallback
-    if not url or not API_KEY:
-        # Popola le colonne con i dati di previsione fallback
-        for i, (giorno, dati) in enumerate(fallback_previsioni.items()):
-            with forecast_cols[i]:
-                st.markdown(f"**{giorno}**")
-                st.markdown(f"{dati['icon']} {dati['temp']}")
-                st.markdown(f"🌧️ {dati['prec']}")
-        
-        # Informazioni aggiuntive
-        st.info("Ultimo aggiornamento: " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
-        
-        # Se non c'è API_KEY, usciamo qui
-        if not API_KEY:
-            return
+            city_input = st.text_input("🏙️ Inserisci città", value="Napoli", key="city_om")
+            if city_input:
+                lat_om, lon_om, city_label = _geocode_city(city_input)
+                if not lat_om:
+                    st.warning("Città non trovata, mostro Napoli.")
+                    lat_om, lon_om, city_label = 41.0, 14.25, "Napoli"
+
+        with st.spinner(f"Caricamento meteo per {city_label}..."):
+            dati_om = _fetch_openmeteo(lat_om, lon_om)
+
+        if dati_om:
+            cur = dati_om.get("current", {})
+            daily = dati_om.get("daily", {})
+
+            icon_cur, desc_cur = _wmo(cur.get("weather_code", 0))
+            st.subheader(f"{icon_cur} Meteo attuale — {city_label}")
+
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("🌡️ Temperatura", f"{cur.get('temperature_2m', '—')}°C")
+            c2.metric("💧 Umidità", f"{cur.get('relative_humidity_2m', '—')}%")
+            c3.metric("💨 Vento", f"{cur.get('wind_speed_10m', '—')} km/h")
+            c4.metric("🌧️ Pioggia", f"{cur.get('precipitation', 0)} mm")
+            st.caption(f"Condizioni: {desc_cur}")
+
+            st.subheader("📅 Previsioni 7 giorni")
+            days = daily.get("time", [])
+            codes = daily.get("weather_code", [])
+            t_max = daily.get("temperature_2m_max", [])
+            t_min = daily.get("temperature_2m_min", [])
+            prec = daily.get("precipitation_sum", [])
+
+            cols = st.columns(min(7, len(days)))
+            for i, col in enumerate(cols):
+                if i < len(days):
+                    try:
+                        from datetime import date as _date
+                        d = _date.fromisoformat(days[i])
+                        label = "Oggi" if d == _date.today() else d.strftime("%a %d/%m")
+                    except Exception:
+                        label = days[i]
+                    ico, _ = _wmo(codes[i] if i < len(codes) else 0)
+                    with col:
+                        st.markdown(f"**{label}**")
+                        st.markdown(f"{ico}")
+                        st.markdown(f"↑{t_max[i] if i < len(t_max) else '—'}° ↓{t_min[i] if i < len(t_min) else '—'}°")
+                        st.markdown(f"🌧️ {prec[i] if i < len(prec) else 0}mm")
+
+            st.info(f"Ultimo aggiornamento: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+        else:
+            st.error("Impossibile recuperare i dati meteo. Controlla la connessione.")
+
+        return  # Open-Meteo completato, non serve OpenWeather
     
     # Se abbiamo URL valido e API_KEY, procediamo con il recupero dati reali
     if url and API_KEY:
