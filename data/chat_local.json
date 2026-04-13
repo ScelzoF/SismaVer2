@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ac1c6293-ad35-4c85-9016-92be428d9da7",
+    "timestamp": "2026-04-13T11:37:12.702191+02:00",
+    "nickname": "Test",
+    "message": "Ciao",
+    "regione": "Campania",
+    "user_id": "abc",
+    "is_emergency": false,
+    "is_moderated": false,
+    "moderation_level": "",
+    "moderation_score": 0.0,
+    "lat": null,
+    "lon": null
+  }
+]

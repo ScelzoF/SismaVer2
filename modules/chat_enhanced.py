@@ -56,190 +56,45 @@ FUSO_ORARIO_ITALIA = timezone(timedelta(hours=2 if ora_legale else 1))
 
 def show():
     st.title("💬 Chat Pubblica - SismaVer2")
-    
-    # Import Supabase
-    try:
-        from supabase import create_client, Client
-    except ImportError:
-        st.error("📦 Libreria Supabase non installata")
-        st.info("Esegui 'pip install supabase' per installare la libreria")
-        return
 
-    # Inizializzazione supabase con valori predefiniti
+    # -----------------------------------------------------------------------
+    # Inizializzazione backend (Supabase → fallback locale automatico)
+    # -----------------------------------------------------------------------
+    from modules.chat_backend import get_backend
+
     supabase_url = os.environ.get("SUPABASE_URL", "https://hqrdtuktmkemaitrusxw.supabase.co")
     supabase_key = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxcmR0dWt0bWtlbWFpdHJ1c3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2Mzc2NDMsImV4cCI6MjA1ODIxMzY0M30.SDYaTicz0dWnocfa6oB7_QhB5f3ExRLTaCqtAHkQUgE")
-
-    # Messaggio informativo sullo stato delle API
-    if supabase_url and supabase_key:
-        st.success("✅ Connessione al database Supabase configurata.")
-    else:
-        try:
-            supabase_url = st.secrets["SUPABASE_URL"]
-            supabase_key = st.secrets["SUPABASE_KEY"]
-            st.success("✅ Connessione al database Supabase configurata via secrets.")
-        except:
-            st.error("⚠️ Configurazione Supabase mancante. La chat non è disponibile.")
-            st.info("Per attivare la chat, è necessario configurare le credenziali Supabase.")
-            
-            # Form per inserimento manuale delle credenziali (temporaneo)
-            with st.form("supabase_form"):
-                st.write("Inserisci manualmente le credenziali Supabase:")
-                supabase_url_input = st.text_input("URL Supabase", placeholder="https://your-project.supabase.co")
-                supabase_key_input = st.text_input("Chiave API Supabase", type="password")
-                submit = st.form_submit_button("Connetti")
-
-                if submit and supabase_url_input and supabase_key_input:
-                    supabase_url = supabase_url_input
-                    supabase_key = supabase_key_input
-                    st.success("Credenziali inserite correttamente")
-                    st.info("Queste credenziali saranno valide solo per questa sessione")
-                    st.rerun()
-
-            if not supabase_url or not supabase_key:
-                # Mostra istruzioni per la configurazione di Supabase
-                st.subheader("🚀 Configurazione Supabase")
-                st.markdown("""
-                Per configurare la chat:
-
-                1. Crea un account gratuito su [Supabase](https://supabase.com)
-                2. Crea un nuovo progetto
-                3. Vai su Project Settings > API
-                4. Copia l'URL e la chiave API (anon/public)
-                5. Esegui questo script SQL sull'editor SQL di Supabase:
-                """)
-
-                st.code("""
-CREATE TABLE public.chat_messages (
-    id BIGSERIAL PRIMARY KEY,
-    nickname TEXT NOT NULL,
-    message TEXT NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
-    regione TEXT NOT NULL,
-    lat FLOAT,
-    lon FLOAT,
-    user_id TEXT,
-    is_emergency BOOLEAN DEFAULT false,
-    is_moderated BOOLEAN DEFAULT false,
-    moderation_level TEXT,
-    moderation_score FLOAT,
-    original_message TEXT
-);
-
--- Indici per migliorare le performance
-CREATE INDEX idx_chat_messages_timestamp ON public.chat_messages(timestamp);
-CREATE INDEX idx_chat_messages_regione ON public.chat_messages(regione);
-CREATE INDEX idx_chat_messages_user_id ON public.chat_messages(user_id);
-CREATE INDEX idx_chat_messages_is_emergency ON public.chat_messages(is_emergency);
-
--- Tabella per la moderazione della chat
-CREATE TABLE public.chat_moderation (
-    id BIGSERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    infraction_score FLOAT DEFAULT 0,
-    infractions_count INTEGER DEFAULT 0,
-    last_infraction_timestamp TIMESTAMPTZ DEFAULT NOW(),
-    restriction_level TEXT DEFAULT 'none',
-    notes TEXT
-);
-
-CREATE INDEX idx_chat_moderation_user_id ON public.chat_moderation(user_id);
-
--- Politiche di sicurezza Row Level Security (RLS)
-ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.chat_moderation ENABLE ROW LEVEL SECURITY;
-
--- Politica: chiunque può leggere i messaggi
-CREATE POLICY "Tutti possono leggere i messaggi" 
-ON public.chat_messages FOR SELECT 
-USING (true);
-
--- Politica: solo l'utente che ha creato il messaggio può modificarlo o eliminarlo
-CREATE POLICY "Gli utenti possono modificare i propri messaggi" 
-ON public.chat_messages FOR UPDATE 
-USING (auth.uid()::text = user_id);
-
-CREATE POLICY "Gli utenti possono eliminare i propri messaggi" 
-ON public.chat_messages FOR DELETE 
-USING (auth.uid()::text = user_id);
-
--- Politica: chiunque può inserire nuovi messaggi
-CREATE POLICY "Tutti possono inserire messaggi" 
-ON public.chat_messages FOR INSERT 
-WITH CHECK (true);
-
--- Politiche per la tabella di moderazione
-CREATE POLICY "Solo gli amministratori possono leggere moderazioni"
-ON public.chat_moderation FOR SELECT
-USING (auth.uid() IN (
-  SELECT id FROM auth.users WHERE email LIKE '%@admin.sismaver.it'
-));
-
-CREATE POLICY "Solo gli amministratori possono inserire moderazioni"
-ON public.chat_moderation FOR INSERT
-WITH CHECK (auth.uid() IN (
-  SELECT id FROM auth.users WHERE email LIKE '%@admin.sismaver.it'
-));
-
-CREATE POLICY "Solo gli amministratori possono aggiornare moderazioni"
-ON public.chat_moderation FOR UPDATE
-USING (auth.uid() IN (
-  SELECT id FROM auth.users WHERE email LIKE '%@admin.sismaver.it'
-));
-                """, language="sql")
-
-                st.markdown("""
-                6. Configura le variabili d'ambiente nel tuo .env file o nelle impostazioni di Replit
-                ```
-                SUPABASE_URL=your-project-url
-                SUPABASE_KEY=your-anon-key
-                ```
-                """)
-
-                return
-
     try:
-        # Verifica validità URL prima di creare client
-        if not supabase_url.startswith("https://"):
-            st.error(f"URL Supabase non valido: {supabase_url}")
-            st.info("L'URL deve iniziare con 'https://'")
-            return
+        supabase_url = st.secrets.get("SUPABASE_URL", supabase_url)
+        supabase_key = st.secrets.get("SUPABASE_KEY", supabase_key)
+    except Exception:
+        pass
 
-        # Creazione client con gestione errori
-        try:
-            supabase = create_client(supabase_url, supabase_key)
-        except Exception as e:
-            st.error(f"Errore nella creazione del client Supabase: {e}")
-            return
+    # Usa la cache di sessione per non ripetere il probe ad ogni rerun
+    if "chat_backend" not in st.session_state or "chat_online" not in st.session_state:
+        backend, is_online, fail_reason = get_backend(supabase_url, supabase_key)
+        st.session_state.chat_backend = backend
+        st.session_state.chat_online = is_online
+        st.session_state.chat_fail_reason = fail_reason
 
-        # Verifica che la tabella chat_messages esista
-        try:
-            response = supabase.table("chat_messages").select("count", count="exact").limit(1).execute()
-            # Se arriviamo qui, la tabella esiste
-        except Exception as e:
-            st.error(f"⚠️ La tabella chat_messages non esiste o non è accessibile: {e}")
-            st.info("La chat pubblica richiede una tabella 'chat_messages' nel database Supabase.")
-            st.code("""
-CREATE TABLE public.chat_messages (
-    id BIGSERIAL PRIMARY KEY,
-    nickname TEXT NOT NULL,
-    message TEXT NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
-    regione TEXT NOT NULL,
-    lat FLOAT,
-    lon FLOAT,
-    user_id TEXT,
-    is_emergency BOOLEAN DEFAULT false,
-    is_moderated BOOLEAN DEFAULT false,
-    moderation_level TEXT,
-    moderation_score FLOAT,
-    original_message TEXT
-);
-            """, language="sql")
-            return
+    backend = st.session_state.chat_backend
+    is_online = st.session_state.chat_online
+    fail_reason = st.session_state.get("chat_fail_reason", "")
 
-    except Exception as e:
-        st.error(f"⚠️ Errore nella connessione a Supabase: {e}")
-        return
+    if is_online:
+        st.success("✅ Connessione al database Supabase attiva.")
+    else:
+        st.warning(
+            f"⚠️ Modalità offline — Supabase non raggiungibile ({fail_reason}). "
+            "I messaggi vengono salvati localmente su questo server e sono visibili "
+            "solo agli utenti collegati a questa istanza."
+        )
+        col_retry, _ = st.columns([1, 4])
+        with col_retry:
+            if st.button("🔄 Riprova connessione"):
+                for k in ("chat_backend", "chat_online", "chat_fail_reason"):
+                    st.session_state.pop(k, None)
+                st.rerun()
 
     # Gestione utente e identificativo unico persistente
     if "user_id" not in st.session_state:
@@ -327,34 +182,15 @@ CREATE TABLE public.chat_messages (
         # Container per i messaggi
         messages_container = st.container()
 
-        # Funzione di caricamento messaggi senza cache
+        # Funzione di caricamento messaggi con supporto backend multiplo
         def _load_messages_inner(regione_filtro="Tutte le regioni", limit=50, descending=True):
-            """Funzione interna per caricare i messaggi da Supabase"""
+            """Carica i messaggi dal backend attivo (Supabase o locale)."""
             try:
-                # Costruisci la query base
-                query = supabase.table("chat_messages").select("*")
-
-                # Filtro per regione se selezionata
-                if regione_filtro != "Tutte le regioni":
-                    query = query.eq("regione", regione_filtro)
-
-                # Ordina per timestamp
-                if descending:
-                    query = query.order("timestamp", desc=True)
-                else:
-                    query = query.order("timestamp")
-
-                # Limita i risultati
-                response = query.limit(limit).execute()
-
-                if hasattr(response, 'data'):
-                    return response.data
-                else:
-                    return []
+                return backend.load_messages(regione_filtro, limit, descending)
             except Exception as e:
                 st.error(f"Errore nel caricamento dei messaggi: {e}")
                 return []
-        
+
         # Applica la cache alla funzione per poter usare load_messages.clear()
         load_messages = st.cache_data(ttl=15, show_spinner=False)(_load_messages_inner)
 
@@ -601,30 +437,26 @@ CREATE TABLE public.chat_messages (
                         "moderation_level": moderation_level,
                         "moderation_score": moderation_score,
                     }
-                    
+
                     # Aggiungi il messaggio originale se è stato moderato
                     if is_moderated:
                         message_data["original_message"] = original_message
-                    
+
                     # Aggiungi coordinate se disponibili
                     if coords and isinstance(coords, dict) and "lat" in coords and "lon" in coords:
                         message_data["lat"] = coords["lat"]
                         message_data["lon"] = coords["lon"]
 
-                    # Invia a Supabase
-                    response = supabase.table("chat_messages").insert(message_data).execute()
+                    # Invia tramite backend attivo (Supabase o locale)
+                    backend.save_message(message_data)
 
-                    if hasattr(response, 'error') and response.error:
-                        st.error(f"Errore nell'invio: {response.error}")
+                    if is_moderated:
+                        st.success("Messaggio inviato con moderazione automatica!")
                     else:
-                        if is_moderated:
-                            st.success("Messaggio inviato con moderazione automatica!")
-                        else:
-                            st.success("Messaggio inviato!")
-                        # Invalidate cache to see new message
-                        load_messages.clear()
-                        time.sleep(0.5)
-                        st.rerun()
+                        st.success("Messaggio inviato!")
+                    load_messages.clear()
+                    time.sleep(0.5)
+                    st.rerun()
 
                 except Exception as e:
                     st.error(f"Errore nell'invio del messaggio: {e}")
@@ -660,9 +492,12 @@ CREATE TABLE public.chat_messages (
             from streamlit_folium import folium_static
             from folium.plugins import MarkerCluster
             
-            # Filtra messaggi con coordinate
-            geo_messages = [m for m in load_messages(regione_filtro="Tutte le regioni", limit=200) 
-                          if m.get("lat") is not None and m.get("lon") is not None]
+            # Filtra messaggi con coordinate tramite backend
+            try:
+                geo_messages = backend.load_geo_messages(limit=200)
+            except Exception:
+                geo_messages = [m for m in load_messages(regione_filtro="Tutte le regioni", limit=200)
+                                if m.get("lat") is not None and m.get("lon") is not None]
             
             if not geo_messages:
                 st.info("Nessun messaggio con posizione disponibile")
