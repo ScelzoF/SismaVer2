@@ -2,7 +2,7 @@
 enableCORS = false
 enableXsrfProtection = false
 headless = true
-port = 6000
+port = 5000
 
 [browser]
 gatherUsageStats = false
