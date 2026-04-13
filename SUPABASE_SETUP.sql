@@ -29,5 +29,8 @@ CREATE TABLE IF NOT EXISTS event_reports (
 ALTER TABLE chat_messages  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_reports  ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "allow_all" ON chat_messages  FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS "allow_all" ON event_reports  FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_all" ON chat_messages;
+CREATE POLICY "allow_all" ON chat_messages  FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "allow_all" ON event_reports;
+CREATE POLICY "allow_all" ON event_reports  FOR ALL USING (true) WITH CHECK (true);
