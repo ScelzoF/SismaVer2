@@ -117,27 +117,37 @@ def show():
     
     # Impostazioni della chat in orizzontale
     st.write("### 🔧 Impostazioni chat")
-    
-    # Prima riga: Nickname e Regione di filtro
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        # Input nickname (richiesto)
-        nickname = st.text_input("👤 Il tuo nome", value=st.session_state.nickname, placeholder="Inserisci il tuo nome")
-        if nickname != st.session_state.nickname:
-            st.session_state.nickname = nickname
-    
-    # Selezione regione per filtro messaggi
+
     regioni_italiane = [
-        "Tutte le regioni", "Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia-Romagna",
-        "Friuli-Venezia Giulia", "Lazio", "Liguria", "Lombardia", "Marche", "Molise", 
+        "Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia-Romagna",
+        "Friuli-Venezia Giulia", "Lazio", "Liguria", "Lombardia", "Marche", "Molise",
         "Piemonte", "Puglia", "Sardegna", "Sicilia", "Toscana", "Trentino-Alto Adige",
         "Umbria", "Valle d'Aosta", "Veneto"
     ]
-    
+
+    # Inizializza la regione utente (persistente nella sessione)
+    if "regione_utente" not in st.session_state:
+        st.session_state.regione_utente = "Campania"  # default
+
+    # Prima riga: Nickname, Regione (unica — controlla sia display sia invio), Emergenze
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        nickname = st.text_input("👤 Il tuo nome", value=st.session_state.nickname, placeholder="Inserisci il tuo nome")
+        if nickname != st.session_state.nickname:
+            st.session_state.nickname = nickname
+
     with col2:
-        regione_filtro = st.selectbox("🗺️ Filtra per regione", regioni_italiane)
-    
+        # UNA SOLA selezione di regione: filtra i messaggi E imposta la regione d'invio
+        idx_regione = regioni_italiane.index(st.session_state.regione_utente) if st.session_state.regione_utente in regioni_italiane else 0
+        regione_scelta = st.selectbox("🗺️ La tua regione", regioni_italiane, index=idx_regione)
+        if regione_scelta != st.session_state.regione_utente:
+            st.session_state.regione_utente = regione_scelta
+            st.rerun()
+
+    # regione_filtro = regione dell'utente (chat separata per regione)
+    regione_filtro = st.session_state.regione_utente
+
     with col3:
         mostra_emergenze = st.checkbox("🚨 Evidenzia emergenze", value=True)
     
@@ -377,8 +387,9 @@ def show():
                 )
 
             with col2:
-                # Selezione della regione del messaggio
-                regione_msg = st.selectbox("Regione", regioni_italiane[1:])
+                # Regione del messaggio = regione utente (selezionata in alto)
+                st.markdown(f"**📍 Regione:** {st.session_state.regione_utente}")
+                regione_msg = st.session_state.regione_utente
                 # Opzione per segnalare emergenza
                 is_emergency = st.checkbox("🚨 Segnala come emergenza")
 

@@ -12,5 +12,19 @@
     "moderation_score": 0.0,
     "lat": null,
     "lon": null
+  },
+  {
+    "id": "32d783e6-ab6c-4595-a736-beb005b72eaa",
+    "timestamp": "2026-04-13T12:07:25.634347+02:00",
+    "nickname": "Marco",
+    "message": "ciao a tutti, prova messaggio interno.",
+    "regione": "Campania",
+    "user_id": "f21a22fa-1e51-4247-be26-a2a77a944ea4",
+    "is_emergency": false,
+    "is_moderated": false,
+    "moderation_level": null,
+    "moderation_score": 0.0,
+    "lat": null,
+    "lon": null
   }
 ]
