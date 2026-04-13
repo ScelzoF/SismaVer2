@@ -73,20 +73,16 @@ def show():
     with tab1:
         st.write('Usa questo modulo per segnalare eventi sismici o situazioni di emergenza nella tua zona.')
         
-        # Inizializza connessione Supabase se disponibile
+        # Inizializza connessione Supabase se disponibile (senza probe: fallback silenzioso)
         supabase = None
         if supabase_available:
             supabase_url = os.environ.get("SUPABASE_URL", "https://hqrdtuktmkemaitrusxw.supabase.co")
             supabase_key = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxcmR0dWt0bWtlbWFpdHJ1c3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2Mzc2NDMsImV4cCI6MjA1ODIxMzY0M30.SDYaTicz0dWnocfa6oB7_QhB5f3ExRLTaCqtAHkQUgE")
-            
             if supabase_url and supabase_key:
                 try:
                     supabase = create_client(supabase_url, supabase_key)
-                    st.success("✅ Connesso a Supabase per la persistenza dei dati")
-                except Exception as e:
-                    st.error(f"Errore nella connessione a Supabase: {e}")
-            else:
-                st.info("⚠️ Configurazione Supabase non disponibile. Le segnalazioni saranno salvate localmente.")
+                except Exception:
+                    supabase = None
         
         with st.form("segnalazione_form"):
             col1, col2 = st.columns(2)
@@ -235,10 +231,10 @@ def show():
                         else:
                             st.success("Segnalazione salvata con successo!")
                         
-                except Exception as e:
-                    st.error(f"Errore nell'invio a Supabase: {e}")
-                    # Fallback a salvataggio locale
+                except Exception:
+                    # Supabase non raggiungibile → fallback locale silenzioso
                     salva_locale(tipo, description_to_send, data, ora, coords, gravita, regione, comune, contatto)
+                    st.success("✅ Segnalazione salvata localmente!")
             else:
                 # Salvataggio locale
                 salva_locale(tipo, description_to_send, data, ora, coords, gravita, regione, comune, contatto)
@@ -408,51 +404,17 @@ def show():
                                 # Fallback al caricamento locale
                                 carica_segnalazioni_locali(filtro_tipo, filtro_regione, filtro_gravita)
                         
-                        except Exception as e:
-                            st.warning(f"Errore nell'accesso alla tabella event_reports: {e}")
-                            st.info("Creazione automatica della tabella in corso...")
-                            
-                            # Suggerisci la creazione della tabella
-                            st.code("""
-CREATE TABLE public.event_reports (
-    id BIGSERIAL PRIMARY KEY,
-    tipo TEXT NOT NULL,
-    descrizione TEXT NOT NULL,
-    data_ora TIMESTAMPTZ DEFAULT NOW(),
-    regione TEXT NOT NULL,
-    comune TEXT NOT NULL,
-    gravita TEXT DEFAULT 'Medio',
-    lat FLOAT,
-    lon FLOAT,
-    user_id TEXT,
-    contatto TEXT,
-    is_moderated BOOLEAN DEFAULT false,
-    moderation_level TEXT,
-    moderation_score FLOAT,
-    original_description TEXT
-);
-
--- Indici per migliorare le performance
-CREATE INDEX idx_event_reports_data_ora ON public.event_reports(data_ora);
-CREATE INDEX idx_event_reports_regione ON public.event_reports(regione);
-CREATE INDEX idx_event_reports_tipo ON public.event_reports(tipo);
-CREATE INDEX idx_event_reports_gravita ON public.event_reports(gravita);
-                            """, language="sql")
-                            
-                            # Fallback al caricamento locale
+                        except Exception:
+                            # Supabase non raggiungibile → fallback locale silenzioso
                             carica_segnalazioni_locali(filtro_tipo, filtro_regione, filtro_gravita)
-                    
-                    except Exception as e:
-                        st.error(f"Errore nella connessione a Supabase: {e}")
-                        # Fallback al caricamento locale
+
+                    except Exception:
+                        # Errore connessione Supabase → fallback locale silenzioso
                         carica_segnalazioni_locali(filtro_tipo, filtro_regione, filtro_gravita)
                 else:
-                    # Fallback al caricamento locale
                     carica_segnalazioni_locali(filtro_tipo, filtro_regione, filtro_gravita)
-            
-            except Exception as e:
-                st.error(f"Errore nell'inizializzazione di Supabase: {e}")
-                # Fallback al caricamento locale
+
+            except Exception:
                 carica_segnalazioni_locali(filtro_tipo, filtro_regione, filtro_gravita)
         else:
             # Se Supabase non è disponibile, carica segnalazioni locali
