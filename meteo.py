@@ -16,7 +16,8 @@ def show():
         except:
             pass
     if not API_KEY:
-        API_KEY = "d23fb9868855e4bcb4dcf04404d14a78"  # Chiave fallback
+        st.error("⚠️ Chiave API meteo non configurata. Imposta `OPENWEATHER_API_KEY` nei secrets.")
+        return
 
     metodo = st.radio("🔍 Metodo:", ["📍 Usa posizione attuale", "🏙️ Inserisci città"])
     url = None
