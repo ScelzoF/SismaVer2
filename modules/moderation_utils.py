@@ -18,13 +18,17 @@ import logging
 from datetime import datetime, timedelta
 
 # Configurazione logging — log su file se il filesystem è scrivibile, altrimenti solo stdout
-_LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs")
+_handlers = [logging.StreamHandler()]
 try:
+    _LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs")
     os.makedirs(_LOG_DIR, exist_ok=True)
     _log_file = os.path.join(_LOG_DIR, "moderation.log")
-    _handlers = [logging.FileHandler(_log_file), logging.StreamHandler()]
+    # Verifica che il file sia apribile prima di passarlo a FileHandler
+    with open(_log_file, "a") as _test_f:
+        pass
+    _handlers.append(logging.FileHandler(_log_file))
 except Exception:
-    _handlers = [logging.StreamHandler()]
+    pass  # Filesystem read-only (Streamlit Cloud) — solo stdout
 
 logging.basicConfig(
     level=logging.INFO,
