@@ -8,57 +8,33 @@ import streamlit as st
 def render_banner(icon: str, titolo: str, sottotitolo: str,
                   colore1: str = "#1E3A5F", colore2: str = "#2563EB",
                   testo_badge: str = ""):
-    """
-    Renderizza un banner/hero visivo in cima alla sezione.
-
-    Parametri
-    ---------
-    icon        : emoji grande (es. "🌋")
-    titolo      : titolo principale del banner
-    sottotitolo : breve descrizione (max 2 righe)
-    colore1     : colore iniziale del gradiente (hex)
-    colore2     : colore finale del gradiente (hex)
-    testo_badge : testo opzionale per il badge in alto a destra (es. "LIVE")
-    """
     badge_html = ""
     if testo_badge:
         badge_html = (
-            f'<span style="position:absolute;top:14px;right:16px;'
-            f'background:rgba(255,255,255,0.2);color:white;'
-            f'padding:3px 10px;border-radius:20px;font-size:11px;'
+            '<span style="position:absolute;top:14px;right:16px;'
+            'background:rgba(255,255,255,0.2);color:white;'
+            'padding:3px 10px;border-radius:20px;font-size:11px;'
             f'font-weight:700;letter-spacing:1px;">{testo_badge}</span>'
         )
 
-    st.markdown(
-        f"""
-        <div style="
-            position:relative;
-            background: linear-gradient(135deg, {colore1} 0%, {colore2} 100%);
-            border-radius: 14px;
-            padding: 24px 32px 22px 28px;
-            margin-bottom: 22px;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.22);
-            overflow: hidden;
-        ">
-            {badge_html}
-            <div style="
-                position:absolute;right:-20px;bottom:-20px;
-                font-size:110px;opacity:0.08;line-height:1;
-                pointer-events:none;user-select:none;
-            ">{icon}</div>
-            <div style="font-size:42px;margin-bottom:10px;line-height:1;">{icon}</div>
-            <h1 style="
-                color:white;margin:0 0 6px 0;
-                font-size:24px;font-weight:800;letter-spacing:-0.3px;
-            ">{titolo}</h1>
-            <p style="
-                color:rgba(255,255,255,0.82);
-                margin:0;font-size:13.5px;line-height:1.5;
-            ">{sottotitolo}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    html = (
+        '<div style="position:relative;'
+        f'background:linear-gradient(135deg,{colore1} 0%,{colore2} 100%);'
+        'border-radius:14px;padding:24px 32px 22px 28px;'
+        'margin-bottom:22px;box-shadow:0 6px 24px rgba(0,0,0,0.22);overflow:hidden;">'
+        + badge_html
+        + f'<div style="position:absolute;right:-20px;bottom:-20px;'
+          f'font-size:110px;opacity:0.08;line-height:1;'
+          f'pointer-events:none;user-select:none;">{icon}</div>'
+        + f'<div style="font-size:42px;margin-bottom:10px;line-height:1;">{icon}</div>'
+        + f'<h1 style="color:white;margin:0 0 6px 0;'
+          f'font-size:24px;font-weight:800;letter-spacing:-0.3px;">{titolo}</h1>'
+        + f'<p style="color:rgba(255,255,255,0.82);'
+          f'margin:0;font-size:13.5px;line-height:1.5;">{sottotitolo}</p>'
+        + '</div>'
     )
+
+    st.markdown(html, unsafe_allow_html=True)
 
 
 # ── Preset per ogni sezione ──────────────────────────────────────────────────
