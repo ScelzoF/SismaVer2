@@ -16,7 +16,8 @@ def show():
     
     from functools import wraps
 
-    st.title("🌤️ Meteo Attuale")
+    from modules.banner_utils import banner_meteo
+    banner_meteo()
     
     # Fuso orario italiano con ora legale automatica
     def _get_tz_it():

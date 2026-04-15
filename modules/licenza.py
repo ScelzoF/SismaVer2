@@ -4,7 +4,8 @@ import os
 from datetime import datetime
 
 def show():
-    st.title("📜 Termini d'Uso e Diritti Riservati")
+    from modules.banner_utils import banner_licenza
+    banner_licenza()
     
     # Sezione biografia dello sviluppatore
     st.header("👨‍💻 Lo Sviluppatore")

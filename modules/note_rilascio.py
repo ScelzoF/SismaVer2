@@ -3,7 +3,8 @@ import streamlit as st
 from datetime import datetime
 
 def show():
-    st.title("📋 Note di Rilascio - SismaVer2")
+    from modules.banner_utils import banner_note_rilascio
+    banner_note_rilascio()
     
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     

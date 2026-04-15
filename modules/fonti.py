@@ -11,7 +11,8 @@ def show():
 
     ora = datetime.now(_get_tz())
 
-    st.title("📚 Fonti dei Dati")
+    from modules.banner_utils import banner_fonti
+    banner_fonti()
     st.markdown(
         f"<p style='color:#64748B;font-size:0.9rem;'>SismaVer2 utilizza esclusivamente fonti "
         f"ufficiali e pubbliche. Ultimo aggiornamento: <b>{ora.strftime('%d/%m/%Y %H:%M')}</b></p>",

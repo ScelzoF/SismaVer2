@@ -109,7 +109,8 @@ def geocode_location(location_name):
         return 41.9, 12.5
 
 def show():
-    st.title("🚨 Emergenza Regionale")
+    from modules.banner_utils import banner_emergenza
+    banner_emergenza()
     st.write("Informazioni di emergenza, punti di raccolta e contatti utili per ciascuna regione italiana.")
 
     # Dati regioni di base con coordinates precaricate per ridurre chiamate API

@@ -25,7 +25,8 @@ def _get_tz_italia():
 FUSO_ORARIO_ITALIA = _get_tz_italia()
 
 def show():
-    st.title('🩺 Primo Soccorso e Strutture Sanitarie')
+    from modules.banner_utils import banner_primo_soccorso
+    banner_primo_soccorso()
 
     st.write("""
     ## Informazioni di Primo Soccorso

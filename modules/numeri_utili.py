@@ -4,7 +4,8 @@ numeri_utili.py — Numeri di emergenza nazionali e regionali per SismaVer2
 import streamlit as st
 
 def show():
-    st.title("📞 Numeri Utili di Emergenza")
+    from modules.banner_utils import banner_numeri_utili
+    banner_numeri_utili()
     st.markdown(
         "<p style='color:#64748B;font-size:0.9rem;margin-top:-12px;'>"
         "Numeri nazionali e regionali di emergenza — in caso di pericolo chiama il <b>112</b></p>",

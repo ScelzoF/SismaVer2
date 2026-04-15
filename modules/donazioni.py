@@ -2,7 +2,8 @@
 def show():
     import streamlit as st
 
-    st.title('❤️ Donazioni')
+    from modules.banner_utils import banner_donazioni
+    banner_donazioni()
 
     st.markdown("""
     ## Supporta SismaVer2

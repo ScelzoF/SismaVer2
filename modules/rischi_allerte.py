@@ -302,7 +302,8 @@ def _parse_meteoalarm(raw_bytes):
 def show():
     ora = datetime.now(FUSO_IT)
 
-    st.title("📊 Monitoraggio Rischi e Allerte")
+    from modules.banner_utils import banner_allerte
+    banner_allerte()
     st.markdown(
         f"<p style='color:#64748B;font-size:0.9rem;margin-top:-12px;'>"
         f"Dashboard live di allerte sismiche, tsunami, meteo e vulcaniche · "

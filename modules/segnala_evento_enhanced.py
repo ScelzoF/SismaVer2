@@ -57,7 +57,8 @@ except ImportError:
     supabase_available = False
 
 def show():
-    st.title('📢 Segnalazione Eventi')
+    from modules.banner_utils import banner_segnala
+    banner_segnala()
     
     # Gestione utente e identificativo unico persistente
     if "user_id" not in st.session_state:

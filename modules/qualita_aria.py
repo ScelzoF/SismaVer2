@@ -70,7 +70,8 @@ def show():
     if _AR:
         _sar(interval=1_800_000, limit=None, key="aria_autorefresh")
 
-    st.title("🌬️ Qualità dell'Aria — Città Italiane")
+    from modules.banner_utils import banner_qualita_aria
+    banner_qualita_aria()
     ora = datetime.now(FUSO_IT)
     st.markdown(
         f"<p style='color:#64748B;font-size:0.9rem;margin-top:-12px;'>"

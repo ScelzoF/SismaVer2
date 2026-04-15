@@ -274,7 +274,8 @@ def show():
     if _AUTOREFRESH_OK:
         _st_autorefresh(interval=1_800_000, limit=None, key="vulcani_autorefresh")
 
-    st.title("🌋 Monitoraggio Vulcani Italiani")
+    from modules.banner_utils import banner_vulcani
+    banner_vulcani()
 
     # Informazioni sui vulcani attivi italiani
     vulcani_italiani = {

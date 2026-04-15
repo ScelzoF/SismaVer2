@@ -33,7 +33,8 @@ def show():
     if _AUTOREFRESH:
         _st_autorefresh(interval=300_000, limit=None, key="monit_autorefresh")
 
-    st.title("📡 Monitoraggio Sismico Nazionale")
+    from modules.banner_utils import banner_monitoraggio
+    banner_monitoraggio()
     
     # Opzioni di visualizzazione: nazionale o per regione
     st.sidebar.subheader("🗄️ Filtra visualizzazione")

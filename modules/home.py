@@ -126,7 +126,8 @@ def show():
 
     ora = datetime.now(FUSO_ORARIO_ITALIA)
 
-    st.title("🇮🇹 SismaVer2 — Monitoraggio Nazionale")
+    from modules.banner_utils import banner_home
+    banner_home()
     st.markdown(
         f"<p style='color:#64748B;font-size:0.9rem;margin-top:-12px;'>"
         f"Sistema integrato di monitoraggio rischi naturali · "

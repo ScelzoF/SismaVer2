@@ -61,7 +61,8 @@ def _get_tz_italia():
 FUSO_ORARIO_ITALIA = _get_tz_italia()
 
 def show():
-    st.title("💬 Chat Pubblica - SismaVer2")
+    from modules.banner_utils import banner_chat
+    banner_chat()
 
     # -----------------------------------------------------------------------
     # Inizializzazione backend (Supabase → fallback locale automatico)
