@@ -129,7 +129,7 @@ def show():
     from modules.banner_utils import banner_home
     banner_home()
     st.markdown(
-        f"<p style='color:#64748B;font-size:0.9rem;margin-top:-12px;'>"
+        f"<p style='color:#64748B;font-size:0.9rem;margin-top:0;'>"
         f"Sistema integrato di monitoraggio rischi naturali · "
         f"Aggiornato: <b>{ora.strftime('%d/%m/%Y %H:%M')}</b> (IT) · "
         f"<i>Auto-aggiornamento ogni 5 min</i></p>",

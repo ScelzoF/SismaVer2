@@ -8,7 +8,8 @@ from supabase import create_client, Client
 
 
 def show():
-    st.title('📢 Segnalazione Eventi')
+    from modules.banner_utils import banner_segnala
+    banner_segnala()
     
     # Visualizziamo i due tab: Segnala e Visualizza
     tab1, tab2 = st.tabs(["✏️ Segnala evento", "🔍 Visualizza segnalazioni"])

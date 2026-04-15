@@ -305,7 +305,7 @@ def show():
     from modules.banner_utils import banner_allerte
     banner_allerte()
     st.markdown(
-        f"<p style='color:#64748B;font-size:0.9rem;margin-top:-12px;'>"
+        f"<p style='color:#64748B;font-size:0.9rem;margin-top:0;'>"
         f"Dashboard live di allerte sismiche, tsunami, meteo e vulcaniche · "
         f"Aggiornato: <b>{ora.strftime('%d/%m/%Y %H:%M')}</b> (IT) · "
         f"<i>Aggiornamento automatico ogni 2 min</i></p>",

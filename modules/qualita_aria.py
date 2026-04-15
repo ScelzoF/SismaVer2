@@ -74,7 +74,7 @@ def show():
     banner_qualita_aria()
     ora = datetime.now(FUSO_IT)
     st.markdown(
-        f"<p style='color:#64748B;font-size:0.9rem;margin-top:-12px;'>"
+        f"<p style='color:#64748B;font-size:0.9rem;margin-top:0;'>"
         f"Indice EEA (European Air Quality Index) in tempo reale · "
         f"Fonte: Open-Meteo · Aggiornato: <b>{ora.strftime('%d/%m/%Y %H:%M')}</b> "
         f"· <i>Auto-aggiornamento ogni 30 min</i></p>",

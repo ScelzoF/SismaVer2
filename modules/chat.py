@@ -21,7 +21,8 @@ def show():
         st.info("Esegui 'pip install supabase' per installare la libreria")
         return
 
-    st.title("💬 Chat Pubblica - SismaVer2")
+    from modules.banner_utils import banner_chat
+    banner_chat()
 
     # Inizializzazione supabase — chiavi da st.secrets o variabili d'ambiente
     supabase_url = os.environ.get("SUPABASE_URL", "")

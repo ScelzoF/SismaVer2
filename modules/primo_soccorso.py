@@ -293,7 +293,6 @@ def show():
 
 
         def show_manovre():
-            st.title("🩺 Primo Soccorso")
 
             st.markdown("""
             <h2 style="font-size: 32px; margin-bottom: 20px; color: #1E88E5; font-weight: bold; text-align: center;">MANOVRE DI PRIMO SOCCORSO ESSENZIALI</h2>
@@ -978,12 +977,36 @@ def show():
                 colore = colori[tipo_centro] if tipo_centro in colori else "red"
                 icona = icone[tipo_centro] if tipo_centro in icone else "hospital-o"
 
+                _g  = f"https://www.google.com/maps/dir/?api=1&destination={centro['lat']},{centro['lon']}&travelmode=driving"
+                _wz = f"https://waze.com/ul?ll={centro['lat']},{centro['lon']}&navigate=yes"
+                _am = f"https://maps.apple.com/?daddr={centro['lat']},{centro['lon']}&dirflg=d"
+
                 popup_text = f"""
-                <b>{centro['nome']}</b><br>
-                Tipo: {tipo_centro}<br>
-                Città: {centro['città']}<br>
-                Indirizzo: {centro['indirizzo']}<br>
-                Telefono: <a href="tel:{centro['telefono']}">{centro['telefono']}</a>
+                <div style="min-width:240px;font-family:sans-serif;font-size:13px;">
+                  <h4 style="color:#2980b9;margin:0 0 8px 0;font-size:14px;border-bottom:2px solid #2980b9;padding-bottom:4px;">
+                    🏛️ {centro['nome']}
+                  </h4>
+                  <table style="border-collapse:collapse;font-size:12px;width:100%;">
+                    <tr><td style="padding:2px 4px;color:#555;">🏷️</td><td>{tipo_centro}</td></tr>
+                    <tr><td style="padding:2px 4px;color:#555;">📍</td><td>{centro['indirizzo']}</td></tr>
+                    <tr><td style="padding:2px 4px;color:#555;">📞</td><td><a href="tel:{centro['telefono']}" style="color:#2980b9;">{centro['telefono']}</a></td></tr>
+                    <tr><td style="padding:2px 4px;color:#888;">🌐</td><td style="color:#888;font-size:11px;font-family:monospace;">{centro['lat']:.5f}, {centro['lon']:.5f}</td></tr>
+                  </table>
+                  <div style="margin-top:10px;display:flex;gap:4px;">
+                    <a href="{_g}" target="_blank"
+                       style="background:#4285F4;color:white;padding:5px 8px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">
+                       🗺️ GMaps
+                    </a>
+                    <a href="{_wz}" target="_blank"
+                       style="background:#00BCD4;color:#000;padding:5px 8px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">
+                       🚗 Waze
+                    </a>
+                    <a href="{_am}" target="_blank"
+                       style="background:#555;color:white;padding:5px 8px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">
+                       🍎 Maps
+                    </a>
+                  </div>
+                </div>
                 """
 
                 folium.Marker(
@@ -1017,11 +1040,43 @@ def show():
                             tipo_centro = tipo
                             break
 
-                    st.markdown(f"""
-                    **{centro['nome']}** ({tipo_centro.replace('Centri ', '').replace('Unità ', '') if tipo_centro else 'Non specificato'})
-                    Indirizzo: {centro['indirizzo']}
-                    Telefono: {centro['telefono']}
-                    """)
+                    _tipo_label = tipo_centro.replace('Centri ', '').replace('Unità ', '') if tipo_centro else 'Centro specializzato'
+                    _g_c  = f"https://www.google.com/maps/dir/?api=1&destination={centro['lat']},{centro['lon']}&travelmode=driving"
+                    _wz_c = f"https://waze.com/ul?ll={centro['lat']},{centro['lon']}&navigate=yes"
+                    _am_c = f"https://maps.apple.com/?daddr={centro['lat']},{centro['lon']}&dirflg=d"
+
+                    col_info, col_nav = st.columns([3, 2])
+                    with col_info:
+                        st.markdown(f"""
+                        <div style="border-left:4px solid #2980b9;padding-left:12px;margin-bottom:4px;">
+                          <h4 style="margin:0 0 4px 0;font-size:14px;">🏛️ {centro['nome']}
+                            <span style="font-size:0.75em;color:#2980b9;background:#dbeafe;
+                                  padding:1px 7px;border-radius:10px;margin-left:6px;">{_tipo_label}</span>
+                          </h4>
+                          <p style="margin:0;font-size:13px;color:#444;line-height:1.6;">
+                            📍 <b>{centro['indirizzo']}</b>, {centro['città']}<br>
+                            📞 <a href="tel:{centro['telefono']}" style="color:#2563eb;">{centro['telefono']}</a>
+                          </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with col_nav:
+                        st.markdown(f"""
+                        <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;">
+                          <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:0.5px;">🌐 GPS NAVIGAZIONE</div>
+                          <div style="font-size:11px;color:#666;margin-bottom:8px;font-family:monospace;">{centro['lat']:.5f}, {centro['lon']:.5f}</div>
+                          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            <a href="{_g_c}" target="_blank"
+                               style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;
+                                      border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">🗺️ GMaps</a>
+                            <a href="{_wz_c}" target="_blank"
+                               style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;
+                                      border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">🚗 Waze</a>
+                            <a href="{_am_c}" target="_blank"
+                               style="background:#555;color:white;padding:4px 7px;text-decoration:none;
+                                      border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">🍎 Maps</a>
+                          </div>
+                        </div>
+                        """, unsafe_allow_html=True)
                 st.markdown("---")
 
         st.info("""
