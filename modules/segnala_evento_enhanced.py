@@ -139,7 +139,7 @@ def show():
                 height=120
             )
             
-            # Geolocalizzazione
+            # Geolocalizzazione automatica
             try:
                 coords = streamlit_js_eval(
                     js_expressions='new Promise((res) => { if (!navigator.geolocation) return res(null); navigator.geolocation.getCurrentPosition((pos) => res({lat: pos.coords.latitude, lon: pos.coords.longitude}), () => res(null), {timeout: 8000}); })',
@@ -147,12 +147,12 @@ def show():
                 )
                 
                 if coords and isinstance(coords, dict) and "lat" in coords and "lon" in coords:
-                    st.success(f"📍 Posizione rilevata: {coords['lat']:.4f}, {coords['lon']:.4f}")
+                    st.success(f"✅ Posizione GPS rilevata: {coords['lat']:.4f}, {coords['lon']:.4f} — la segnalazione includerà le coordinate precise.")
                 else:
-                    st.warning("⚠️ Posizione non disponibile. La segnalazione avrà meno precisione.")
+                    st.info("📍 Posizione GPS non rilevata — la segnalazione verrà inviata con regione e comune inseriti manualmente. Puoi abilitare la geolocalizzazione nel browser per maggiore precisione.")
                     coords = None
             except:
-                st.warning("⚠️ Impossibile ottenere la posizione. Assicurati di permettere l'accesso alla geolocalizzazione.")
+                st.info("📍 Geolocalizzazione non disponibile in questo browser — la segnalazione verrà inviata con regione e comune.")
                 coords = None
             
             invia = st.form_submit_button("📤 Invia segnalazione")
