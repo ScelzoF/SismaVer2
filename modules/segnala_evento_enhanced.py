@@ -13,6 +13,41 @@ import os
 import json
 import uuid
 import time
+import requests
+
+def _reverse_geocode(lat, lon):
+    """Chiama Nominatim per ottenere regione e comune dalle coordinate."""
+    try:
+        r = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lon, "format": "json", "addressdetails": 1},
+            headers={"User-Agent": "SismaVer2/2.9.8 (meteotorre@gmail.com)"},
+            timeout=5
+        )
+        if r.status_code == 200:
+            data = r.json()
+            addr = data.get("address", {})
+            stato = addr.get("state", "")
+            # Nominatim usa nomi regionali italiani standard
+            comune = (addr.get("city") or addr.get("town") or
+                      addr.get("village") or addr.get("municipality") or "")
+            return stato, comune
+    except Exception:
+        pass
+    return "", ""
+
+_REGIONI_MAP = {
+    "Abruzzo": "Abruzzo", "Basilicata": "Basilicata", "Calabria": "Calabria",
+    "Campania": "Campania", "Emilia-Romagna": "Emilia-Romagna",
+    "Friuli-Venezia Giulia": "Friuli-Venezia Giulia", "Friuli Venezia Giulia": "Friuli-Venezia Giulia",
+    "Lazio": "Lazio", "Liguria": "Liguria", "Lombardia": "Lombardia",
+    "Marche": "Marche", "Molise": "Molise", "Piemonte": "Piemonte",
+    "Puglia": "Puglia", "Sardegna": "Sardegna", "Sicilia": "Sicilia",
+    "Toscana": "Toscana", "Trentino-Alto Adige": "Trentino-Alto Adige",
+    "Trentino-Südtirol": "Trentino-Alto Adige", "Trentino Alto Adige": "Trentino-Alto Adige",
+    "Umbria": "Umbria", "Valle d'Aosta": "Valle d'Aosta", "Valle d'Aosta": "Valle d'Aosta",
+    "Veneto": "Veneto",
+}
 
 # Importa modulo di moderazione
 try:
@@ -91,27 +126,40 @@ def show():
                     supabase = None
         
         # ── Blocco GPS esterno al form ──────────────────────────────────────────
-        if "coords_segnala" not in st.session_state:
-            st.session_state.coords_segnala = None
-        if "gps_richiesto" not in st.session_state:
-            st.session_state.gps_richiesto = False
+        for _k, _v in [("coords_segnala", None), ("gps_richiesto", False),
+                       ("gps_regione", ""), ("gps_comune", "")]:
+            if _k not in st.session_state:
+                st.session_state[_k] = _v
 
-        # Tentativo automatico di rilevamento GPS al primo caricamento
+        def _applica_coords(raw):
+            """Salva coords e lancia reverse geocoding."""
+            st.session_state.coords_segnala = raw
+            st.session_state.gps_richiesto  = True
+            _stato, _comune = _reverse_geocode(raw["lat"], raw["lon"])
+            st.session_state.gps_regione = _REGIONI_MAP.get(_stato, "")
+            st.session_state.gps_comune  = _comune
+
+        # Tentativo automatico al primo caricamento
         _raw_coords = streamlit_js_eval(
             js_expressions='new Promise((res) => { if (!navigator.geolocation) return res(null); navigator.geolocation.getCurrentPosition((pos) => res({lat: pos.coords.latitude, lon: pos.coords.longitude}), () => res(null), {timeout: 10000}); })',
             key="geo_segnalazioni_auto"
         )
-        if _raw_coords and isinstance(_raw_coords, dict) and "lat" in _raw_coords and "lon" in _raw_coords:
-            st.session_state.coords_segnala = _raw_coords
-            st.session_state.gps_richiesto = True
+        if (_raw_coords and isinstance(_raw_coords, dict)
+                and "lat" in _raw_coords and "lon" in _raw_coords
+                and st.session_state.coords_segnala is None):
+            _applica_coords(_raw_coords)
 
         # Indicatore stato GPS
         _c = st.session_state.coords_segnala
         if _c:
+            _loc_label = ""
+            if st.session_state.gps_comune and st.session_state.gps_regione:
+                _loc_label = f" — 📌 {st.session_state.gps_comune}, {st.session_state.gps_regione}"
+            elif st.session_state.gps_regione:
+                _loc_label = f" — 📌 {st.session_state.gps_regione}"
             st.markdown(
-                '<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
-                f'<span style="font-size:18px;">✅</span>'
-                f'<span style="font-size:13px;"><b>Posizione GPS rilevata:</b> {_c["lat"]:.5f}, {_c["lon"]:.5f} — le coordinate saranno incluse nella segnalazione.</span>'
+                '<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px 14px;margin-bottom:8px;">'
+                f'<span style="font-size:13px;">✅ <b>Posizione GPS rilevata:</b> {_c["lat"]:.5f}, {_c["lon"]:.5f}{_loc_label}</span>'
                 '</div>',
                 unsafe_allow_html=True
             )
@@ -121,7 +169,7 @@ def show():
                 if st.session_state.gps_richiesto:
                     st.markdown(
                         '<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:8px 14px;margin-bottom:8px;">'
-                        '<span style="font-size:13px;">⚠️ <b>GPS non rilevato</b> — controlla i permessi del browser. La segnalazione verrà inviata con regione e comune.</span>'
+                        '<span style="font-size:13px;">⚠️ <b>GPS non rilevato</b> — controlla i permessi del browser. Regione e comune inseribili manualmente.</span>'
                         '</div>',
                         unsafe_allow_html=True
                     )
@@ -140,7 +188,7 @@ def show():
                         key="geo_segnalazioni_retry"
                     )
                     if _retry and isinstance(_retry, dict) and "lat" in _retry and "lon" in _retry:
-                        st.session_state.coords_segnala = _retry
+                        _applica_coords(_retry)
                         st.rerun()
 
         st.markdown("---")
@@ -171,8 +219,23 @@ def show():
                     "Umbria", "Valle d'Aosta", "Veneto"
                 ]
                 
-                regione = st.selectbox("Regione", regioni_italiane, index=0)
-                comune = st.text_input("Comune", placeholder="Inserisci il comune")
+                # Pre-seleziona regione rilevata dal GPS (modificabile)
+                _gps_reg = st.session_state.get("gps_regione", "")
+                _reg_idx = regioni_italiane.index(_gps_reg) if _gps_reg in regioni_italiane else 0
+                regione = st.selectbox(
+                    "Regione" + (" 📍" if _gps_reg else ""),
+                    regioni_italiane,
+                    index=_reg_idx,
+                    help="Pre-compilato dal GPS. Puoi modificarlo." if _gps_reg else None
+                )
+                # Pre-compila comune rilevato dal GPS (modificabile)
+                _gps_com = st.session_state.get("gps_comune", "")
+                comune = st.text_input(
+                    "Comune" + (" 📍" if _gps_com else ""),
+                    value=_gps_com,
+                    placeholder="Inserisci il comune",
+                    help="Pre-compilato dal GPS. Puoi modificarlo." if _gps_com else None
+                )
                 
             with col2:
                 data = st.date_input("Data evento", value=datetime.now(), format="DD/MM/YYYY")
