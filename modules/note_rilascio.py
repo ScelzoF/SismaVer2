@@ -9,7 +9,7 @@ def show():
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     
     st.markdown("""
-    ## Versione attuale: 2.9.7 (Aprile 2026)
+    ## Versione attuale: 2.9.8 (Aprile 2026)
     
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -22,14 +22,40 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # Versione 2.9.7 — NUOVA
+        # Versione 2.9.8 — NUOVA
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background-color:#059669; color:white; padding:10px; border-radius:5px; text-align:center;">
-                <h3>v2.9.7</h3>
+                <h3>v2.9.8</h3>
                 <p>Aprile 2026</p>
                 <span style="font-size:11px; background:#047857; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.9.8 (Aprile 2026)
+            #### GPS universale — Navigazione ovunque ci siano coordinate
+
+            - 🗺️ **GPS emergenza.py (lista)** — Ogni punto di raccolta ora mostra una card strutturata con coordinate GPS e 3 pulsanti di navigazione diretta (GMaps, Waze, Apple Maps)
+            - 🗺️ **GPS emergenza.py (mappa)** — Popup Folium dei marker aggiornati con HTML ricco + pulsanti navigazione per tutti e 3 i tipi di marker (coordinate esatte / offset / fallback circolare)
+            - 🌋 **GPS vulcani.py (marker singolo)** — Popup del marker vulcano nella scheda dettaglio include GPS per raggiungere il vulcano
+            - 🌋 **GPS monitoraggio.py (mappa allerta vulcani)** — Popup di ogni vulcano nella mappa nazionale allerte include GPS
+            - 🌋 **GPS monitoraggio.py (vulcani per regione)** — Popup marker regionale con GPS
+            - 🌊 **GPS monitoraggio.py (cerchi sismici mappa principale)** — Ogni cerchio terremoto ha popup con "Naviga all'epicentro" via GMaps/Waze/Apple Maps
+            - 🌊 **GPS monitoraggio.py (cerchi sismici mappa intensità)** — Idem per la seconda mappa eventi
+            - ✅ **Copertura completa** — Navigazione GPS presente in ogni sezione dell'app con dati geografici
+            """)
+
+        st.markdown("---")
+
+        # Versione 2.9.7
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#2563eb; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.9.7</h3>
+                <p>Aprile 2026</p>
             </div>
             """, unsafe_allow_html=True)
         with col2:

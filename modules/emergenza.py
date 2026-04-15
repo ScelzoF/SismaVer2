@@ -535,10 +535,35 @@ def show():
                 st.markdown("### 🛑 Criticità territoriali")
                 st.markdown(dati["criticita"])
 
-                # Punti di raccolta — mostra tutti quelli disponibili
+                # Punti di raccolta con GPS navigazione
                 st.markdown("### 📍 Punti di raccolta")
+                _coords_dict = dati.get("punti_raccolta_coords", {})
                 for punto in dati["punti_raccolta"]:
-                    st.markdown(f"📌 {punto}")
+                    _pk = punto.strip()
+                    _c  = _coords_dict.get(_pk)
+                    if _c:
+                        _g  = f"https://www.google.com/maps/dir/?api=1&destination={_c[0]},{_c[1]}&travelmode=driving"
+                        _wz = f"https://waze.com/ul?ll={_c[0]},{_c[1]}&navigate=yes"
+                        _am = f"https://maps.apple.com/?daddr={_c[0]},{_c[1]}&dirflg=d"
+                        col_pi, col_pn = st.columns([3, 2])
+                        with col_pi:
+                            st.markdown(
+                                '<div style="border-left:4px solid #DC2626;padding-left:10px;margin-bottom:4px;">'
+                                f'<p style="margin:0;font-size:14px;">📌 <b>{_pk}</b></p>'
+                                f'<p style="margin:0;font-size:11px;color:#888;font-family:monospace;">{_c[0]:.5f}, {_c[1]:.5f}</p>'
+                                '</div>',
+                                unsafe_allow_html=True)
+                        with col_pn:
+                            st.markdown(
+                                '<div style="background:#fff7f7;border:1px solid #fecaca;border-radius:6px;padding:6px 10px;">'
+                                '<div style="display:flex;gap:4px;flex-wrap:wrap;">'
+                                f'<a href="{_g}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">🗺️ GMaps</a>'
+                                f'<a href="{_wz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">🚗 Waze</a>'
+                                f'<a href="{_am}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">🍎 Maps</a>'
+                                '</div></div>',
+                                unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"📌 {_pk}")
                 st.caption(f"Totale punti: {len(dati['punti_raccolta'])} · Fonte: Protezione Civile")
 
                 # Rischio idrogeologico (se presente)
@@ -598,27 +623,49 @@ def show():
                         for i, punto in enumerate(dati["punti_raccolta"]):
                             punto_key = punto.strip()
                             if punto_key in dati["punti_raccolta_coords"]:
-                                # Usiamo le coordinate precaricate
                                 lat, lon = dati["punti_raccolta_coords"][punto_key]
+                                _pg  = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}&travelmode=driving"
+                                _pwz = f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
+                                _pam = f"https://maps.apple.com/?daddr={lat},{lon}&dirflg=d"
+                                _ph  = (
+                                    '<div style="min-width:220px;font-family:sans-serif;font-size:13px;">'
+                                    f'<h4 style="color:#DC2626;margin:0 0 6px 0;font-size:13px;border-bottom:2px solid #DC2626;padding-bottom:3px;">📌 {punto_key}</h4>'
+                                    f'<p style="margin:0 0 6px 0;font-size:11px;color:#888;font-family:monospace;">{lat:.5f}, {lon:.5f}</p>'
+                                    '<div style="display:flex;gap:4px;">'
+                                    f'<a href="{_pg}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
+                                    f'<a href="{_pwz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
+                                    f'<a href="{_pam}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
+                                    '</div></div>'
+                                )
                                 folium.Marker(
                                     [lat, lon],
-                                    popup=punto_key,
+                                    popup=folium.Popup(_ph, max_width=280),
                                     tooltip=punto_key,
                                     icon=folium.Icon(color="red", icon="info-sign")
                                 ).add_to(m)
                                 added_points += 1
                             else:
-                                # Se non abbiamo coordinate precaricate per questo punto specifico
-                                # usiamo quelle della regione e spostiamo leggermente il marker
                                 if "coordinates" in dati:
                                     base_lat, base_lon = dati["coordinates"]
-                                    # Aggiungiamo un piccolo offset per visualizzare i punti separati
-                                    offset = 0.02 * (i + 1)  # Offset proporzionale all'indice
+                                    offset = 0.02 * (i + 1)
                                     lat = base_lat + offset
                                     lon = base_lon + offset
+                                    _pg2  = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}&travelmode=driving"
+                                    _pwz2 = f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
+                                    _pam2 = f"https://maps.apple.com/?daddr={lat},{lon}&dirflg=d"
+                                    _ph2  = (
+                                        '<div style="min-width:200px;font-family:sans-serif;font-size:13px;">'
+                                        f'<h4 style="color:#D97706;margin:0 0 6px 0;font-size:13px;border-bottom:2px solid #D97706;padding-bottom:3px;">📌 {punto_key}</h4>'
+                                        f'<p style="margin:0 0 2px 0;font-size:11px;color:#888;">⚠️ Coordinate approssimative</p>'
+                                        '<div style="display:flex;gap:4px;margin-top:6px;">'
+                                        f'<a href="{_pg2}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
+                                        f'<a href="{_pwz2}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
+                                        f'<a href="{_pam2}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
+                                        '</div></div>'
+                                    )
                                     folium.Marker(
                                         [lat, lon],
-                                        popup=punto_key,
+                                        popup=folium.Popup(_ph2, max_width=260),
                                         tooltip=punto_key,
                                         icon=folium.Icon(color="orange", icon="info-sign")
                                     ).add_to(m)
@@ -636,10 +683,23 @@ def show():
                             lat = start_lat + radius * math.sin(angle)
                             lon = start_lon + radius * math.cos(angle)
                             
+                            _pf  = punto.strip()
+                            _pfg  = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}&travelmode=driving"
+                            _pfwz = f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
+                            _pfam = f"https://maps.apple.com/?daddr={lat},{lon}&dirflg=d"
+                            _pfh  = (
+                                '<div style="min-width:200px;font-family:sans-serif;font-size:13px;">'
+                                f'<h4 style="color:#16A34A;margin:0 0 6px 0;font-size:13px;border-bottom:2px solid #16A34A;padding-bottom:3px;">📌 {_pf}</h4>'
+                                '<div style="display:flex;gap:4px;margin-top:6px;">'
+                                f'<a href="{_pfg}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
+                                f'<a href="{_pfwz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
+                                f'<a href="{_pfam}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
+                                '</div></div>'
+                            )
                             folium.Marker(
                                 [lat, lon],
-                                popup=punto.strip(),
-                                tooltip=punto.strip(),
+                                popup=folium.Popup(_pfh, max_width=260),
+                                tooltip=_pf,
                                 icon=folium.Icon(color="green", icon="info-sign")
                             ).add_to(m)
                             added_points += 1

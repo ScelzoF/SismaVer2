@@ -662,10 +662,25 @@ def show():
     # Creazione mappa interattiva con folium
     m = folium.Map(location=[info_vulcano["lat"], info_vulcano["lon"]], zoom_start=10)
     
-    # Aggiungi marker per il vulcano
+    # Aggiungi marker per il vulcano con GPS navigazione
+    _vg  = f"https://www.google.com/maps/dir/?api=1&destination={info_vulcano['lat']},{info_vulcano['lon']}&travelmode=driving"
+    _vwz = f"https://waze.com/ul?ll={info_vulcano['lat']},{info_vulcano['lon']}&navigate=yes"
+    _vam = f"https://maps.apple.com/?daddr={info_vulcano['lat']},{info_vulcano['lon']}&dirflg=d"
+    _vph = (
+        '<div style="min-width:230px;font-family:sans-serif;font-size:13px;">'
+        f'<h4 style="color:#DC2626;margin:0 0 6px 0;font-size:14px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌋 {vulcano_selezionato}</h4>'
+        f'<p style="margin:0 0 4px 0;font-size:12px;"><b>Tipo:</b> {info_vulcano["tipo"]}</p>'
+        f'<p style="margin:0 0 4px 0;font-size:12px;"><b>Stato:</b> {info_vulcano.get("stato", "N/D")}</p>'
+        f'<p style="margin:0 0 6px 0;font-size:11px;color:#888;font-family:monospace;">{info_vulcano["lat"]:.4f}, {info_vulcano["lon"]:.4f}</p>'
+        '<div style="display:flex;gap:4px;">'
+        f'<a href="{_vg}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
+        f'<a href="{_vwz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
+        f'<a href="{_vam}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
+        '</div></div>'
+    )
     folium.Marker(
         [info_vulcano["lat"], info_vulcano["lon"]],
-        popup=vulcano_selezionato,
+        popup=folium.Popup(_vph, max_width=280),
         tooltip=f"{vulcano_selezionato} - {info_vulcano['tipo']}",
         icon=folium.Icon(color="red", icon="fire", prefix="fa")
     ).add_to(m)

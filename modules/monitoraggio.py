@@ -562,22 +562,35 @@ def show():
                             magnitude = row["Magnitudo"]
                             color = "green" if magnitude < 3.0 else "orange" if magnitude < 4.0 else "red"
                             
-                            # Popup con informazioni
-                            popup_text = f"""
-                            <b>Luogo:</b> {row['Luogo']}<br>
-                            <b>Magnitudo:</b> {row['Magnitudo']}<br>
-                            <b>Data/Ora:</b> {row['Data/Ora']}<br>
-                            <b>Profondità:</b> {row['Profondità (km)']} km
-                            """
+                            # Popup con informazioni + GPS epicentro
+                            _eq_lat = row["Latitudine"]
+                            _eq_lon = row["Longitudine"]
+                            _eqg  = f"https://www.google.com/maps/dir/?api=1&destination={_eq_lat},{_eq_lon}&travelmode=driving"
+                            _eqwz = f"https://waze.com/ul?ll={_eq_lat},{_eq_lon}&navigate=yes"
+                            _eqam = f"https://maps.apple.com/?daddr={_eq_lat},{_eq_lon}&dirflg=d"
+                            popup_text = (
+                                '<div style="min-width:210px;font-family:sans-serif;font-size:12px;">'
+                                f'<h4 style="color:#DC2626;margin:0 0 5px 0;font-size:13px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌊 Evento sismico</h4>'
+                                f'<p style="margin:0 0 2px 0;"><b>Luogo:</b> {row["Luogo"]}</p>'
+                                f'<p style="margin:0 0 2px 0;"><b>Magnitudo:</b> {row["Magnitudo"]}</p>'
+                                f'<p style="margin:0 0 2px 0;"><b>Data/Ora:</b> {row["Data/Ora"]}</p>'
+                                f'<p style="margin:0 0 6px 0;"><b>Profondità:</b> {row["Profondità (km)"]} km</p>'
+                                '<div style="font-size:10px;color:#888;margin-bottom:4px;">📍 Naviga all\'epicentro:</div>'
+                                '<div style="display:flex;gap:4px;">'
+                                f'<a href="{_eqg}" target="_blank" style="background:#4285F4;color:white;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🗺️ GMaps</a>'
+                                f'<a href="{_eqwz}" target="_blank" style="background:#00BCD4;color:#000;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🚗 Waze</a>'
+                                f'<a href="{_eqam}" target="_blank" style="background:#555;color:white;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🍎 Maps</a>'
+                                '</div></div>'
+                            )
                             
                             # Aggiungi cerchio sulla mappa
                             folium.Circle(
-                                location=[row["Latitudine"], row["Longitudine"]],
-                                radius=magnitude * 5000,  # Raggio proporzionale alla magnitudo
+                                location=[_eq_lat, _eq_lon],
+                                radius=magnitude * 5000,
                                 color=color,
                                 fill=True,
                                 fill_opacity=0.4,
-                                popup=folium.Popup(popup_text, max_width=300)
+                                popup=folium.Popup(popup_text, max_width=270)
                             ).add_to(m)
                             
                         # Visualizza la mappa
@@ -779,13 +792,24 @@ def show():
                                                 # Raggio basato sulla magnitudo
                                                 radius = mag * 5000
                                                 
-                                                # Info popup
-                                                popup_text = f"""
-                                                <b>Magnitudo:</b> {mag}<br>
-                                                <b>Profondità:</b> {depth} km<br>
-                                                <b>Data:</b> {row.get('Data/Ora', 'N/D')}<br>
-                                                <b>Località:</b> {row.get('Luogo', 'N/D')}
-                                                """
+                                                # Info popup + GPS epicentro
+                                                _ig  = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}&travelmode=driving"
+                                                _iwz = f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
+                                                _iam = f"https://maps.apple.com/?daddr={lat},{lon}&dirflg=d"
+                                                popup_text = (
+                                                    '<div style="min-width:200px;font-family:sans-serif;font-size:12px;">'
+                                                    f'<h4 style="color:#DC2626;margin:0 0 5px 0;font-size:13px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌊 Evento sismico</h4>'
+                                                    f'<p style="margin:0 0 2px 0;"><b>Magnitudo:</b> {mag}</p>'
+                                                    f'<p style="margin:0 0 2px 0;"><b>Profondità:</b> {depth} km</p>'
+                                                    f'<p style="margin:0 0 2px 0;"><b>Data:</b> {row.get("Data/Ora", "N/D")}</p>'
+                                                    f'<p style="margin:0 0 6px 0;"><b>Località:</b> {row.get("Luogo", "N/D")}</p>'
+                                                    '<div style="font-size:10px;color:#888;margin-bottom:4px;">📍 Naviga all\'epicentro:</div>'
+                                                    '<div style="display:flex;gap:3px;">'
+                                                    f'<a href="{_ig}" target="_blank" style="background:#4285F4;color:white;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🗺️ GMaps</a>'
+                                                    f'<a href="{_iwz}" target="_blank" style="background:#00BCD4;color:#000;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🚗 Waze</a>'
+                                                    f'<a href="{_iam}" target="_blank" style="background:#555;color:white;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🍎 Maps</a>'
+                                                    '</div></div>'
+                                                )
                                                 
                                                 # Aggiungi cerchio colorato
                                                 folium.Circle(
@@ -794,7 +818,7 @@ def show():
                                                     color=color,
                                                     fill=True,
                                                     fill_opacity=0.4,
-                                                    popup=folium.Popup(popup_text, max_width=200)
+                                                    popup=folium.Popup(popup_text, max_width=260)
                                                 ).add_to(intensity_map)
                                         except (ValueError, TypeError, KeyError) as e:
                                             # Log dell'errore e continua
@@ -950,13 +974,25 @@ def show():
                 if vname in vulcani_coords_it:
                     coords = vulcani_coords_it[vname]
                     col_m = alert_color.get(v_row._3, "blue")
+                    _vmg  = f"https://www.google.com/maps/dir/?api=1&destination={coords[0]},{coords[1]}&travelmode=driving"
+                    _vmwz = f"https://waze.com/ul?ll={coords[0]},{coords[1]}&navigate=yes"
+                    _vmam = f"https://maps.apple.com/?daddr={coords[0]},{coords[1]}&dirflg=d"
+                    _vmph = (
+                        '<div style="min-width:230px;font-family:sans-serif;font-size:13px;">'
+                        f'<h4 style="color:#DC2626;margin:0 0 6px 0;font-size:14px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌋 {vname}</h4>'
+                        f'<p style="margin:0 0 2px 0;font-size:12px;"><b>Regione:</b> {v_row.Regione}</p>'
+                        f'<p style="margin:0 0 2px 0;font-size:12px;"><b>Allerta:</b> {v_row._3}</p>'
+                        f'<p style="margin:0 0 6px 0;font-size:12px;"><b>Ultima eruzione:</b> {v_row._4}</p>'
+                        f'<p style="margin:0 0 6px 0;font-size:11px;color:#888;font-family:monospace;">{coords[0]:.4f}, {coords[1]:.4f}</p>'
+                        '<div style="display:flex;gap:4px;">'
+                        f'<a href="{_vmg}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
+                        f'<a href="{_vmwz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
+                        f'<a href="{_vmam}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
+                        '</div></div>'
+                    )
                     folium.Marker(
                         location=coords,
-                        popup=folium.Popup(
-                            f"<b>{vname}</b><br>Regione: {v_row.Regione}<br>"
-                            f"Allerta: {v_row._3}<br>Ultima eruzione: {v_row._4}",
-                            max_width=250
-                        ),
+                        popup=folium.Popup(_vmph, max_width=280),
                         icon=folium.Icon(color=col_m, icon="fire", prefix="fa"),
                         tooltip=vname
                     ).add_to(vmap)
@@ -1298,18 +1334,28 @@ def show():
                         else:
                             color = "blue"
                     
-                        # Popup con informazioni
-                        popup_text = f"""
-                        <b>Vulcano:</b> {vulcano}<br>
-                        <b>Livello allerta:</b> {vulc_data['Livello allerta']}<br>
-                        <b>Ultima eruzione:</b> {vulc_data['Ultima eruzione']}<br>
-                        <b>Monitoraggio:</b> {vulc_data['Monitoraggio']}
-                        """
+                        # Popup con informazioni + GPS navigazione
+                        _rvg  = f"https://www.google.com/maps/dir/?api=1&destination={coords[0]},{coords[1]}&travelmode=driving"
+                        _rvwz = f"https://waze.com/ul?ll={coords[0]},{coords[1]}&navigate=yes"
+                        _rvam = f"https://maps.apple.com/?daddr={coords[0]},{coords[1]}&dirflg=d"
+                        popup_text = (
+                            '<div style="min-width:230px;font-family:sans-serif;font-size:13px;">'
+                            f'<h4 style="color:#DC2626;margin:0 0 6px 0;font-size:14px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌋 {vulcano}</h4>'
+                            f'<p style="margin:0 0 2px 0;font-size:12px;"><b>Allerta:</b> {vulc_data["Livello allerta"]}</p>'
+                            f'<p style="margin:0 0 2px 0;font-size:12px;"><b>Ultima eruzione:</b> {vulc_data["Ultima eruzione"]}</p>'
+                            f'<p style="margin:0 0 6px 0;font-size:12px;"><b>Monitoraggio:</b> {vulc_data["Monitoraggio"]}</p>'
+                            f'<p style="margin:0 0 6px 0;font-size:11px;color:#888;font-family:monospace;">{coords[0]:.4f}, {coords[1]:.4f}</p>'
+                            '<div style="display:flex;gap:4px;">'
+                            f'<a href="{_rvg}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
+                            f'<a href="{_rvwz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
+                            f'<a href="{_rvam}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
+                            '</div></div>'
+                        )
                     
                         # Aggiungi marker
                         folium.Marker(
                             location=coords,
-                            popup=folium.Popup(popup_text, max_width=300),
+                            popup=folium.Popup(popup_text, max_width=290),
                             icon=folium.Icon(color=color, icon="fire", prefix="fa")
                         ).add_to(vulcani_map)
                 
