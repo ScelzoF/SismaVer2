@@ -9,7 +9,7 @@ def show():
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     
     st.markdown("""
-    ## Versione attuale: 2.9.6 (Aprile 2026)
+    ## Versione attuale: 2.9.7 (Aprile 2026)
     
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -22,14 +22,35 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # Versione 2.9.6 — NUOVA
+        # Versione 2.9.7 — NUOVA
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background-color:#059669; color:white; padding:10px; border-radius:5px; text-align:center;">
-                <h3>v2.9.6</h3>
+                <h3>v2.9.7</h3>
                 <p>Aprile 2026</p>
                 <span style="font-size:11px; background:#047857; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.9.7 (Aprile 2026)
+            #### Fix critico — Banner HTML su Streamlit Cloud
+
+            - 🐛 **Bug critico risolto** — Il banner mostrava l'HTML grezzo come codice invece di renderizzarlo. Causa: l'f-string multiriga aveva 8+ spazi di rientro, interpretati dal parser Markdown di Streamlit come **blocco di codice** (regola: 4+ spazi iniziali = code block)
+            - 🔧 **banner_utils.py riscritto** — L'HTML viene ora costruito come stringa concatenata compatta senza rientri, garantendo rendering corretto sia in locale che su Streamlit Cloud
+            - ✅ **Testato** — Banner renderizzati correttamente con gradiente, emoji, titolo e sottotitolo su tutti i 15 preset tematici
+            """)
+
+        st.markdown("---")
+
+        # Versione 2.9.6
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#2563eb; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.9.6</h3>
+                <p>Aprile 2026</p>
             </div>
             """, unsafe_allow_html=True)
         with col2:
@@ -39,10 +60,9 @@ def show():
 
             - 🔧 **margin-top:-12px rimosso** — I sottotitoli in Home, Allerte e Qualità Aria non avevano più il `st.title()` sopra (sostituito dal banner): rimosso lo stacco negativo orfano per evitare sovrapposizioni visive
             - 🏛️ **GPS Centri Specializzati** — Anche i Centri Specializzati (tab3 Primo Soccorso) ora hanno 3 pulsanti navigazione (GMaps, Waze, Apple Maps) sia nel popup mappa che nella lista con card strutturata e coordinate GPS visibili
-            - 🩺 **st.title() rimosso da show_manovre()** — Eliminato titolo ridondante nella funzione Manovre di Primo Soccorso (aveva già un `<h2>` HTML interno)
-            - 💬 **chat.py aggiornato** — Banner sostituisce st.title() per coerenza visiva (usato come fallback non enhanced)
-            - 📢 **segnala_evento.py aggiornato** — Banner sostituisce st.title() per coerenza visiva (usato come fallback non enhanced)
-            - ✅ **Zero st.title() residui** — Tutti i moduli del progetto ora usano banner tematizzati come intestazione principale
+            - 🩺 **st.title() rimosso da show_manovre()** — Eliminato titolo ridondante nella funzione Manovre di Primo Soccorso
+            - 💬 **chat.py / segnala_evento.py aggiornati** — Banner sostituisce st.title() in tutti i moduli
+            - ✅ **Zero st.title() residui** — Tutti i moduli usano banner tematizzati come intestazione principale
             """)
 
         st.markdown("---")
