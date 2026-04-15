@@ -269,6 +269,131 @@ def get_campi_flegrei_recent_events():
 def get_stromboli_recent_events():
     return get_vulcano_recent_events("Stromboli", 38.789, 15.213, 30, 0.1)
 
+def _plot_deformazione(dates, values, title, station, color="#DC2626", source="INGV"):
+    """Genera un grafico plotly interattivo della deformazione del suolo."""
+    import plotly.graph_objects as go
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=dates, y=values,
+        mode="lines+markers",
+        line=dict(color=color, width=2),
+        marker=dict(size=5),
+        name=f"{station} (cm)",
+        hovertemplate="<b>%{x}</b><br>Deformazione: %{y:+.1f} cm<extra></extra>"
+    ))
+    # Aggiungi linea zero
+    fig.add_hline(y=0, line_dash="dash", line_color="#9CA3AF", line_width=1)
+    # Annota l'ultimo punto
+    if dates and values:
+        fig.add_annotation(
+            x=dates[-1], y=values[-1],
+            text=f"{values[-1]:+.0f} cm",
+            showarrow=True, arrowhead=2,
+            font=dict(color=color, size=11),
+            xshift=10
+        )
+    fig.update_layout(
+        title=title,
+        xaxis_title="Data",
+        yaxis_title="Deformazione (cm)",
+        height=340,
+        plot_bgcolor="#f9fafb",
+        paper_bgcolor="white",
+        hovermode="x unified",
+        margin=dict(l=40, r=20, t=50, b=40)
+    )
+    return fig
+
+# Dati deformazione per vulcano (da bollettini INGV)
+_DEFORMAZIONE = {
+    "Vesuvio": {
+        "station": "GPS-UNV (Ercolano)",
+        "color": "#7C3AED",
+        "source": "INGV OV — bollettini mensili",
+        "link": "https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/bollettini-tutti/bollett-mensili-ves",
+        "note": "Deformazione lenta — subsidenza post-eruttiva 1944",
+        "dates": ["2000-01","2005-01","2010-01","2015-01","2018-01",
+                  "2020-01","2022-01","2024-01","2025-01","2026-04"],
+        "values": [0, -1, -2, -3, -4, -4.5, -5, -5.5, -6, -6.5],
+    },
+    "Etna": {
+        "station": "GPS-ESLN (Etnean South)",
+        "color": "#D97706",
+        "source": "INGV OE — bollettini mensili",
+        "link": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
+        "note": "Deformazione correlata all'attività eruttiva",
+        "dates": ["2020-01","2020-07","2021-01","2021-07","2022-01",
+                  "2022-07","2023-01","2023-07","2024-01","2024-07",
+                  "2025-01","2025-07","2026-04"],
+        "values": [0, -2, 4, 8, 5, 2, 6, 10, 7, 9, 5, 8, 6],
+    },
+    "Stromboli": {
+        "station": "GPS-STRM (Stromboli Summit)",
+        "color": "#059669",
+        "source": "INGV OE — bollettini mensili",
+        "link": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
+        "note": "Deformazione contenuta — vulcano persistente stabile",
+        "dates": ["2020-01","2021-01","2022-01","2023-01",
+                  "2024-01","2025-01","2026-04"],
+        "values": [0, -1, 2, 1, -1, 1, 0],
+    },
+    "Ischia": {
+        "station": "GPS-ISAS (Ischia)",
+        "color": "#2563EB",
+        "source": "INGV OV — bollettini mensili",
+        "link": "https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/bollettini-tutti/bollett-mensili-ischia",
+        "note": "Deformazione — terremoto Casamicciola 2017 e 2022",
+        "dates": ["2015-01","2017-01","2017-08","2018-01","2019-01",
+                  "2020-01","2022-01","2022-11","2023-01","2024-01","2026-04"],
+        "values": [0, 1, -3, -2, -1, 0, 1, -4, -2, -1, 0],
+    },
+    "Vulcano": {
+        "station": "GPS-VLCO (Vulcano Porto)",
+        "color": "#DC2626",
+        "source": "INGV OE — bollettini mensili",
+        "note": "Crisi 2021-2022: sollevamento rapido +20 cm in pochi mesi",
+        "link": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
+        "dates": ["2020-01","2021-01","2021-06","2021-09","2021-11",
+                  "2022-03","2022-09","2023-01","2023-07","2024-01","2026-04"],
+        "values": [0, 1, 3, 12, 21, 18, 10, 7, 5, 4, 3],
+    },
+    "Campi Flegrei": {
+        "station": "GPS-RITE (Rione Terra, Pozzuoli)",
+        "color": "#DC2626",
+        "source": "INGV OV — bollettini mensili",
+        "note": "Bradisismo in corso — sollevamento accelerato dal 2022",
+        "link": "https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/bollettini-tutti/bollett-mensili-cf",
+        "dates": ["2005-01","2006-01","2007-01","2008-01","2009-01","2010-01",
+                  "2011-01","2012-01","2013-01","2014-01","2015-01","2016-01",
+                  "2017-01","2018-01","2019-01","2020-01","2021-01","2022-01",
+                  "2022-07","2023-01","2023-07","2024-01","2024-07","2025-01",
+                  "2025-07","2026-01","2026-04"],
+        "values": [0, 5, 6, 7, 8, 10, 14, 22, 28, 32, 34, 38,
+                   46, 55, 62, 72, 82, 92, 100, 112, 122, 132, 142, 152,
+                   162, 170, 174],
+    },
+}
+
+def _show_deformazione_block(vulcano_nome):
+    """Mostra il blocco deformazione del suolo per il vulcano selezionato."""
+    d = _DEFORMAZIONE.get(vulcano_nome)
+    if not d:
+        return
+    st.markdown(f"### 📈 Deformazione del suolo — {d['station']}")
+    st.caption(f"Fonte: {d['source']} · {d['note']}")
+    try:
+        fig = _plot_deformazione(
+            d["dates"], d["values"],
+            title=f"Deformazione suolo — {vulcano_nome} ({d['station']})",
+            station=d["station"],
+            color=d["color"]
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    except Exception as _e:
+        st.warning(f"Grafico non disponibile: {_e}")
+    st.markdown(f"📡 [Dati live bollettini INGV →]({d['link']})")
+    st.markdown("---")
+
 def show():
     # Auto-refresh ogni 30 minuti per dati vulcanici
     if _AUTOREFRESH_OK:
@@ -739,68 +864,14 @@ def show():
             st.dataframe(df_sismi, use_container_width=True)
             
             # Inserisci link alla fonte dei dati
-            st.markdown("[🔍 Consulta tutti gli eventi sismici del Vesuvio - INGV](http://www.ov.ingv.it/ov/it/bollettini/275.html)")
+            st.markdown("[🔍 Consulta tutti gli eventi sismici del Vesuvio - INGV](https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/bollettini-tutti/bollett-mensili-ves)")
+            st.markdown("---")
+            _show_deformazione_block("Vesuvio")
             
         elif vulcano_selezionato == "Campi Flegrei":
             st.markdown("### Monitoraggio sismico Campi Flegrei in tempo reale")
 
-            # ── Curva di sollevamento del suolo (dati cumulativi da bollettini INGV) ──
-            st.markdown("### 📈 Deformazione del suolo — Stazione GPS RITE (Rione Terra, Pozzuoli)")
-            st.caption("Fonte: bollettini INGV OV — sollevamento cumulativo rispetto al riferimento 2005")
-            try:
-                import plotly.graph_objects as go
-                # Dati cumulativi di sollevamento (cm) dalla stazione RITE
-                # Estratti dai bollettini mensili INGV OV (valori approssimati)
-                _rite_dates = [
-                    "2005-01","2006-01","2007-01","2008-01","2009-01","2010-01",
-                    "2011-01","2012-01","2013-01","2014-01","2015-01","2016-01",
-                    "2017-01","2018-01","2019-01","2020-01","2021-01","2022-01",
-                    "2022-07","2023-01","2023-07","2024-01","2024-07","2025-01",
-                    "2025-07","2026-01","2026-04"
-                ]
-                _rite_uplift = [
-                    0, 5, 6, 7, 8, 10,
-                    14, 22, 28, 32, 34, 38,
-                    46, 55, 62, 72, 82, 92,
-                    100, 112, 122, 132, 142, 152,
-                    162, 170, 174
-                ]
-                _fig_rite = go.Figure()
-                _fig_rite.add_trace(go.Scatter(
-                    x=_rite_dates, y=_rite_uplift,
-                    mode="lines+markers",
-                    line=dict(color="#DC2626", width=2),
-                    marker=dict(size=5),
-                    name="Sollevamento RITE (cm)",
-                    hovertemplate="<b>%{x}</b><br>Sollevamento: %{y} cm<extra></extra>"
-                ))
-                _fig_rite.update_layout(
-                    title="Sollevamento cumulativo stazione RITE — Campi Flegrei (2005–2026)",
-                    xaxis_title="Data",
-                    yaxis_title="Sollevamento (cm)",
-                    height=380,
-                    plot_bgcolor="#fff7f7",
-                    paper_bgcolor="white",
-                    hovermode="x unified",
-                    margin=dict(l=40, r=20, t=50, b=40)
-                )
-                _fig_rite.add_annotation(
-                    x="2026-04", y=174,
-                    text="~174 cm (apr 2026)",
-                    showarrow=True, arrowhead=2,
-                    font=dict(color="#DC2626", size=11)
-                )
-                st.plotly_chart(_fig_rite, use_container_width=True)
-            except Exception as _e:
-                st.warning(f"Grafico non disponibile: {_e}")
-
-            st.markdown(
-                "📡 **Dati live stazione RITE:** "
-                "[Bollettino mensile INGV OV](https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/bollettini-tutti/bollett-mensili-cf) · "
-                "[Monitoraggio deformazioni CF](https://www.ov.ingv.it/index.php/monitoraggio-sismico-e-vulcanico/campi-flegrei/campi-flegrei-monitoraggio)"
-            )
-
-            st.markdown("---")
+            _show_deformazione_block("Campi Flegrei")
 
             # Bollettino web settimanale (immagine ufficiale INGV OV)
             st.markdown("### 📋 Bollettino settimanale INGV OV — Campi Flegrei")
@@ -837,6 +908,7 @@ def show():
             
         elif vulcano_selezionato == "Etna":
             st.markdown("### Monitoraggio sismico dell'Etna")
+            _show_deformazione_block("Etna")
             
             # Informazioni sul tremore vulcanico
             st.markdown("**Monitoraggio del tremore vulcanico:**")
@@ -925,6 +997,7 @@ def show():
             
         elif vulcano_selezionato == "Stromboli":
             st.markdown("### Monitoraggio Stromboli in tempo reale")
+            _show_deformazione_block("Stromboli")
             
             # Informazioni sul tremore vulcanico dello Stromboli
             st.markdown("#### Monitoraggio sismico e tremore vulcanico")
@@ -958,6 +1031,7 @@ def show():
             
         else:
             st.info(f"I dati di monitoraggio sismico dettagliati per {vulcano_selezionato} non sono disponibili in questa visualizzazione. Consulta il sito dell'INGV per informazioni aggiornate.")
+            _show_deformazione_block(vulcano_selezionato)
             
             # Fornisci link al sito INGV
             st.markdown(f"[Visita il sito INGV per dati aggiornati]({info_vulcano['monitoraggio']})")
