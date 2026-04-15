@@ -28,22 +28,20 @@ start_time = time.time()
 
 # Ottimizzazioni SEO (una sola volta)
 
-# Aggiungi meta tag verifica Google Search Console
-st.markdown("""
-    <meta name="google-site-verification" content="INSERISCI_QUI_IL_CODICE_DI_VERIFICA" />
-""", unsafe_allow_html=True)
-
-# Aggiungi tag canonical e altri meta tag importanti
+# Meta tag SEO e canonical
 st.markdown("""
     <link rel="canonical" href="https://sos-italia.streamlit.app" />
     <meta name="robots" content="index, follow" />
     <meta name="language" content="it" />
-    <meta name="revisit-after" content="7 days" />
+    <meta name="description" content="SismaVer2 — Piattaforma nazionale di monitoraggio rischi naturali: terremoti, vulcani, meteo, qualità aria, allerte e emergenza in tempo reale." />
+    <meta name="keywords" content="terremoti italia, monitoraggio sismico, vulcani, allerta meteo, protezione civile, emergenza" />
+    <meta name="revisit-after" content="3 days" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta property="og:title" content="SismaVer2 — Monitoraggio Nazionale Rischi Naturali" />
+    <meta property="og:description" content="Terremoti, vulcani, meteo, allerte e qualità aria in tempo reale per tutta Italia." />
+    <meta property="og:url" content="https://sos-italia.streamlit.app" />
+    <meta property="og:type" content="website" />
 """, unsafe_allow_html=True)
-
-# Aggiungi canonical URL
-st.markdown('<link rel="canonical" href="https://sos-italia.streamlit.app" />', unsafe_allow_html=True)
 
 # Inizializza query_params
 query_params = st.query_params
@@ -212,6 +210,8 @@ with st.sidebar:
         "🌋 Vulcani": "vulcani",
         "📊 Allerte e Rischi": "rischi_allerte",
         "🌦 Meteo": "meteo",
+        "🌬️ Qualità dell'Aria": "qualita_aria",
+        "📞 Numeri Utili": "numeri_utili",
         "💬 Chat Pubblica": "chat_enhanced",
         "🚨 Punti di Emergenza": "emergenza",
         "🩺 Primo Soccorso": "primo_soccorso",
@@ -227,16 +227,18 @@ with st.sidebar:
     # Spiegazione delle sezioni
     with st.expander("ℹ️ Guida alle sezioni"):
         st.markdown("""
-        - **Home**: Panoramica live — ultimi terremoti e stato vulcani
-        - **Monitoraggio Sismico**: Dati INGV in tempo reale, mappa e grafici per regione
-        - **Vulcani**: Attività di Etna, Vesuvio, Stromboli, Campi Flegrei e altri
-        - **📊 Allerte e Rischi**: Dashboard live — allerta tsunami, sismica, meteo e rischio idrogeologico
-        - **Meteo**: Previsioni 7 giorni per qualsiasi comune italiano
+        - **Home**: Panoramica live — ultimi terremoti, stato vulcani, notizie DPC
+        - **Monitoraggio Sismico**: Dati INGV in tempo reale, mappa, grafici, idrogeologico
+        - **Vulcani**: 20+ vulcani italiani con schede dettagliate, mappa, webcam, bollettini
+        - **Allerte e Rischi**: Dashboard live — allerta tsunami, sismica, meteo, idrogeologico
+        - **Meteo**: Previsioni 7 giorni, radar, allerte per qualsiasi comune italiano
+        - **Qualità dell'Aria**: Indice AQI europeo per 20 città italiane (Open-Meteo/CAMS)
+        - **Numeri Utili**: Tutti i numeri di emergenza nazionali e regionali
         - **Chat Pubblica**: Comunicazione in tempo reale tra cittadini
         - **Punti di Emergenza**: Mappa punti raccolta e strutture di emergenza per regione
         - **Primo Soccorso**: Guide e procedure di primo intervento
         - **Segnala Evento**: Segnala terremoti, frane o altri eventi
-        - **Donazioni**: Supporta il progetto
+        - **Fonti dei Dati**: Tutte le fonti ufficiali utilizzate con frequenza aggiornamento
         - **Note di Rilascio**: Cronologia aggiornamenti
         - **Licenza e Info**: Sviluppatore e termini d'uso
         """)
@@ -395,7 +397,7 @@ else:
 st.markdown(f"""
 <div class="footer">
 <p>🇮🇹 SismaVer2 - Sistema Nazionale di Monitoraggio e Prevenzione</p>
-<p>© {ora_attuale.year} – Versione 2.6.0 – Dati da fonti ufficiali</p>
+<p>© {ora_attuale.year} – Versione 2.7.0 – Dati da fonti ufficiali</p>
 <p><a href="https://github.com/ScelzoF/SismaVer2" target="_blank">GitHub</a> · 
 <a href="mailto:meteotorre@gmail.com">Contatti</a> · 
 <a href="https://www.protezionecivile.gov.it/it/privacy" target="_blank">Privacy</a></p>

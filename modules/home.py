@@ -17,6 +17,26 @@ def _get_tz():
 
 FUSO_ORARIO_ITALIA = _get_tz()
 
+@st.cache_data(ttl=600, show_spinner=False)
+def _fetch_dpc_news():
+    """Recupera le ultime notizie RSS dal portale della Protezione Civile."""
+    try:
+        import xml.etree.ElementTree as ET
+        url = "https://www.protezionecivile.gov.it/it/feed/rss"
+        r = requests.get(url, timeout=8, headers={"User-Agent": "SismaVer2/2.7.0"})
+        if r.status_code == 200:
+            root = ET.fromstring(r.content)
+            items = []
+            for item in root.findall(".//item")[:5]:
+                title = item.findtext("title", "")
+                link  = item.findtext("link", "#")
+                date  = item.findtext("pubDate", "")
+                items.append({"title": title, "link": link, "date": date})
+            return items
+    except Exception:
+        pass
+    return []
+
 @st.cache_data(ttl=300, show_spinner=False)
 def _fetch_last_quakes():
     try:
@@ -201,14 +221,49 @@ def show():
 
     st.markdown("---")
 
+    # Notizie DPC
+    st.subheader("📰 Ultime notizie — Protezione Civile")
+    with st.spinner("Caricamento notizie DPC..."):
+        news = _fetch_dpc_news()
+    if news:
+        for n in news:
+            st.markdown(
+                f"<div style='padding:6px 10px;margin:3px 0;background:#F0F9FF;"
+                f"border-left:3px solid #0EA5E9;border-radius:0 4px 4px 0;'>"
+                f"<a href='{n['link']}' target='_blank' style='color:#0C4A6E;"
+                f"text-decoration:none;font-weight:500;'>{n['title']}</a>"
+                f"<br><small style='color:#94A3B8;'>{n['date'][:22] if n['date'] else ''}</small>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+        st.caption("Fonte: protezionecivile.gov.it · Aggiornamento ogni 10 min")
+    else:
+        st.info("Feed DPC temporaneamente non disponibile — [vai al portale](https://www.protezionecivile.gov.it/it/notizie)")
+
+    st.markdown("---")
+
     col_s, col_i = st.columns([2, 1])
     with col_s:
-        st.metric("Vulcani monitorati", "9")
-        st.metric("Stazioni sismiche INGV", "500+")
-        st.metric("Aggiornamento dati", "Ogni 5 min")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Vulcani monitorati", "20+")
+        c2.metric("Stazioni sismiche INGV", "500+")
+        c3.metric("Aggiornamento dati", "Ogni 5 min")
+        c4.metric("Città qualità aria", "20")
     with col_i:
         st.info(
             "**SismaVer2** è l'evoluzione nazionale di "
             "[sismocampania.streamlit.app](https://sismocampania.streamlit.app).  \n"
             "Sviluppato da **Fabio Scelzo** · meteotorre@gmail.com"
         )
+
+    st.markdown("---")
+    st.markdown(
+        "<div style='text-align:center;padding:10px;background:#F8FAFC;"
+        "border-radius:8px;border:1px solid #E2E8F0;'>"
+        "🚨 <b>Emergenza?</b> Chiama il <span style='font-size:1.3rem;color:#dc2626;font-weight:700;'>112</span> &nbsp;|&nbsp; "
+        "🏥 Pronto Soccorso: <b>118</b> &nbsp;|&nbsp; "
+        "🔥 Vigili del Fuoco: <b>115</b> &nbsp;|&nbsp; "
+        "🚔 Polizia: <b>113</b>"
+        "</div>",
+        unsafe_allow_html=True
+    )

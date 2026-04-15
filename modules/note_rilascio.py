@@ -8,7 +8,7 @@ def show():
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     
     st.markdown("""
-    ## Versione attuale: 2.6.0 (Aprile 2026)
+    ## Versione attuale: 2.7.0 (Aprile 2026)
     
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -21,14 +21,43 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # Versione 2.6.0 — NUOVA
+        # Versione 2.7.0 — NUOVA
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#7C3AED; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.7.0</h3>
+                <p>Aprile 2026</p>
+                <span style="font-size:11px; background:#6D28D9; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.7.0 (Aprile 2026)
+            #### Audit completo, nuove sezioni, auto-refresh nativo, qualità aria
+
+            - 🌬️ **Nuova sezione "Qualità dell'Aria"** — Indice AQI europeo (EEA) per 20 città italiane, basato su Open-Meteo/Copernicus CAMS. Nessuna API key richiesta. PM10, PM2.5, NO₂, O₃, CO, SO₂. Auto-refresh ogni 30 min
+            - 📞 **Nuova sezione "Numeri Utili"** — Tutti i numeri di emergenza nazionali (112, 118, 115, 113, 117, 1530, 116117...) e regionali della Protezione Civile, centri antiveleni, codici triage PS, app ufficiali
+            - 🏠 **Home migliorata** — Feed RSS notizie della Protezione Civile in tempo reale, barra emergenza fissa (112/118/115/113), metriche corrette (20+ vulcani, 20 città aria)
+            - 🌋 **Vulcani — visione Italia** — Tabella completa con 20 vulcani (aggiunto Marsili, Ferdinandea, Lipari-Vulcanello, Ustica, Linosa, Salina, Alicudi, Filicudi, Monte Amiata, Colli Albani); rimosso selectbox inutile; mappa folium con tutti i marker
+            - 🌊 **Idrogeologico** — Aggiunte metriche ISPRA (1.28M ha frane, 2.06M ha alluvioni, 7.5M abitanti esposti) e link mappa interattiva IdroGEO, prima completamente assenti
+            - 📍 **Punti raccolta** — Rimosso limite di 5 punti: ora mostra tutti i punti per ogni regione sia in lista che sulla mappa
+            - ⚡ **Auto-refresh nativo** — `streamlit-autorefresh` sostituisce la vecchia logica session_state: Home (5 min), Allerte (2 min), Monitoraggio sismico (5 min), Vulcani (30 min), Qualità Aria (30 min)
+            - 🔵 **TTL sismico ridotto** — Cache dati sismici in monitoraggio.py: 1800s→300s (da 30 min a 5 min)
+            - 🔍 **SEO migliorato** — Meta description, keywords, Open Graph, rimosso placeholder codice Google
+            - 📜 **Licenza** — Anno footer ora dinamico (`datetime.now().year`), mai più hardcoded
+            """)
+
+        st.markdown("---")
+
+        # Versione 2.6.0 — precedente
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background-color:#1565C0; color:white; padding:10px; border-radius:5px; text-align:center;">
                 <h3>v2.6.0</h3>
                 <p>Aprile 2026</p>
-                <span style="font-size:11px; background:#0D47A1; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+                <span style="font-size:11px; background:#0D47A1; padding:2px 6px; border-radius:3px;">PRECEDENTE</span>
             </div>
             """, unsafe_allow_html=True)
         with col2:
