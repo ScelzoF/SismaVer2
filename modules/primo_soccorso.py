@@ -764,21 +764,35 @@ def show():
                 sito_web = ps.get('sito_web', 'www.' + ps['nome'].lower().replace(' ', '').replace("'", "") + '.it')
                 responsabile = ps.get('responsabile', 'Direttore Sanitario')
 
-                # Link a Google Maps con direzioni
-                directions_url = f"https://www.google.com/maps/dir/?api=1&destination={ps['lat']},{ps['lon']}&travelmode=driving"
+                # URL navigazione multi-app
+                g_url_ps  = f"https://www.google.com/maps/dir/?api=1&destination={ps['lat']},{ps['lon']}&travelmode=driving"
+                wz_url_ps = f"https://waze.com/ul?ll={ps['lat']},{ps['lon']}&navigate=yes"
+                am_url_ps = f"https://maps.apple.com/?daddr={ps['lat']},{ps['lon']}&dirflg=d"
 
                 popup_text = f"""
-                <div style="min-width:220px;">
-                <h4 style="margin-bottom:5px;">{ps['nome']}</h4>
-                <b>Indirizzo:</b> {ps['indirizzo']}<br>
-                <b>Telefono:</b> <a href="tel:{ps['telefono']}">{ps['telefono']}</a><br>
-                <b>Email:</b> <a href="mailto:{email}">{email}</a><br>
-                <b>Sito:</b> <a href="https://{sito_web}" target="_blank">{sito_web}</a><br>
-                <b>Responsabile:</b> {responsabile}<br>
-                <br>
-                <a href="{directions_url}" target="_blank" style="background-color:#4285F4;color:white;padding:5px 10px;text-decoration:none;border-radius:4px;">
-                <i class="fa fa-map-marker"></i> Indicazioni stradali
-                </a>
+                <div style="min-width:250px;font-family:sans-serif;font-size:13px;">
+                  <h4 style="color:#c0392b;margin:0 0 8px 0;font-size:14px;border-bottom:2px solid #c0392b;padding-bottom:4px;">
+                    🏥 {ps['nome']}
+                  </h4>
+                  <table style="border-collapse:collapse;font-size:12px;width:100%;">
+                    <tr><td style="padding:2px 4px;color:#555;">📍</td><td>{ps['indirizzo']}</td></tr>
+                    <tr><td style="padding:2px 4px;color:#555;">📞</td><td><a href="tel:{ps['telefono']}" style="color:#2980b9;">{ps['telefono']}</a></td></tr>
+                    <tr><td style="padding:2px 4px;color:#888;">🌐</td><td style="color:#888;font-size:11px;font-family:monospace;">{ps['lat']:.5f}, {ps['lon']:.5f}</td></tr>
+                  </table>
+                  <div style="margin-top:10px;display:flex;gap:4px;">
+                    <a href="{g_url_ps}" target="_blank"
+                       style="background:#4285F4;color:white;padding:5px 9px;text-decoration:none;border-radius:5px;font-size:11px;font-weight:600;">
+                       🗺️ Google Maps
+                    </a>
+                    <a href="{wz_url_ps}" target="_blank"
+                       style="background:#00BCD4;color:#000;padding:5px 9px;text-decoration:none;border-radius:5px;font-size:11px;font-weight:600;">
+                       🚗 Waze
+                    </a>
+                    <a href="{am_url_ps}" target="_blank"
+                       style="background:#555;color:white;padding:5px 9px;text-decoration:none;border-radius:5px;font-size:11px;font-weight:600;">
+                       🍎 Maps
+                    </a>
+                  </div>
                 </div>
                 """
 
@@ -809,41 +823,54 @@ def show():
                 sito_web = ps.get('sito_web', 'www.' + ps['nome'].lower().replace(' ', '').replace("'", "") + '.it')
                 responsabile = ps.get('responsabile', 'Direttore Sanitario')
 
-                # Link a Google Maps con direzioni
-                directions_url = f"https://www.google.com/maps/dir/?api=1&destination={ps['lat']},{ps['lon']}&travelmode=driving"
+                # URL navigazione multi-app
+                g_url_list  = f"https://www.google.com/maps/dir/?api=1&destination={ps['lat']},{ps['lon']}&travelmode=driving"
+                wz_url_list = f"https://waze.com/ul?ll={ps['lat']},{ps['lon']}&navigate=yes"
+                am_url_list = f"https://maps.apple.com/?daddr={ps['lat']},{ps['lon']}&dirflg=d"
+                orari       = ps.get('orari', "24h/24 — 7 giorni su 7")
 
-                # Orari, se disponibili
-                orari = ps.get('orari', "24 ore su 24, tutti i giorni")
-
-                # Scheda completa
-                col1, col2 = st.columns([3, 1])
+                col1, col2 = st.columns([3, 2])
                 with col1:
                     st.markdown(f"""
-                    ### {ps['nome']}
-                    **Indirizzo:** {ps['indirizzo']}
-                    **Telefono:** {ps['telefono']}
-                    **Email:** {email}
-                    **Sito web:** [{sito_web}](https://{sito_web})
-                    **Responsabile:** {responsabile}
-                    **Orari:** {orari}
-
-                    [🚗 Indicazioni stradali]({directions_url})
-                    """)
-
-                with col2:
-                    # Codice semplice per mostrare una mini-mappa statica
-                    st.markdown(f"""
-                    <div style="width:100%;height:150px;background-color:#f0f0f0;border-radius:5px;display:flex;align-items:center;justify-content:center;">
-                        <a href="{directions_url}" target="_blank" style="text-decoration:none;">
-                            <div style="text-align:center;">
-                                <i class="fa fa-map-marker" style="font-size:40px;color:red;"></i><br>
-                                <span style="color:#333;">Apri mappa</span>
-                            </div>
-                        </a>
+                    <div style="border-left:4px solid #e74c3c;padding-left:12px;margin-bottom:4px;">
+                      <h4 style="margin:0 0 4px 0;font-size:15px;">🏥 {ps['nome']}</h4>
+                      <p style="margin:0;font-size:13px;color:#444;line-height:1.7;">
+                        📍 <b>{ps['indirizzo']}</b><br>
+                        📞 <a href="tel:{ps['telefono']}" style="color:#2563eb;">{ps['telefono']}</a>
+                        &nbsp;·&nbsp; 🕐 {orari}
+                      </p>
                     </div>
                     """, unsafe_allow_html=True)
 
-                st.markdown("---")
+                with col2:
+                    st.markdown(f"""
+                    <div style="background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;">
+                      <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:0.5px;">🌐 GPS NAVIGAZIONE</div>
+                      <div style="font-size:11px;color:#666;margin-bottom:8px;font-family:monospace;">
+                        {ps['lat']:.5f}, {ps['lon']:.5f}
+                      </div>
+                      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                        <a href="{g_url_list}" target="_blank"
+                           style="background:#4285F4;color:white;padding:4px 8px;text-decoration:none;
+                                  border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">
+                           🗺️ Google Maps
+                        </a>
+                        <a href="{wz_url_list}" target="_blank"
+                           style="background:#00BCD4;color:#000;padding:4px 8px;text-decoration:none;
+                                  border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">
+                           🚗 Waze
+                        </a>
+                        <a href="{am_url_list}" target="_blank"
+                           style="background:#555;color:white;padding:4px 8px;text-decoration:none;
+                                  border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">
+                           🍎 Maps
+                        </a>
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                st.markdown("<hr style='margin:12px 0;border:none;border-top:1px solid #eee;'>",
+                            unsafe_allow_html=True)
 
         st.info("""
         **Nota importante**: In caso di emergenza, chiamare sempre il **112** (Numero Unico Emergenza) o il **118** (Emergenza Sanitaria).
@@ -1196,28 +1223,43 @@ def show():
                 responsabile = punto.get('responsabile', 'Protezione Civile')
                 ultima_verifica = punto.get('ultima_verifica', 'Data sconosciuta')
 
-                # Link a Google Maps per indicazioni stradali
-                directions_url = f"https://www.google.com/maps/dir/?api=1&destination={punto['lat']},{punto['lon']}&travelmode=driving"
+                # URL navigazione multi-app
+                directions_url  = f"https://www.google.com/maps/dir/?api=1&destination={punto['lat']},{punto['lon']}&travelmode=driving"
+                waze_url        = f"https://waze.com/ul?ll={punto['lat']},{punto['lon']}&navigate=yes"
+                apple_maps_url  = f"https://maps.apple.com/?daddr={punto['lat']},{punto['lon']}&dirflg=d"
+
+                tipo_colore_popup = {
+                    "Terremoto": "#c0392b", "Alluvione": "#2980b9",
+                    "Incendio": "#e67e22", "Tutti i rischi": "#27ae60"
+                }.get(punto['tipo'], "#2c3e50")
 
                 popup_text = f"""
-                <div style="min-width:230px;">
-                <h4 style="color:#2c3e50;margin-bottom:5px;">{punto['nome']}</h4>
-                <b>Città:</b> {punto['città']}<br>
-                <b>Indirizzo:</b> {punto['indirizzo']}<br>
-                <b>Tipo di rischio:</b> <span style="color:{
-                    'red' if punto['tipo'] == 'Terremoto' else
-                    'blue' if punto['tipo'] == 'Alluvione' else
-                    'orange' if punto['tipo'] == 'Incendio' else
-                    'green'}">{punto['tipo']}</span><br>
-                <b>Contatto emergenza:</b> <a href="tel:{contatto_emergenza}">{contatto_emergenza}</a><br>
-                <b>Capacità stimata:</b> {capacita} persone<br>
-                <b>Servizi disponibili:</b> {servizi}<br>
-                <b>Responsabile:</b> {responsabile}<br>
-                <b>Ultima verifica:</b> {ultima_verifica}<br>
-                <br>
-                <a href="{directions_url}" target="_blank" style="background-color:#27ae60;color:white;padding:5px 10px;text-decoration:none;border-radius:4px;">
-                <i class="fa fa-map-signs"></i> Come raggiungerlo
-                </a>
+                <div style="min-width:260px;font-family:sans-serif;font-size:13px;">
+                  <h4 style="color:{tipo_colore_popup};margin:0 0 8px 0;font-size:15px;border-bottom:2px solid {tipo_colore_popup};padding-bottom:4px;">
+                    {punto['nome']}
+                  </h4>
+                  <table style="border-collapse:collapse;width:100%;font-size:12px;">
+                    <tr><td style="padding:2px 4px;color:#555;">📍</td><td>{punto.get('indirizzo','')}, {punto['città']}</td></tr>
+                    <tr><td style="padding:2px 4px;color:#555;">🎯</td><td><b style="color:{tipo_colore_popup};">{punto['tipo']}</b></td></tr>
+                    <tr><td style="padding:2px 4px;color:#555;">📞</td><td><a href="tel:{contatto_emergenza}" style="color:#2980b9;">{contatto_emergenza}</a></td></tr>
+                    <tr><td style="padding:2px 4px;color:#555;">👥</td><td>Capacità: {capacita}</td></tr>
+                    <tr><td style="padding:2px 4px;color:#555;">🛎️</td><td>{servizi}</td></tr>
+                    <tr><td style="padding:2px 4px;color:#888;">🌐</td><td style="color:#888;font-size:11px;">{punto['lat']:.5f}, {punto['lon']:.5f}</td></tr>
+                  </table>
+                  <div style="margin-top:10px;display:flex;gap:4px;flex-wrap:wrap;">
+                    <a href="{directions_url}" target="_blank"
+                       style="background:#4285F4;color:white;padding:5px 9px;text-decoration:none;border-radius:5px;font-size:11px;font-weight:600;">
+                       🗺️ Google Maps
+                    </a>
+                    <a href="{waze_url}" target="_blank"
+                       style="background:#00BCD4;color:#000;padding:5px 9px;text-decoration:none;border-radius:5px;font-size:11px;font-weight:600;">
+                       🚗 Waze
+                    </a>
+                    <a href="{apple_maps_url}" target="_blank"
+                       style="background:#555;color:white;padding:5px 9px;text-decoration:none;border-radius:5px;font-size:11px;font-weight:600;">
+                       🍎 Maps
+                    </a>
+                  </div>
                 </div>
                 """
 
@@ -1279,54 +1321,73 @@ def show():
                 # Crea due colonne per ogni punto di raccolta
                 for punto in punti_per_citta[citta]:
                     contatto_emergenza = punto.get('contatto_emergenza', '112 / 118')
-                    capacita = punto.get('capacita', 'Sconosciuta')
-                    servizi = punto.get('servizi', 'Nessuna informazione disponibile')
-                    directions_url = f"https://www.google.com/maps/dir/?api=1&destination={punto['lat']},{punto['lon']}&travelmode=driving"
+                    capacita           = punto.get('capacita', 'N/D')
+                    servizi            = punto.get('servizi', 'Area di attesa sicura')
+                    indirizzo          = punto.get('indirizzo', punto['città'])
 
-                    col1, col2 = st.columns([3, 1])
+                    # URL navigazione
+                    g_url  = f"https://www.google.com/maps/dir/?api=1&destination={punto['lat']},{punto['lon']}&travelmode=driving"
+                    wz_url = f"https://waze.com/ul?ll={punto['lat']},{punto['lon']}&navigate=yes"
+                    am_url = f"https://maps.apple.com/?daddr={punto['lat']},{punto['lon']}&dirflg=d"
+
+                    tipo_colore = {
+                        "Terremoto": "#e74c3c", "Alluvione": "#3498db",
+                        "Incendio":  "#e67e22", "Tutti i rischi": "#27ae60"
+                    }
+                    colore = tipo_colore.get(punto['tipo'], "#2c3e50")
+
+                    icone_tipo = {"Terremoto": "⚠️", "Alluvione": "💧", "Incendio": "🔥", "Tutti i rischi": "🛡️"}
+                    icona = icone_tipo.get(punto['tipo'], "🏁")
+
+                    col1, col2 = st.columns([3, 2])
                     with col1:
-                        # Colora il nome in base al tipo di rischio
-                        tipo_colore = {
-                            "Terremoto": "#e74c3c",
-                            "Alluvione": "#3498db",
-                            "Incendio": "#e67e22",
-                            "Tutti i rischi": "#27ae60"
-                        }
-
-                        colore = tipo_colore.get(punto['tipo'], "#2c3e50")
-
                         st.markdown(f"""
-                        <h4 style="margin-bottom:0;">{punto['nome']} <span style="font-size:0.8em;color:{colore};">({punto['tipo']})</span></h4>
-                        <p style="margin-top:5px;">
-                        <b>Indirizzo:</b> {punto['indirizzo']}<br>
-                        <b>Contatto emergenza:</b> {contatto_emergenza}<br>
-                        <b>Capacità stimata:</b> {capacita} persone<br>
-                        <b>Servizi:</b> {servizi}
-                        </p>
-                        <a href="{directions_url}" target="_blank" style="text-decoration:none;color:#27ae60;font-size:0.9em;">
-                        🚗 Come raggiungerlo
-                        </a>
-                        """, unsafe_allow_html=True)
-
-                    with col2:
-                        # Icona per il tipo di rischio
-                        icone_tipo = {
-                            "Terremoto": "⚠️",
-                            "Alluvione": "💧",
-                            "Incendio": "🔥",
-                            "Tutti i rischi": "🛡️"
-                        }
-
-                        icona = icone_tipo.get(punto['tipo'], "🏁")
-
-                        st.markdown(f"""
-                        <div style="background-color:#f8f9fa;border-radius:5px;padding:10px;text-align:center;">
-                        <div style="font-size:2em;">{icona}</div>
-                        <div style="margin-top:5px;">Punto di raccolta</div>
+                        <div style="border-left:4px solid {colore};padding-left:12px;margin-bottom:4px;">
+                          <h4 style="margin:0 0 4px 0;font-size:15px;">
+                            {icona} {punto['nome']}
+                            <span style="font-size:0.75em;color:{colore};background:{colore}18;
+                                  padding:1px 7px;border-radius:10px;margin-left:6px;">{punto['tipo']}</span>
+                          </h4>
+                          <p style="margin:0;font-size:13px;color:#444;line-height:1.6;">
+                            📍 <b>{indirizzo}</b>, {punto['città']}<br>
+                            📞 <a href="tel:{contatto_emergenza}" style="color:#2563eb;">{contatto_emergenza}</a>
+                            &nbsp;·&nbsp; 👥 Cap. {capacita}
+                            &nbsp;·&nbsp; 🛎️ {servizi}
+                          </p>
                         </div>
                         """, unsafe_allow_html=True)
 
-                    st.markdown("<hr style='margin:15px 0;'>", unsafe_allow_html=True)
+                    with col2:
+                        st.markdown(f"""
+                        <div style="background:#f8faff;border:1px solid #dde4f0;border-radius:8px;
+                                    padding:10px 12px;">
+                          <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:600;
+                                      letter-spacing:0.5px;">🌐 GPS NAVIGAZIONE</div>
+                          <div style="font-size:11px;color:#666;margin-bottom:8px;font-family:monospace;">
+                            {punto['lat']:.5f}, {punto['lon']:.5f}
+                          </div>
+                          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            <a href="{g_url}" target="_blank"
+                               style="background:#4285F4;color:white;padding:4px 8px;text-decoration:none;
+                                      border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">
+                               🗺️ Google Maps
+                            </a>
+                            <a href="{wz_url}" target="_blank"
+                               style="background:#00BCD4;color:#000;padding:4px 8px;text-decoration:none;
+                                      border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">
+                               🚗 Waze
+                            </a>
+                            <a href="{am_url}" target="_blank"
+                               style="background:#555;color:white;padding:4px 8px;text-decoration:none;
+                                      border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">
+                               🍎 Maps
+                            </a>
+                          </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                    st.markdown("<hr style='margin:12px 0;border:none;border-top:1px solid #eee;'>",
+                                unsafe_allow_html=True)
 
         # Linee guida generali per evacuazioni e punti di raccolta
         with st.expander("🚶‍♂️ Linee guida per evacuazioni"):

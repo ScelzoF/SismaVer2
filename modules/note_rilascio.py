@@ -9,7 +9,7 @@ def show():
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     
     st.markdown("""
-    ## Versione attuale: 2.9.3 (Aprile 2026)
+    ## Versione attuale: 2.9.5 (Aprile 2026)
     
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -22,14 +22,58 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # Versione 2.9.3 — NUOVA
+        # Versione 2.9.5 — NUOVA
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background-color:#059669; color:white; padding:10px; border-radius:5px; text-align:center;">
-                <h3>v2.9.3</h3>
+                <h3>v2.9.5</h3>
                 <p>Aprile 2026</p>
                 <span style="font-size:11px; background:#047857; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.9.5 (Aprile 2026)
+            #### Navigazione GPS completa — Punti raccolta e ospedali
+
+            - 🗺️ **GPS Navigazione multi-app** — Ogni punto di raccolta e ospedale ora ha 3 pulsanti di navigazione diretta: **Google Maps**, **Waze**, **Apple Maps**. Link calcolati su coordinate GPS reali
+            - 📍 **Coordinate GPS visibili** — Le coordinate (lat, lon) appaiono in ogni card della lista e nel popup della mappa, in formato monospace copiabile
+            - 🎨 **Card punti raccolta redesigned** — Nuova struttura con barra colorata per tipo rischio (rosso=terremoto, blu=alluvione, arancio=incendio, verde=tuttirischi), badge tipo, contatto cliccabile, sezione navigazione separata
+            - 🏥 **Card ospedali PS redesigned** — Stessa struttura per gli ospedali del Pronto Soccorso con bordo rosso, GPS e 3 link navigazione
+            - 🗺️ **Popup mappa migliorati** — Popup Folium per punti raccolta e ospedali riscritti con tabella info + 3 pulsanti navigazione colorati
+            """)
+
+        st.markdown("---")
+
+        # Versione 2.9.4
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#2563eb; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.9.4</h3>
+                <p>Aprile 2026</p>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.9.4 (Aprile 2026)
+            #### Banner visivi tematizzati per tutte le 15 sezioni
+
+            - 🎨 **Nuovo modulo banner_utils.py** — Funzione `render_banner()` con gradiente colorato, emoji grande, titolo, sottotitolo e watermark di sfondo semi-trasparente
+            - 🖼️ **15 sezioni con banner** — Home (blu navy), Monitoraggio (indaco + badge LIVE), Vulcani (rosso), Allerte (arancio + badge LIVE), Meteo (oceano), Qualità Aria (verde), Numeri Utili (teal), Chat (viola), Emergenza (rosso), Primo Soccorso (fucsia), Segnala (ambra), Donazioni (verde oliva), Fonti (grafite), Note di Rilascio (blu), Licenza (grigio)
+            - ✅ **st.title() rimossi** — Tutti i 15 moduli ora usano il banner come intestazione visiva principale
+            """)
+
+        st.markdown("---")
+
+        # Versione 2.9.3
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#2563eb; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.9.3</h3>
+                <p>Aprile 2026</p>
             </div>
             """, unsafe_allow_html=True)
         with col2:
