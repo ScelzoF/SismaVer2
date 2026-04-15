@@ -493,47 +493,6 @@ def show():
         st.markdown("""
         Il video mostra le corrette procedure di Rianimazione Cardiopolmonare (RCP) per bambini e adulti secondo le linee guida internazionali della Croce Rossa Italiana.
         """)
-        
-        # Dividiamo in tab per età
-        tab_rcp_adulti, tab_rcp_bambini, tab_rcp_lattanti = st.tabs(["Adulti", "Bambini", "Lattanti"])
-
-        with tab_rcp_adulti:
-            st.markdown("### RCP - Adulti")
-            st.markdown("""
-            1. Posiziona la persona supina su una superficie rigida
-            2. Metti le mani al centro del torace (metà inferiore dello sterno)
-            3. Comprimi il torace di 5-6 cm
-            4. Frequenza: 100-120 compressioni al minuto
-            5. Dopo 30 compressioni, effettua 2 ventilazioni (se addestrato)
-            6. Se non addestrato, continua solo con le compressioni
-            """)
-            
-            # Mostriamo solo le istruzioni testuali senza immagine
-            st.info("Seguire scrupolosamente le indicazioni per la RCP, assicurandosi di mantenere il ritmo corretto delle compressioni.")
-
-        with tab_rcp_bambini:
-            st.markdown("### RCP - Bambini (età 1-8 anni)")
-            st.markdown("""
-            1. Posiziona il bambino supino su una superficie rigida
-            2. Usa una o due mani al centro del torace
-            3. Comprimi il torace di circa 5 cm
-            4. Frequenza: 100-120 compressioni al minuto
-            5. Rapporto 30 compressioni e 2 ventilazioni
-            """)
-            
-            st.info("Nelle procedure per i bambini è importante dosare la forza in base alla corporatura del bambino.")
-
-        with tab_rcp_lattanti:
-            st.markdown("### RCP - Lattanti (età < 1 anno)")
-            st.markdown("""
-            1. Posiziona il lattante supino su una superficie rigida
-            2. Usa due dita al centro del torace, appena sotto la linea dei capezzoli
-            3. Comprimi il torace di circa 4 cm
-            4. Frequenza: 100-120 compressioni al minuto
-            5. Rapporto 30 compressioni e 2 ventilazioni (coprendo bocca e naso)
-            """)
-            
-            st.warning("Nei lattanti è fondamentale la delicatezza dei movimenti e usare solo due dita per le compressioni.")
 
         with st.expander("🚨 Emergenze Specifiche"):
             st.write("""
@@ -715,13 +674,74 @@ def show():
             ]
         })
 
-        # Far apparire i dati delle altre regioni quando necessario
+        # Regioni aggiuntive complete
+        pronto_soccorso_italia.update({
+            "Calabria": [
+                {"nome": "Ospedale Pugliese-Ciaccio", "indirizzo": "Viale Pio X, 88100 Catanzaro", "telefono": "0961 883111", "lat": 38.9041, "lon": 16.5888},
+                {"nome": "Ospedale Bianchi-Melacrino-Morelli", "indirizzo": "Via Melacrino, 21, Reggio Calabria", "telefono": "0965 397111", "lat": 38.1137, "lon": 15.6496},
+                {"nome": "Azienda Ospedaliera Cosenza", "indirizzo": "Viale della Repubblica, 87100 Cosenza", "telefono": "0984 681111", "lat": 39.2968, "lon": 16.2518},
+                {"nome": "Ospedale Jazzolino", "indirizzo": "Vibo Valentia Superiore, 89900", "telefono": "0963 932111", "lat": 38.6748, "lon": 16.1003}
+            ],
+            "Basilicata": [
+                {"nome": "Ospedale San Carlo", "indirizzo": "Via Potito Petrone, 85100 Potenza", "telefono": "0971 611111", "lat": 40.6308, "lon": 15.7960},
+                {"nome": "Ospedale Madonna delle Grazie", "indirizzo": "Via Montescaglioso, 75100 Matera", "telefono": "0835 253111", "lat": 40.6629, "lon": 16.6016}
+            ],
+            "Friuli-Venezia Giulia": [
+                {"nome": "Ospedale di Cattinara", "indirizzo": "Strada di Fiume, 447, 34149 Trieste", "telefono": "040 3991111", "lat": 45.6248, "lon": 13.7834},
+                {"nome": "Ospedale Santa Maria della Misericordia", "indirizzo": "Piazzale Santa Maria della Misericordia, 15, Udine", "telefono": "0432 552111", "lat": 46.0646, "lon": 13.2279},
+                {"nome": "Ospedale San Giovanni di Dio", "indirizzo": "Largo Boemia, 1, 34170 Gorizia", "telefono": "0481 5921", "lat": 45.9419, "lon": 13.6225}
+            ],
+            "Liguria": [
+                {"nome": "Ospedale Policlinico San Martino", "indirizzo": "Largo Rosanna Benzi, 10, Genova", "telefono": "010 5551", "lat": 44.4081, "lon": 8.9746},
+                {"nome": "Ospedale Gaslini", "indirizzo": "Via Gerolamo Gaslini, 5, Genova", "telefono": "010 56361", "lat": 44.3924, "lon": 8.9825},
+                {"nome": "Ospedale Sant'Andrea", "indirizzo": "Via Vittorio Veneto, 197, La Spezia", "telefono": "0187 5331", "lat": 44.1110, "lon": 9.8228},
+                {"nome": "Ospedale San Paolo", "indirizzo": "Via Genova, 30, 17100 Savona", "telefono": "019 84041", "lat": 44.3095, "lon": 8.4761}
+            ],
+            "Molise": [
+                {"nome": "Ospedale Cardarelli", "indirizzo": "Via Cardarelli, 1, 86100 Campobasso", "telefono": "0874 4091", "lat": 41.5587, "lon": 14.6623},
+                {"nome": "Ospedale Francesco Veneziale", "indirizzo": "Via Libertà, 86170 Isernia", "telefono": "0865 4421", "lat": 41.5930, "lon": 14.2292}
+            ],
+            "Sardegna": [
+                {"nome": "Ospedale Brotzu", "indirizzo": "Piazzale Alessandro Ricchi, 1, Cagliari", "telefono": "070 5391", "lat": 39.2156, "lon": 9.1057},
+                {"nome": "Azienda Ospedaliera Universitaria Cagliari", "indirizzo": "Via Ospedale, 09124 Cagliari", "telefono": "070 60291", "lat": 39.2107, "lon": 9.1179},
+                {"nome": "Ospedale Civile SS. Annunziata", "indirizzo": "Via De Nicola, 07100 Sassari", "telefono": "079 2061", "lat": 40.7272, "lon": 8.5584},
+                {"nome": "Ospedale San Francesco", "indirizzo": "Via Mannironi, 08100 Nuoro", "telefono": "0784 2401", "lat": 40.3255, "lon": 9.3318}
+            ],
+            "Trentino-Alto Adige": [
+                {"nome": "Ospedale Santa Chiara", "indirizzo": "Largo Medaglie d'Oro, 9, 38122 Trento", "telefono": "0461 9031", "lat": 46.0645, "lon": 11.1238},
+                {"nome": "Ospedale di Bolzano", "indirizzo": "Via Lorenz Böhler, 5, 39100 Bolzano", "telefono": "0471 9081", "lat": 46.4956, "lon": 11.3579},
+                {"nome": "Ospedale di Merano", "indirizzo": "Via Rossini, 5, 39012 Merano", "telefono": "0473 2641", "lat": 46.6750, "lon": 11.1672}
+            ],
+            "Umbria": [
+                {"nome": "Ospedale Santa Maria della Misericordia", "indirizzo": "Piazzale Giorgio Menghini, 1, Perugia", "telefono": "075 5781", "lat": 43.1019, "lon": 12.3888},
+                {"nome": "Ospedale Santa Maria", "indirizzo": "Piazzale Tristano di Joannuccio, 1, Terni", "telefono": "0744 2051", "lat": 42.5679, "lon": 12.6464}
+            ],
+            "Valle d'Aosta": [
+                {"nome": "Ospedale Umberto Parini", "indirizzo": "Viale Ginevra, 3, 11100 Aosta", "telefono": "0165 5431", "lat": 45.7364, "lon": 7.3177}
+            ]
+        })
+
+        # Fallback per regioni non nel database (non dovrebbero esserci)
         for regione in regioni:
             if regione not in pronto_soccorso_italia:
+                # Usa coordinate del capoluogo di regione se disponibile
+                coord_capoluogo = {
+                    "Abruzzo": [42.35, 13.40], "Basilicata": [40.64, 15.80],
+                    "Calabria": [38.91, 16.59], "Campania": [40.83, 14.25],
+                    "Emilia-Romagna": [44.49, 11.34], "Friuli-Venezia Giulia": [46.07, 13.23],
+                    "Lazio": [41.89, 12.48], "Liguria": [44.41, 8.93],
+                    "Lombardia": [45.47, 9.19], "Marche": [43.62, 13.51],
+                    "Molise": [41.56, 14.65], "Piemonte": [45.07, 7.68],
+                    "Puglia": [41.12, 16.87], "Sardegna": [39.22, 9.10],
+                    "Sicilia": [37.50, 14.00], "Toscana": [43.77, 11.24],
+                    "Trentino-Alto Adige": [46.06, 11.12], "Umbria": [43.11, 12.39],
+                    "Valle d'Aosta": [45.73, 7.32], "Veneto": [45.44, 12.32],
+                }
+                lat, lon = coord_capoluogo.get(regione, [41.9, 12.5])
                 pronto_soccorso_italia[regione] = [
                     {"nome": f"Centrale Operativa 118 {regione}", "indirizzo": "Servizio Sanitario di Emergenza",
-                     "telefono": "118", "email": "emergenza@118.it", "sito_web": "www.118.it",
-                     "responsabile": "Direttore Sanitario Regionale", "lat": 41.9, "lon": 12.5}
+                     "telefono": "118", "email": f"118@regione.it", "sito_web": "www.salute.gov.it",
+                     "responsabile": "Direttore Sanitario Regionale", "lat": lat, "lon": lon}
                 ]
 
         # Visualizza pronto soccorso nella regione selezionata
@@ -778,7 +798,7 @@ def show():
                 ).add_to(map_ps)
 
             # Visualizza mappa
-            folium_static(map_ps, width=700)
+            folium_static(map_ps, width=1000, height=450)
 
             # Visualizza elenco completo con informazioni dettagliate
             st.write("### Elenco strutture:")
@@ -868,11 +888,30 @@ def show():
             ]
         }
 
+        ospedali_principali = [
+            {"nome": "Policlinico Gemelli", "città": "Roma", "indirizzo": "Largo Agostino Gemelli, 8", "telefono": "06 30151", "lat": 41.9333, "lon": 12.4286},
+            {"nome": "Policlinico Umberto I", "città": "Roma", "indirizzo": "Viale del Policlinico, 155", "telefono": "06 49971", "lat": 41.9041, "lon": 12.5099},
+            {"nome": "Ospedale San Raffaele", "città": "Milano", "indirizzo": "Via Olgettina, 60", "telefono": "02 26431", "lat": 45.5028, "lon": 9.2643},
+            {"nome": "Ospedale Niguarda", "città": "Milano", "indirizzo": "Piazza dell'Ospedale Maggiore, 3", "telefono": "02 64441", "lat": 45.5102, "lon": 9.1870},
+            {"nome": "Policlinico Sant'Orsola", "città": "Bologna", "indirizzo": "Via Giuseppe Massarenti, 9", "telefono": "051 2141", "lat": 44.4981, "lon": 11.3776},
+            {"nome": "Ospedale San Giovanni Battista (Molinette)", "città": "Torino", "indirizzo": "Via Cavour, 31", "telefono": "011 6331633", "lat": 45.0623, "lon": 7.6833},
+            {"nome": "Azienda Ospedaliera Universitaria Federico II", "città": "Napoli", "indirizzo": "Via Sergio Pansini, 5", "telefono": "081 7461111", "lat": 40.8518, "lon": 14.2275},
+            {"nome": "Policlinico di Catania", "città": "Catania", "indirizzo": "Via S. Sofia, 78", "telefono": "095 3781111", "lat": 37.5273, "lon": 15.0861},
+            {"nome": "Ospedali Riuniti di Ancona", "città": "Ancona", "indirizzo": "Via Conca, 71", "telefono": "071 5961", "lat": 43.6171, "lon": 13.5189},
+            {"nome": "Policlinico di Bari", "città": "Bari", "indirizzo": "Piazza Giulio Cesare, 11", "telefono": "080 5592111", "lat": 41.1005, "lon": 16.8619},
+            {"nome": "Ospedale di Careggi", "città": "Firenze", "indirizzo": "Largo Brambilla, 3", "telefono": "055 7941", "lat": 43.8047, "lon": 11.2474},
+            {"nome": "Policlinico Verona", "città": "Verona", "indirizzo": "Piazzale L. A. Scuro, 10", "telefono": "045 8121111", "lat": 45.4367, "lon": 10.9958},
+            {"nome": "Ospedale Civile Maggiore", "città": "Verona", "indirizzo": "Piazzale Aristide Stefani, 1", "telefono": "045 8121111", "lat": 45.4399, "lon": 10.9804},
+            {"nome": "Azienda Ospedaliera Universitaria Palermo", "città": "Palermo", "indirizzo": "Via del Vespro, 129", "telefono": "091 6552111", "lat": 38.1110, "lon": 13.3589}
+        ]
+        centri_specializzati["Ospedali"] = ospedali_principali
+
         # Mostra i dati in base alla selezione
         if tipo_selezionato == "Tutti":
             centri_da_mostrare = []
             for tipo in centri_specializzati:
-                centri_da_mostrare.extend(centri_specializzati[tipo])
+                if tipo != "Ospedali":
+                    centri_da_mostrare.extend(centri_specializzati[tipo])
         elif tipo_selezionato in centri_specializzati:
             centri_da_mostrare = centri_specializzati[tipo_selezionato]
         else:
@@ -887,14 +926,16 @@ def show():
                 "Centri Traumatologici": "blue",
                 "Centri Ustioni": "orange",
                 "Centri Antiveleni": "green",
-                "Unità Spinali": "purple"
+                "Unità Spinali": "purple",
+                "Ospedali": "darkred"
             }
 
             icone = {
                 "Centri Traumatologici": "hospital-o",
                 "Centri Ustioni": "fire-extinguisher",
                 "Centri Antiveleni": "flask",
-                "Unità Spinali": "wheelchair"
+                "Unità Spinali": "wheelchair",
+                "Ospedali": "hospital-o"
             }
 
             # Aggiungi marker per ogni centro
@@ -924,7 +965,7 @@ def show():
                 ).add_to(mappa_centri)
 
             # Visualizza mappa
-            folium_static(mappa_centri, width=700)
+            folium_static(mappa_centri, width=1000, height=450)
 
             # Visualizza elenco
             st.write(f"### Elenco {tipo_selezionato if tipo_selezionato != 'Tutti' else 'Centri Specializzati'}:")
@@ -1055,11 +1096,77 @@ def show():
             ]
         })
 
-        # Per le altre regioni, creiamo un template generico
+        # Punti raccolta per le regioni mancanti
+        punti_raccolta.update({
+            "Basilicata": [
+                {"nome": "Piazza Mario Pagano", "città": "Potenza", "indirizzo": "Piazza Mario Pagano", "tipo": "Terremoto", "lat": 40.6402, "lon": 15.8059},
+                {"nome": "Piazza Vittorio Veneto", "città": "Matera", "indirizzo": "Piazza Vittorio Veneto", "tipo": "Tutti i rischi", "lat": 40.6662, "lon": 16.6046}
+            ],
+            "Calabria": [
+                {"nome": "Villa Comunale", "città": "Catanzaro", "indirizzo": "Corso Mazzini, Catanzaro", "tipo": "Terremoto", "lat": 38.9104, "lon": 16.5875},
+                {"nome": "Piazza Castello", "città": "Reggio Calabria", "indirizzo": "Piazza Castello, Reggio Calabria", "tipo": "Terremoto", "lat": 38.1102, "lon": 15.6443},
+                {"nome": "Piazza XV Marzo", "città": "Cosenza", "indirizzo": "Piazza XV Marzo, Cosenza", "tipo": "Tutti i rischi", "lat": 39.2978, "lon": 16.2519}
+            ],
+            "Friuli-Venezia Giulia": [
+                {"nome": "Piazza Unità d'Italia", "città": "Trieste", "indirizzo": "Piazza Unità d'Italia", "tipo": "Tutti i rischi", "lat": 45.6495, "lon": 13.7768},
+                {"nome": "Piazza Libertà", "città": "Udine", "indirizzo": "Piazza Libertà, Udine", "tipo": "Terremoto", "lat": 46.0626, "lon": 13.2365},
+                {"nome": "Parco della Rimembranza", "città": "Gorizia", "indirizzo": "Via della Cappella, Gorizia", "tipo": "Terremoto", "lat": 45.9413, "lon": 13.6224}
+            ],
+            "Liguria": [
+                {"nome": "Piazza De Ferrari", "città": "Genova", "indirizzo": "Piazza De Ferrari, Genova", "tipo": "Tutti i rischi", "lat": 44.4077, "lon": 8.9337},
+                {"nome": "Piazza Europa", "città": "La Spezia", "indirizzo": "Piazza Europa, La Spezia", "tipo": "Alluvione", "lat": 44.1026, "lon": 9.8263},
+                {"nome": "Piazza Mameli", "città": "Savona", "indirizzo": "Piazza Mameli, Savona", "tipo": "Tutti i rischi", "lat": 44.3079, "lon": 8.4774},
+                {"nome": "Piazza Dante", "città": "Imperia", "indirizzo": "Piazza Dante, Imperia", "tipo": "Alluvione", "lat": 43.8840, "lon": 8.0278}
+            ],
+            "Molise": [
+                {"nome": "Piazza Vittorio Emanuele II", "città": "Campobasso", "indirizzo": "Piazza Vittorio Emanuele II", "tipo": "Terremoto", "lat": 41.5600, "lon": 14.6615},
+                {"nome": "Piazza Andrea d'Isernia", "città": "Isernia", "indirizzo": "Piazza Andrea d'Isernia", "tipo": "Tutti i rischi", "lat": 41.5934, "lon": 14.2288}
+            ],
+            "Sardegna": [
+                {"nome": "Piazza del Carmine", "città": "Cagliari", "indirizzo": "Piazza del Carmine, Cagliari", "tipo": "Tutti i rischi", "lat": 39.2148, "lon": 9.1100},
+                {"nome": "Piazza d'Italia", "città": "Sassari", "indirizzo": "Piazza d'Italia, Sassari", "tipo": "Tutti i rischi", "lat": 40.7273, "lon": 8.5584},
+                {"nome": "Piazza Sebastiano Satta", "città": "Nuoro", "indirizzo": "Piazza Sebastiano Satta, Nuoro", "tipo": "Incendio", "lat": 40.3213, "lon": 9.3303},
+                {"nome": "Piazza Eleonora d'Arborea", "città": "Oristano", "indirizzo": "Piazza Eleonora, Oristano", "tipo": "Alluvione", "lat": 39.9032, "lon": 8.5928}
+            ],
+            "Trentino-Alto Adige": [
+                {"nome": "Piazza Duomo", "città": "Trento", "indirizzo": "Piazza Duomo, Trento", "tipo": "Tutti i rischi", "lat": 46.0679, "lon": 11.1211},
+                {"nome": "Piazza Walther", "città": "Bolzano", "indirizzo": "Piazza Walther, Bolzano", "tipo": "Tutti i rischi", "lat": 46.4981, "lon": 11.3548},
+                {"nome": "Piazza della Rena", "città": "Merano", "indirizzo": "Piazza della Rena, Merano", "tipo": "Alluvione", "lat": 46.6730, "lon": 11.1618}
+            ],
+            "Umbria": [
+                {"nome": "Piazza IV Novembre", "città": "Perugia", "indirizzo": "Piazza IV Novembre, Perugia", "tipo": "Terremoto", "lat": 43.1122, "lon": 12.3905},
+                {"nome": "Piazza della Repubblica", "città": "Terni", "indirizzo": "Piazza della Repubblica, Terni", "tipo": "Terremoto", "lat": 42.5635, "lon": 12.6454}
+            ],
+            "Valle d'Aosta": [
+                {"nome": "Piazza Chanoux", "città": "Aosta", "indirizzo": "Piazza Emile Chanoux, Aosta", "tipo": "Tutti i rischi", "lat": 45.7368, "lon": 7.3148},
+                {"nome": "Area verde stadio Puchoz", "città": "Aosta", "indirizzo": "Via Xavier de Maistre, Aosta", "tipo": "Tutti i rischi", "lat": 45.7412, "lon": 7.3220}
+            ],
+            "Abruzzo": [
+                {"nome": "Piazza Duomo", "città": "L'Aquila", "indirizzo": "Piazza Duomo, L'Aquila", "tipo": "Terremoto", "lat": 42.3501, "lon": 13.3995},
+                {"nome": "Villa Comunale", "città": "Pescara", "indirizzo": "Piazza Italia, Pescara", "tipo": "Alluvione", "lat": 42.4618, "lon": 14.2150},
+                {"nome": "Villa Comunale", "città": "Chieti", "indirizzo": "Piazza G.B. Vico, Chieti", "tipo": "Terremoto", "lat": 42.3516, "lon": 14.1681},
+                {"nome": "Parco della Scienza", "città": "Teramo", "indirizzo": "Piazza Martiri, Teramo", "tipo": "Tutti i rischi", "lat": 42.6589, "lon": 13.7044}
+            ],
+        })
+
+        # Per regioni ancora non coperte, usa coordinate reali del capoluogo
+        _coord_capoluoghi = {
+            "Abruzzo": [42.35, 13.40], "Basilicata": [40.64, 15.80],
+            "Calabria": [38.91, 16.59], "Campania": [40.83, 14.25],
+            "Emilia-Romagna": [44.49, 11.34], "Friuli-Venezia Giulia": [46.07, 13.23],
+            "Lazio": [41.89, 12.48], "Liguria": [44.41, 8.93],
+            "Lombardia": [45.47, 9.19], "Marche": [43.62, 13.51],
+            "Molise": [41.56, 14.65], "Piemonte": [45.07, 7.68],
+            "Puglia": [41.12, 16.87], "Sardegna": [39.22, 9.10],
+            "Sicilia": [37.50, 14.00], "Toscana": [43.77, 11.24],
+            "Trentino-Alto Adige": [46.06, 11.12], "Umbria": [43.11, 12.39],
+            "Valle d'Aosta": [45.73, 7.32], "Veneto": [45.44, 12.32],
+        }
         for regione in regioni_punti:
             if regione not in punti_raccolta:
+                lat, lon = _coord_capoluoghi.get(regione, [41.9, 12.5])
                 punti_raccolta[regione] = [
-                    {"nome": f"Area attesa {regione}", "città": "Capoluogo", "indirizzo": "Piazza Principale", "tipo": "Tutti i rischi", "lat": 41.9, "lon": 12.5}
+                    {"nome": f"Area di attesa principale", "città": regione, "indirizzo": "Piazza principale del capoluogo", "tipo": "Tutti i rischi", "lat": lat, "lon": lon}
                 ]
 
         # Visualizzazione dei punti di raccolta per la regione selezionata
@@ -1151,7 +1258,7 @@ def show():
                 ).add_to(mappa_punti)
 
             # Visualizza mappa
-            folium_static(mappa_punti, width=700)
+            folium_static(mappa_punti, width=1000, height=450)
 
             # Visualizza elenco con più informazioni e organizzato per città
             st.write("### Elenco punti di raccolta:")

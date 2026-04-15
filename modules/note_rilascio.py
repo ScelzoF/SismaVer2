@@ -8,7 +8,7 @@ def show():
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     
     st.markdown("""
-    ## Versione attuale: 2.8.0 (Aprile 2026)
+    ## Versione attuale: 2.9.0 (Aprile 2026)
     
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -21,14 +21,37 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # Versione 2.8.0 — NUOVA
+        # Versione 2.9.0 — NUOVA
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background-color:#059669; color:white; padding:10px; border-radius:5px; text-align:center;">
-                <h3>v2.8.0</h3>
+                <h3>v2.9.0</h3>
                 <p>Aprile 2026</p>
                 <span style="font-size:11px; background:#047857; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.9.0 (Aprile 2026)
+            #### Primo Soccorso — completamento totale database regionale, fix mappe e deduplicazione
+
+            - 🏥 **Pronto Soccorso — 20 regioni complete** — Aggiunti ospedali per tutte le 9 regioni mancanti: Basilicata (San Carlo Potenza, Madonna delle Grazie Matera), Calabria (Pugliese-Ciaccio, Bianchi-Melacrino-Morelli, AO Cosenza), Friuli-VG (Cattinara Trieste, SM Misericordia Udine, San Giovanni di Dio Gorizia), Liguria (San Martino Genova, Gaslini, Sant'Andrea La Spezia, San Paolo Savona), Molise (Cardarelli Campobasso, Veneziale Isernia), Sardegna (Brotzu, AOU Cagliari, SS Annunziata Sassari, San Francesco Nuoro), Trentino-AA (Santa Chiara Trento, Ospedale Bolzano, Merano), Umbria (SM Misericordia Perugia, Santa Maria Terni), Valle d'Aosta (Umberto Parini Aosta)
+            - 🗺️ **Mappe Primo Soccorso full-width** — Tutte e 3 le mappe ora a width=1000px: Pronto Soccorso (tab2), Centri Specializzati (tab3), Punti Raccolta (tab4). Eliminato spazio bianco
+            - 🔁 **Deduplicazione sezione RCP** — Rimosso blocco testo-only RCP (adulti/bambini/lattanti) ridondante dopo `show_manovre()` che già mostra le stesse istruzioni con immagini e video tutorial
+            - 🏛️ **Ospedali nel tab Centri Specializzati** — Aggiunto filtro "Ospedali" funzionante con 14 policlinici universitari e ospedali principali da Nord a Sud (Gemelli, Umberto I, San Raffaele, Niguarda, Sant'Orsola, Molinette, Federico II, Careggi, ecc.)
+            - 📍 **Punti raccolta — coordinate reali** — Aggiunti punti raccolta con piazze/parchi reali per tutte le regioni mancanti: Basilicata, Calabria, Friuli-VG, Liguria, Molise, Sardegna, Trentino-AA, Umbria, Valle d'Aosta, Abruzzo. Eliminato fallback `lat=41.9, lon=12.5` (centro Italia generico)
+            """)
+
+        st.markdown("---")
+
+        # Versione 2.8.0
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#2563eb; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.8.0</h3>
+                <p>Aprile 2026</p>
             </div>
             """, unsafe_allow_html=True)
         with col2:
