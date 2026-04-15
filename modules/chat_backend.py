@@ -27,7 +27,14 @@ _LOCAL_CHAT_FILE = _DATA_DIR / "chat_local.json"
 _MAX_LOCAL_MESSAGES = 500   # evita crescita illimitata del file
 _SUPABASE_TIMEOUT = 2       # secondi — fail fast se DNS morto
 
-FUSO_ITALIA = timezone(timedelta(hours=2))   # UTC+2 ora legale; cambia a 1 in inverno
+def _get_tz_italia():
+    _n = datetime.now()
+    _y = _n.year
+    _ds = datetime(_y, 3, 31 - (datetime(_y, 3, 31).weekday() + 1) % 7)
+    _de = datetime(_y, 10, 31 - (datetime(_y, 10, 31).weekday() + 1) % 7)
+    return timezone(timedelta(hours=2 if _ds <= _n < _de else 1))
+
+FUSO_ITALIA = _get_tz_italia()
 
 
 # ---------------------------------------------------------------------------

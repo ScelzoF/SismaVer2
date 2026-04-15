@@ -18,8 +18,14 @@ def show():
 
     st.title("🌤️ Meteo Attuale")
     
-    # Definizione fuso orario italiano
-    FUSO_ORARIO_ITALIA = timezone(timedelta(hours=2))
+    # Fuso orario italiano con ora legale automatica
+    def _get_tz_it():
+        _n = datetime.now()
+        _y = _n.year
+        _ds = datetime(_y, 3, 31 - (datetime(_y, 3, 31).weekday() + 1) % 7)
+        _de = datetime(_y, 10, 31 - (datetime(_y, 10, 31).weekday() + 1) % 7)
+        return timezone(timedelta(hours=2 if _ds <= _n < _de else 1))
+    FUSO_ORARIO_ITALIA = _get_tz_it()
     ora_italiana = datetime.now(FUSO_ORARIO_ITALIA)
     
     # Sistema di fallback e resilienza per le API meteo

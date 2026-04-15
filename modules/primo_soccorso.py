@@ -14,8 +14,15 @@ from PIL import Image, UnidentifiedImageError, ImageOps
 from io import BytesIO
 from functools import lru_cache
 
-# Definizione fuso orario italiano per coerenza
-FUSO_ORARIO_ITALIA = timezone(timedelta(hours=2))
+# Fuso orario italiano con ora legale automatica
+def _get_tz_italia():
+    _now = datetime.now()
+    _y = _now.year
+    _dst_s = datetime(_y, 3, 31 - (datetime(_y, 3, 31).weekday() + 1) % 7)
+    _dst_e = datetime(_y, 10, 31 - (datetime(_y, 10, 31).weekday() + 1) % 7)
+    return timezone(timedelta(hours=2 if _dst_s <= _now < _dst_e else 1))
+
+FUSO_ORARIO_ITALIA = _get_tz_italia()
 
 def show():
     st.title('🩺 Primo Soccorso e Strutture Sanitarie')

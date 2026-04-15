@@ -210,12 +210,14 @@ with st.sidebar:
         "🏠 Home": "home",
         "🌊 Monitoraggio Sismico": "monitoraggio",
         "🌋 Vulcani": "vulcani",
+        "📊 Allerte e Rischi": "rischi_allerte",
         "🌦 Meteo": "meteo",
-        "💬 Chat Pubblica": "chat_enhanced",  # Usa la versione migliorata della chat
+        "💬 Chat Pubblica": "chat_enhanced",
         "🚨 Punti di Emergenza": "emergenza",
         "🩺 Primo Soccorso": "primo_soccorso",
-        "📱 Segnala Evento": "segnala_evento_enhanced",  # Usa la versione migliorata della segnalazione eventi
+        "📱 Segnala Evento": "segnala_evento_enhanced",
         "💰 Donazioni": "donazioni",
+        "📚 Fonti dei Dati": "fonti",
         "📋 Note di Rilascio": "note_rilascio",
         "ℹ️ Licenza e Info": "licenza"
     }
@@ -225,17 +227,18 @@ with st.sidebar:
     # Spiegazione delle sezioni
     with st.expander("ℹ️ Guida alle sezioni"):
         st.markdown("""
-        - **Home**: Panoramica generale e informazioni principali
-        - **Monitoraggio Sismico**: Dati in tempo reale su eventi sismici in Italia
-        - **Vulcani**: Monitoraggio attività vulcanica sul territorio italiano
-        - **Meteo**: Previsioni meteo e condizioni attuali per ogni località
-        - **Chat Pubblica**: Comunicazione in tempo reale tra utenti
-        - **Punti di Emergenza**: Mappa dei punti di raccolta e strutture di emergenza
+        - **Home**: Panoramica live — ultimi terremoti e stato vulcani
+        - **Monitoraggio Sismico**: Dati INGV in tempo reale, mappa e grafici per regione
+        - **Vulcani**: Attività di Etna, Vesuvio, Stromboli, Campi Flegrei e altri
+        - **📊 Allerte e Rischi**: Dashboard live — allerta tsunami, sismica, meteo e rischio idrogeologico
+        - **Meteo**: Previsioni 7 giorni per qualsiasi comune italiano
+        - **Chat Pubblica**: Comunicazione in tempo reale tra cittadini
+        - **Punti di Emergenza**: Mappa punti raccolta e strutture di emergenza per regione
         - **Primo Soccorso**: Guide e procedure di primo intervento
-        - **Segnala Evento**: Sistema per segnalare eventi o situazioni di rischio
-        - **Donazioni**: Supporta il progetto e la sua evoluzione
-        - **Note di Rilascio**: Cronologia degli aggiornamenti dell'applicazione
-        - **Licenza e Info**: Informazioni sullo sviluppatore e termini d'uso
+        - **Segnala Evento**: Segnala terremoti, frane o altri eventi
+        - **Donazioni**: Supporta il progetto
+        - **Note di Rilascio**: Cronologia aggiornamenti
+        - **Licenza e Info**: Sviluppatore e termini d'uso
         """)
 
     selezione = st.radio("Menu di navigazione", list(pagine.keys()), label_visibility="collapsed")

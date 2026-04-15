@@ -41,7 +41,7 @@ def show():
     regione_scelta = st.sidebar.selectbox("Seleziona regione", regioni)
 
     # Data e ora dell'ultimo aggiornamento con fuso orario italiano
-    current_time = datetime.now(timezone(timedelta(hours=2)))  # UTC+2 per l'Italia
+    current_time = datetime.now(FUSO_ORARIO_ITALIA)
     last_update_timestamp = current_time.strftime("%d/%m/%Y %H:%M:%S")
     st.sidebar.markdown(f"**🕒 Ultimo aggiornamento:** {last_update_timestamp} (IT)")
     st.sidebar.markdown("---")
@@ -71,7 +71,7 @@ def show():
                 st.rerun()
         
         with col_time:
-            current_time = datetime.now(timezone(timedelta(hours=2)))  # UTC+2 per l'Italia
+            current_time = datetime.now(FUSO_ORARIO_ITALIA)
             
             if 'last_update' not in st.session_state:
                 st.session_state.last_update = current_time
@@ -503,12 +503,10 @@ def show():
                                     # Se è un timestamp in millisecondi
                                     dt = datetime.fromtimestamp(event_time / 1000.0)
                                 
-                                # Converti in fuso orario italiano (UTC+2)
+                                # Converti in fuso orario italiano (DST-aware)
                                 if dt:
-                                    # Aggiungiamo 2 ore al timestamp UTC
-                                    dt = dt + timedelta(hours=2)
-                                    # Aggiungi (IT) per indicare il fuso orario italiano
-                                    formatted_time = dt.strftime("%d/%m/%Y %H:%M:%S") + " (IT)"
+                                    dt_it = datetime.fromtimestamp(event_time / 1000.0, FUSO_ORARIO_ITALIA)
+                                    formatted_time = dt_it.strftime("%d/%m/%Y %H:%M:%S") + " (IT)"
                                 else:
                                     formatted_time = str(event_time)
                             except Exception as date_err:
