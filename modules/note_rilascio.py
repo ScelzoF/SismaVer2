@@ -8,7 +8,7 @@ def show():
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     
     st.markdown("""
-    ## Versione attuale: 2.5.0 (Aprile 2026)
+    ## Versione attuale: 2.6.0 (Aprile 2026)
     
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -21,14 +21,39 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # Versione 2.5.0 — NUOVA
+        # Versione 2.6.0 — NUOVA
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background-color:#1565C0; color:white; padding:10px; border-radius:5px; text-align:center;">
-                <h3>v2.5.0</h3>
+                <h3>v2.6.0</h3>
                 <p>Aprile 2026</p>
                 <span style="font-size:11px; background:#0D47A1; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.6.0 (Aprile 2026)
+            #### Dashboard allerte live, tsunami in vulcani, fonti aggiornate
+
+            - 📊 **Nuova sezione "Allerte e Rischi"** — Dashboard live con allerta tsunami (EMSC), sismica (INGV), vulcanica (7 vulcani), meteo (MeteoAlarm) e rischio idrogeologico (ISPRA/DPC), auto-refresh ogni 2 minuti
+            - 🌊 **Indicatore tsunami in Vulcani** — Ogni scheda vulcano mostra ora lo stato live del Mediterraneo: nessun evento / sorveglianza / allerta, basato su EMSC (M≥5.5, ultime 24h)
+            - 🌧️ **Idrogeologico live** — Il tab "🌊 Idrogeologico" in Monitoraggio mostra allerte MeteoAlarm reali per la regione selezionata, non più dati statici
+            - 📚 **Nuova sezione "Fonti dei Dati"** — Pagina dedicata con tutte le fonti ufficiali usate (INGV, EMSC, CAT-INGV, Open-Meteo, MeteoAlarm, ISPRA, DPC) e frequenza di aggiornamento
+            - 🕐 **Ora legale completata** — Corretto timezone hardcoded UTC+2 anche in meteo.py, chat_backend.py e nella conversione timestamp di monitoraggio.py
+            - ⚙️ **Compatibilità Streamlit Cloud** — Rimosso port fisso dal config.toml (Streamlit Cloud usa 8501 di default)
+            - 🔄 **Keepalive automatico** — GitHub Action che pinga sos-italia.streamlit.app ogni 6 ore per evitare la pausa automatica
+            """)
+
+        st.markdown("---")
+
+        # Versione 2.5.0
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#4CAF50; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.5.0</h3>
+                <p>Aprile 2026</p>
             </div>
             """, unsafe_allow_html=True)
         with col2:
@@ -39,13 +64,13 @@ def show():
             - 🏠 **Home live** — Ultimi 5 terremoti INGV in tempo reale e stato attività vulcanica (7 giorni) direttamente nella schermata principale
             - 🚨 **Emergenze nazionali complete** — Aggiunte sezioni mancanti: Frana/Smottamento, Maremoto/Tsunami, Neve e Gelo, Ondata di Calore (ora 8 tipi di emergenza)
             - 🗺️ **Tutte le 20 regioni in Emergenza** — Corretta importazione mancante di 5 regioni (Toscana, Sicilia, Sardegna, Puglia, Molise) che non comparivano nella selezione
-            - 📍 **Coordinate punti raccolta** — Aggiunte coordinate GPS precise per tutte le regioni italiane: la mappa mostra ora marker accurati invece di posizioni approssimate
-            - 🌧️ **Rischio idrogeologico e rischi specifici** — Ora visibili nell'interfaccia per ogni regione (dati già presenti ma non mostrati)
-            - 🕐 **Ora legale automatica** — Rimosso fuso orario hardcoded UTC+2 in monitoraggio.py, vulcani.py e chat_enhanced.py: l'ora è ora sempre corretta in ogni periodo dell'anno
-            - 📅 **Dati fallback vulcani aggiornati** — Date fallback aggiornate ad Aprile 2026 (erano rimaste al 2025)
-            - 🧹 **Dati puliti** — Eliminati duplicati tra file regionali (Piemonte, Umbria, Veneto comparivano in due file distinti)
+            - 📍 **Coordinate punti raccolta** — Aggiunte coordinate GPS precise per tutte le regioni italiane
+            - 🌧️ **Rischio idrogeologico e rischi specifici** — Ora visibili nell'interfaccia per ogni regione
+            - 🕐 **Ora legale automatica** — Rimosso fuso orario hardcoded UTC+2 in monitoraggio.py, vulcani.py e chat_enhanced.py
+            - 📅 **Dati fallback vulcani aggiornati** — Date fallback aggiornate ad Aprile 2026
+            - 🧹 **Dati puliti** — Eliminati duplicati tra file regionali
             """)
-            
+
         st.markdown("---")
 
         # Versione 2.3.3

@@ -395,7 +395,7 @@ else:
 st.markdown(f"""
 <div class="footer">
 <p>🇮🇹 SismaVer2 - Sistema Nazionale di Monitoraggio e Prevenzione</p>
-<p>© {ora_attuale.year} – Versione 2.5.0 – Dati da fonti ufficiali</p>
+<p>© {ora_attuale.year} – Versione 2.6.0 – Dati da fonti ufficiali</p>
 <p><a href="https://github.com/ScelzoF/SismaVer2" target="_blank">GitHub</a> · 
 <a href="mailto:meteotorre@gmail.com">Contatti</a> · 
 <a href="https://www.protezionecivile.gov.it/it/privacy" target="_blank">Privacy</a></p>
