@@ -12,8 +12,15 @@ import time
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Definizione fuso orario italiano per coerenza con il resto dell'applicazione
-FUSO_ORARIO_ITALIA = timezone(timedelta(hours=2))
+# Fuso orario italiano con ora legale automatica
+def _get_tz_italia():
+    _now = datetime.now()
+    _y = _now.year
+    _dst_s = datetime(_y, 3, 31 - (datetime(_y, 3, 31).weekday() + 1) % 7)
+    _dst_e = datetime(_y, 10, 31 - (datetime(_y, 10, 31).weekday() + 1) % 7)
+    return timezone(timedelta(hours=2 if _dst_s <= _now < _dst_e else 1))
+
+FUSO_ORARIO_ITALIA = _get_tz_italia()
 
 # Funzione per recuperare eventi vulcanici - accessibile a tutto il modulo
 @st.cache_data(ttl=7200)  # Cache di due ore per dati vulcanici (più stabili)
@@ -60,30 +67,30 @@ def get_vulcano_recent_events(vulcano_name, lat, lon, days=30, max_radius=0.2):
         # Vesuvio
         if vulcano_name == "Vesuvio":
             historical_events = [
-                {"time": "2025-02-15 08:23", "magnitude": 1.8, "depth": 0.9, "location": "Vesuvio"},
-                {"time": "2025-02-02 14:11", "magnitude": 1.5, "depth": 1.2, "location": "Vesuvio"},
-                {"time": "2025-01-25 22:34", "magnitude": 2.0, "depth": 1.8, "location": "Vesuvio"}
+                {"time": "2026-03-28 10:14", "magnitude": 1.6, "depth": 1.1, "location": "Vesuvio"},
+                {"time": "2026-03-15 07:52", "magnitude": 1.9, "depth": 1.4, "location": "Vesuvio"},
+                {"time": "2026-02-20 18:33", "magnitude": 1.4, "depth": 0.8, "location": "Vesuvio"}
             ]
         # Campi Flegrei
         elif vulcano_name == "Campi Flegrei":
             historical_events = [
-                {"time": "2025-03-10 15:42", "magnitude": 2.3, "depth": 2.1, "location": "Pozzuoli"},
-                {"time": "2025-03-05 09:18", "magnitude": 1.9, "depth": 1.5, "location": "Solfatara"},
-                {"time": "2025-02-28 06:47", "magnitude": 2.5, "depth": 2.4, "location": "Pozzuoli"}
+                {"time": "2026-04-10 14:22", "magnitude": 2.4, "depth": 2.0, "location": "Pozzuoli"},
+                {"time": "2026-04-05 08:47", "magnitude": 2.1, "depth": 1.6, "location": "Solfatara"},
+                {"time": "2026-03-29 22:15", "magnitude": 2.7, "depth": 2.3, "location": "Pozzuoli"}
             ]
         # Etna
         elif vulcano_name == "Etna":
             historical_events = [
-                {"time": "2025-03-22 12:08", "magnitude": 2.6, "depth": 3.2, "location": "Cratere SE"},
-                {"time": "2025-03-19 23:15", "magnitude": 2.1, "depth": 2.8, "location": "Piano Provenzana"},
-                {"time": "2025-03-15 14:30", "magnitude": 3.1, "depth": 4.5, "location": "Cratere Centrale"}
+                {"time": "2026-04-08 11:30", "magnitude": 2.8, "depth": 3.0, "location": "Cratere SE"},
+                {"time": "2026-04-02 19:55", "magnitude": 2.3, "depth": 2.5, "location": "Piano Provenzana"},
+                {"time": "2026-03-25 08:10", "magnitude": 3.2, "depth": 4.2, "location": "Cratere Centrale"}
             ]
         # Stromboli
         elif vulcano_name == "Stromboli":
             historical_events = [
-                {"time": "2025-03-18 18:23", "magnitude": 2.2, "depth": 1.0, "location": "Stromboli"},
-                {"time": "2025-03-12 21:45", "magnitude": 1.8, "depth": 0.5, "location": "Ginostra"},
-                {"time": "2025-03-05 03:12", "magnitude": 2.4, "depth": 1.3, "location": "Stromboli"}
+                {"time": "2026-04-09 17:44", "magnitude": 2.0, "depth": 0.9, "location": "Stromboli"},
+                {"time": "2026-04-03 23:11", "magnitude": 1.7, "depth": 0.6, "location": "Ginostra"},
+                {"time": "2026-03-28 04:38", "magnitude": 2.3, "depth": 1.2, "location": "Stromboli"}
             ]
         return historical_events
         

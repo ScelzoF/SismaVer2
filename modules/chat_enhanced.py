@@ -50,9 +50,15 @@ except ImportError:
     def check_rate_limiting(user_id, action_type):
         return True, ""
 
-# Configura il fuso orario italiano
-ora_legale = True  # Imposta manualmente in base al periodo dell'anno
-FUSO_ORARIO_ITALIA = timezone(timedelta(hours=2 if ora_legale else 1))
+# Fuso orario italiano con ora legale automatica
+def _get_tz_italia():
+    _now = datetime.now()
+    _y = _now.year
+    _dst_s = datetime(_y, 3, 31 - (datetime(_y, 3, 31).weekday() + 1) % 7)
+    _dst_e = datetime(_y, 10, 31 - (datetime(_y, 10, 31).weekday() + 1) % 7)
+    return timezone(timedelta(hours=2 if _dst_s <= _now < _dst_e else 1))
+
+FUSO_ORARIO_ITALIA = _get_tz_italia()
 
 def show():
     st.title("💬 Chat Pubblica - SismaVer2")

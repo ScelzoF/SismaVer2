@@ -9,6 +9,15 @@ dati_regioni_b = {
             "Avezzano: Piazza Risorgimento, Parco Torlonia",
             "Sulmona: Piazza XX Settembre, Villa Comunale"
         ],
+        "punti_raccolta_coords": {
+            "L'Aquila: Piazza Duomo, Villa Comunale": [42.3498, 13.3995],
+            "Pescara: Piazza Italia, Parco D'Avalos": [42.4617, 14.2150],
+            "Chieti: Piazza G.B. Vico, Villa Comunale": [42.3517, 14.1681],
+            "Teramo: Piazza Martiri della Libertà, Parco della Scienza": [42.6589, 13.7044],
+            "Avezzano: Piazza Risorgimento, Parco Torlonia": [42.0311, 13.4261],
+            "Sulmona: Piazza XX Settembre, Villa Comunale": [42.0481, 13.9266]
+        },
+        "coordinates": [42.35, 13.40],
         "link_utili": {
             "Protezione Civile Abruzzo": "https://protezionecivile.regione.abruzzo.it/",
             "Centro Funzionale d'Abruzzo": "https://protezionecivile.regione.abruzzo.it/centro-funzionale/"
@@ -32,6 +41,15 @@ dati_regioni_b = {
             "Benevento: Piazza Roma, Villa Comunale",
             "Sorrento: Piazza Tasso, Villa Comunale"
         ],
+        "punti_raccolta_coords": {
+            "Napoli: Piazza del Plebiscito, Villa Comunale": [40.8359, 14.2488],
+            "Salerno: Piazza della Libertà, Villa Comunale": [40.6806, 14.7597],
+            "Caserta: Piazza Carlo di Borbone, Villa Comunale": [41.0723, 14.3327],
+            "Avellino: Piazza Libertà, Villa Comunale": [40.9149, 14.7903],
+            "Benevento: Piazza Roma, Villa Comunale": [41.1298, 14.7815],
+            "Sorrento: Piazza Tasso, Villa Comunale": [40.6263, 14.3759]
+        },
+        "coordinates": [40.83, 14.25],
         "link_utili": {
             "Protezione Civile Campania": "http://www.protezionecivilecampania.it/",
             "Osservatorio Vesuviano": "https://www.ov.ingv.it/",
@@ -57,6 +75,16 @@ dati_regioni_b = {
             "Ferrara: Piazza Trento e Trieste, Parco Massari",
             "Rimini: Piazza Cavour, Parco Marecchia"
         ],
+        "punti_raccolta_coords": {
+            "Bologna: Piazza Maggiore, Parco della Montagnola": [44.4939, 11.3428],
+            "Modena: Piazza Grande, Parco Amendola": [44.6471, 10.9252],
+            "Reggio Emilia: Piazza Prampolini, Parco del Popolo": [44.6989, 10.6308],
+            "Parma: Piazza Garibaldi, Parco Ducale": [44.8015, 10.3279],
+            "Ravenna: Piazza del Popolo, Giardini Pubblici": [44.4184, 12.2035],
+            "Ferrara: Piazza Trento e Trieste, Parco Massari": [44.8364, 11.6198],
+            "Rimini: Piazza Cavour, Parco Marecchia": [44.0594, 12.5683]
+        },
+        "coordinates": [44.49, 11.34],
         "link_utili": {
             "Protezione Civile Emilia-Romagna": "https://protezionecivile.regione.emilia-romagna.it/",
             "Allerta Meteo Emilia-Romagna": "https://allertameteo.regione.emilia-romagna.it/"
@@ -75,6 +103,14 @@ dati_regioni_b = {
             "Gorizia: Piazza Vittoria, Parco della Rimembranza",
             "Monfalcone: Piazza della Repubblica, Parco Tematico"
         ],
+        "punti_raccolta_coords": {
+            "Trieste: Piazza Unità d'Italia, Giardino Pubblico": [45.6495, 13.7768],
+            "Udine: Piazza Libertà, Parco Moretti": [46.0635, 13.2355],
+            "Pordenone: Piazza XX Settembre, Parco Galvani": [45.9559, 12.6613],
+            "Gorizia: Piazza Vittoria, Parco della Rimembranza": [45.9406, 13.6226],
+            "Monfalcone: Piazza della Repubblica, Parco Tematico": [45.8014, 13.5372]
+        },
+        "coordinates": [46.07, 13.23],
         "link_utili": {
             "Protezione Civile FVG": "https://www.protezionecivile.fvg.it/",
             "Centro Funzionale FVG": "https://www.protezionecivile.fvg.it/it/centro-funzionale"
@@ -97,6 +133,14 @@ dati_regioni_b = {
             "Viterbo: Piazza del Plebiscito, Valle di Faul",
             "Rieti: Piazza Vittorio Emanuele II, Villa Comunale"
         ],
+        "punti_raccolta_coords": {
+            "Roma: Piazza del Popolo, Villa Borghese, Circo Massimo": [41.9106, 12.4756],
+            "Latina: Piazza del Popolo, Parco Falcone e Borsellino": [41.4667, 12.9039],
+            "Frosinone: Piazza Vittorio Veneto, Villa Comunale": [41.6400, 13.3425],
+            "Viterbo: Piazza del Plebiscito, Valle di Faul": [42.4168, 12.1054],
+            "Rieti: Piazza Vittorio Emanuele II, Villa Comunale": [42.4037, 12.8563]
+        },
+        "coordinates": [41.89, 12.48],
         "link_utili": {
             "Protezione Civile Lazio": "https://www.regione.lazio.it/rl_protezione_civile/",
             "Centro Funzionale Regionale": "https://www.regione.lazio.it/rl_protezione_civile/?vw=centrofunzionale"
@@ -114,6 +158,13 @@ dati_regioni_b = {
             "La Spezia: Piazza Europa, Parco della Rimembranza",
             "Imperia: Piazza Dante, Parco Urbano"
         ],
+        "punti_raccolta_coords": {
+            "Genova: Piazza De Ferrari, Parco dell'Acquasola": [44.4077, 8.9337],
+            "Savona: Piazza Sisto IV, Giardini del Prolungamento": [44.3079, 8.4774],
+            "La Spezia: Piazza Europa, Parco della Rimembranza": [44.1026, 9.8263],
+            "Imperia: Piazza Dante, Parco Urbano": [43.8840, 8.0278]
+        },
+        "coordinates": [44.41, 8.93],
         "link_utili": {
             "Protezione Civile Liguria": "https://www.regione.liguria.it/homepage/protezione-civile.html",
             "Allerta Liguria": "https://allertaliguria.regione.liguria.it/"

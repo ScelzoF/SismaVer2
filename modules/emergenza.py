@@ -1,4 +1,5 @@
 import streamlit as st
+from modules.dati_regioni_a import dati_regioni_a
 from modules.dati_regioni_b import dati_regioni_b
 from modules.dati_regioni_c import dati_regioni_c
 import folium
@@ -177,14 +178,15 @@ def show():
         }
     }
 
-    # Aggiorna il dizionario dati_regioni con i dati esterni
+    # Aggiorna il dizionario dati_regioni con tutti i dati esterni
+    dati_regioni.update(dati_regioni_a)
     dati_regioni.update(dati_regioni_b)
     dati_regioni.update(dati_regioni_c)
     
     # Selezione tipo emergenza con contenuti specifici per ogni tipo
     tipo_emergenza = st.radio(
         "Seleziona il tipo di emergenza:",
-        ["Tutte le emergenze", "Terremoto", "Alluvione", "Incendio"],
+        ["Tutte le emergenze", "Terremoto", "Alluvione", "Frana", "Incendio", "Maremoto/Tsunami", "Neve e Gelo", "Ondata di Calore"],
         horizontal=True,
         key="tipo_emergenza_radio"
     )
@@ -344,7 +346,179 @@ def show():
             """)
         
         st.warning("Per informazioni più dettagliate, consulta il sito della [Protezione Civile](https://www.protezionecivile.gov.it/it/rischio/rischio-incendi/cosa-fare)")
-        
+
+    elif tipo_emergenza == "Frana":
+        st.markdown("## ⛰️ Cosa fare in caso di frana o smottamento")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### ⚠️ Cosa fare PRIMA")
+            st.markdown("""
+            1. **Informati sul rischio idrogeologico** della tua zona tramite il sito ISPRA o della Protezione Civile regionale
+            2. **Conosci i segnali precursori**: piccole crepe nel terreno, cedimenti, inclinazione di alberi e pali, rumore sordo dal sottosuolo
+            3. **Evita di costruire o modificare** versanti o aree instabili senza consulenza geologica
+            4. **Non ostruire canali e fossi** che regolano il deflusso dell'acqua
+            5. **Prepara un piano di evacuazione** familiare e individua percorsi sicuri
+            6. **Tieni sempre carico il cellulare** e iscriviti ai sistemi di allerta del tuo comune
+            """)
+            st.markdown("### ⚠️ Cosa fare DURANTE")
+            st.markdown("""
+            1. **Allontanati immediatamente** dall'area interessata: non indugiare a raccogliere oggetti
+            2. **Non avvicinarti** al fronte della frana o alle aree di scorrimento
+            3. **Se sei in auto**, abbandona il veicolo e allontanati a piedi in direzione perpendicolare alla frana
+            4. **Segui i percorsi di evacuazione** indicati dal piano comunale
+            5. **Evita ponti, sottopassi e aree vicino a fiumi** durante precipitazioni intense
+            6. **Chiama il 112** e segnala con precisione la localizzazione dell'evento
+            """)
+        with col2:
+            st.markdown("### ⚠️ Cosa fare DOPO")
+            st.markdown("""
+            1. **Non rientrare** nelle aree colpite senza autorizzazione delle autorità
+            2. **Segnala alle autorità** eventuali danni a strade, edifici, reti di distribuzione
+            3. **Non transitare** su strade interessate da frane o smottamenti
+            4. **Fotografa i danni** per le pratiche assicurative e il censimento dei danni
+            5. **Attendi la valutazione** dei tecnici prima di rientrare nell'abitazione
+            6. **Controlla** la stabilità di muri, fondamenta e corpi idrici vicino a casa
+            """)
+            st.markdown("### ❌ Errori da evitare")
+            st.markdown("""
+            1. **NON tornare a casa** prima del via libera delle autorità
+            2. **NON avvicinarti** al ciglio della frana o alle zone instabili
+            3. **NON attraversare** aree allagate o coperte da detriti
+            4. **NON usare candele o fiamme libere** se sospetti perdite di gas
+            5. **NON ignorare** le allerte meteo in aree a rischio idrogeologico
+            """)
+        st.warning("Per informazioni più dettagliate, consulta il sito della [Protezione Civile](https://www.protezionecivile.gov.it/it/rischio/rischio-idrogeologico/cosa-fare)")
+
+    elif tipo_emergenza == "Maremoto/Tsunami":
+        st.markdown("## 🌊 Cosa fare in caso di maremoto (Tsunami)")
+
+        st.info("🇮🇹 L'Italia è esposta al rischio tsunami, in particolare le coste del Mediterraneo orientale, del Mar Tirreno meridionale e dello Stretto di Messina. Il sistema nazionale di allerta è **CAT-INGV** (Centro Allerta Tsunami).")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### ⚠️ Segnali d'allarme naturali")
+            st.markdown("""
+            1. **Forte terremoto** avvertito sulla costa o in mare
+            2. **Ritiro anomalo del mare**: il mare si allontana improvvisamente dalla riva
+            3. **Rumore anomalo**: fragore simile a un treno o tuono proveniente dal mare
+            4. **Agitazione anomala delle acque**: onde irregolari anche in assenza di vento
+            5. Se avverti uno di questi segnali **non aspettare l'allerta ufficiale**: allontanati subito
+            """)
+            st.markdown("### ⚠️ Cosa fare PRIMA (prevenzione)")
+            st.markdown("""
+            1. **Informati** se la tua zona è a rischio tsunami tramite il portale CAT-INGV
+            2. **Conosci le vie di evacuazione** verso zone elevate (almeno 30 m s.l.m. o 1 km dalla costa)
+            3. **Iscriviti ai sistemi di allerta** del tuo comune costiero
+            4. **Tieni sempre carica** la batteria del cellulare
+            5. **Individua l'area elevata più vicina** raggiungibile a piedi in pochi minuti
+            """)
+        with col2:
+            st.markdown("### ⚠️ Cosa fare DURANTE")
+            st.markdown("""
+            1. **Allontanati immediatamente dalla costa** appena senti un forte terremoto o l'allarme ufficiale
+            2. **Raggiungi zone elevate** (almeno 30 m sopra il livello del mare o 1 km dalla riva)
+            3. **Non fermarti a guardare** le onde: la prima non è mai la più pericolosa
+            4. **Evita di usare l'auto** se possibile: le strade potrebbero ostruirsi
+            5. **Segui le istruzioni** della Protezione Civile e delle autorità locali
+            6. **Se sei in barca** in porto, allontanati in mare aperto con mare profondo
+            """)
+            st.markdown("### ⚠️ Cosa fare DOPO")
+            st.markdown("""
+            1. **Non tornare sulla costa** fino all'autorizzazione ufficiale: lo tsunami può avere più ondate
+            2. **Evita zone allagate**: l'acqua può nascondere voragini, correnti e contaminanti
+            3. **Non bere acqua dal rubinetto**: potrebbe essere contaminata
+            4. **Segnala feriti o dispersi** al 112
+            5. **Ascolta le comunicazioni** di radio, TV e Protezione Civile
+            """)
+        st.warning("Sistema di Allerta Tsunami nazionale: [CAT-INGV](https://www.ingv.it/cat/)")
+
+    elif tipo_emergenza == "Neve e Gelo":
+        st.markdown("## ❄️ Cosa fare in caso di neve intensa, ghiaccio e ondata di freddo")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### ⚠️ Cosa fare PRIMA")
+            st.markdown("""
+            1. **Segui le previsioni meteo** e le allerte della Protezione Civile
+            2. **Rifornisci scorte alimentari** e medicinali essenziali prima dell'evento
+            3. **Prepara l'auto**: catene, liquido antigelo, batteria carica, coperte, torcia
+            4. **Controlla il riscaldamento** domestico e fai scorta di combustibile
+            5. **Proteggi le tubazioni** esposte con materiali isolanti
+            6. **Libera preventivamente** balconi e gronde da accumuli d'acqua
+            7. **Informa vicini e anziani** delle misure da adottare
+            """)
+            st.markdown("### ⚠️ Cosa fare DURANTE")
+            st.markdown("""
+            1. **Limita gli spostamenti** ai casi strettamente necessari
+            2. **Se esci**, indossa abbigliamento a strati, guanti, berretto e scarpe antiscivolo
+            3. **Fai attenzione al ghiaccio** su marciapiedi, scale e soglie
+            4. **Rimuovi la neve** dal tetto e dai balconi per evitare cedimenti
+            5. **Non usare generatori** di corrente o stufe a combustione in ambienti chiusi (monossido)
+            6. **Controlla gli anziani e le persone sole** nel tuo condominio
+            """)
+        with col2:
+            st.markdown("### ⚠️ Se sei in auto")
+            st.markdown("""
+            1. **Monta le catene** prima di affrontare strade innevate
+            2. **Mantieni velocità ridotta** e distanza di sicurezza aumentata
+            3. **Non sorpassare** spazzaneve o mezzi sgombraneve
+            4. **Se la tua auto rimane bloccata**: rimani nel veicolo, tieni i finestrini leggermente aperti e segnala la tua presenza
+            5. **Porta sempre con te**: acqua, cibo, coperta termica, caricabatterie
+            """)
+            st.markdown("### ⚠️ Rischio valanghe (zone montane)")
+            st.markdown("""
+            1. **Controlla il bollettino valanghe** (AINEVA) prima di uscire in montagna
+            2. **Non transitare** su versanti a rischio dopo nevicate abbondanti o rapide variazioni termiche
+            3. **Porta con te**: ARVA (apparecchio di ricerca in valanga), sonda e pala
+            4. **Se sei travolto**: proteggi le vie aeree con le mani, cerca di creare uno spazio davanti al viso
+            5. **Chiama il 112** appena sei in zona sicura
+            """)
+        st.warning("Bollettino valanghe nazionale: [AINEVA](https://www.aineva.it/)")
+
+    elif tipo_emergenza == "Ondata di Calore":
+        st.markdown("## 🌡️ Cosa fare durante un'ondata di calore")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### ⚠️ Misure preventive")
+            st.markdown("""
+            1. **Segui il bollettino** del Ministero della Salute (sistema HHWWS)
+            2. **Tieniti idratato**: bevi almeno 2 litri d'acqua al giorno anche senza sete
+            3. **Evita uscite** nelle ore più calde (12:00–16:00)
+            4. **Indossa abiti** leggeri, chiari e di cotone; proteggi testa e nuca
+            5. **Oscura finestre** esposte al sole durante le ore più calde; arieggia la notte
+            6. **Non lasciare** bambini, anziani o animali in auto o in ambienti non ventilati
+            7. **Controlla** anziani, persone sole e malati cronici nel tuo vicinato
+            """)
+            st.markdown("### ⚠️ Cosa fare se stai male")
+            st.markdown("""
+            1. **Riconosci i segnali** del colpo di calore: pelle arrossata e calda, confusione, nausea, perdita di coscienza
+            2. **Porta la persona** in un luogo fresco e ventilato
+            3. **Raffredda rapidamente** il corpo: panni bagnati freddi su collo, ascelle e inguine
+            4. **Chiama il 118** in caso di perdita di coscienza o sintomi gravi
+            5. **Non somministrare** liquidi a una persona priva di sensi
+            """)
+        with col2:
+            st.markdown("### ⚠️ Gruppi a rischio elevato")
+            st.markdown("""
+            - **Anziani over 65**: termoregolazione ridotta, spesso soli e con patologie
+            - **Bambini piccoli**: soggetti a rapido surriscaldamento
+            - **Persone con malattie croniche**: cardiovascolari, respiratorie, renali, psichiatriche
+            - **Chi fa attività fisica all'aperto**: lavoratori agricoli, edili, sportivi
+            - **Persone in condizioni di fragilità socioeconomica**: senza aria condizionata, senza rete di supporto
+            """)
+            st.markdown("### ⚠️ Consigli pratici")
+            st.markdown("""
+            1. **Utilizza piani bassi** degli edifici: il caldo sale
+            2. **Fai docce o bagni** freschi (non gelidi) più volte al giorno
+            3. **Evita alcol, caffè e bevande zuccherate** che disidratano
+            4. **Mangia pasti leggeri**: frutta, verdura, cibi con alto contenuto d'acqua
+            5. **Trascorri alcune ore** in luoghi climatizzati (centri commerciali, biblioteche)
+            6. **Chiama il numero verde** 1500 (Ministero della Salute) per informazioni
+            """)
+        st.warning("Bollettino caldo del Ministero della Salute: [Portale Salute](https://www.salute.gov.it/portale/caldo/homeCaldo.jsp)")
+
     else:  # "Tutte le emergenze"
         # Selettore regione
         regione_sel = st.selectbox("Seleziona la tua regione", sorted(dati_regioni.keys()))
@@ -371,6 +545,21 @@ def show():
                         if i == max_punti:
                             st.info(f"Altri {len(dati['punti_raccolta']) - max_punti} punti disponibili. Consulta il sito della Protezione Civile regionale.")
                         break
+
+                # Rischio idrogeologico (se presente)
+                if "rischio_idrogeologico" in dati and dati["rischio_idrogeologico"]:
+                    rh = dati["rischio_idrogeologico"]
+                    st.markdown("### 🌧️ Rischio Idrogeologico")
+                    st.markdown(rh.get("descrizione", ""))
+                    if rh.get("link"):
+                        st.markdown(f"[📋 Approfondisci]({rh['link']})")
+
+                # Rischi specifici (se presenti)
+                if "rischi_specifici" in dati and dati["rischi_specifici"]:
+                    st.markdown("### ⚡ Rischi specifici del territorio")
+                    for tipo_rischio, desc in dati["rischi_specifici"].items():
+                        with st.expander(f"🔸 {tipo_rischio}"):
+                            st.markdown(desc)
 
                 # Link utili
                 st.markdown("### 🔗 Link utili")
