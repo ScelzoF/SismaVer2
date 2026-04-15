@@ -331,11 +331,11 @@ def show():
                 # Utilizziamo la nuova immagine fornita dall'utente
                 try:
                     # Funzione per rendere l'immagine cliccabile
-                    display_clickable_image("attached_assets/image_1743854826822.png", "Manovra di Heimlich per bambini", width=1000, key_suffix="expander_heimlich_bambini_new")
+                    display_clickable_image("attached_assets/image_1743854826822.jpg", "Manovra di Heimlich per bambini", width=1000, key_suffix="expander_heimlich_bambini_new")
                 except Exception as e:
                     st.warning(f"Errore nel caricamento dell'immagine: {e}")
                     # Fallback alla vecchia immagine
-                    display_clickable_image("attached_assets/bambino.png", "Manovra di Heimlich per bambini", width=1000, key_suffix="expander_heimlich_bambini")
+                    display_clickable_image("attached_assets/bambino.jpg", "Manovra di Heimlich per bambini", width=1000, key_suffix="expander_heimlich_bambini")
                 
                 st.markdown("""
                 <ol style="font-size: 28px; margin-bottom: 25px; line-height: 1.6; font-weight: 500;">
@@ -350,7 +350,7 @@ def show():
                 # Utilizziamo la nuova immagine fornita dall'utente
                 try:
                     # Funzione per rendere l'immagine cliccabile
-                    display_clickable_image("attached_assets/image_1743854881664.png", "Disostruzione delle vie aeree nei lattanti", width=1000, key_suffix="expander_lattante_new")
+                    display_clickable_image("attached_assets/image_1743854881664.jpg", "Disostruzione delle vie aeree nei lattanti", width=1000, key_suffix="expander_lattante_new")
                 except Exception as e:
                     st.warning(f"Errore nel caricamento dell'immagine: {e}")
                     # Fallback alla vecchia immagine
@@ -393,7 +393,7 @@ def show():
                 with tab2:
                     # Utilizziamo la nuova immagine fornita dall'utente
                     try:
-                        st.image("attached_assets/image_1743847188766.png", caption="RCP per bambini", width=1000)
+                        st.image("attached_assets/image_1743847188766.jpg", caption="RCP per bambini", width=1000)
                     except Exception as e:
                         st.warning(f"Errore nel caricamento dell'immagine: {e}")
                         # Fallback alla vecchia immagine
@@ -412,7 +412,7 @@ def show():
                 with tab3:
                     # Utilizziamo la nuova immagine fornita dall'utente
                     try:
-                        st.image("attached_assets/image_1743847226155.png", caption="RCP per lattanti", width=1000)
+                        st.image("attached_assets/image_1743847226155.jpg", caption="RCP per lattanti", width=1000)
                     except Exception as e:
                         st.warning(f"Errore nel caricamento dell'immagine: {e}")
                         # Fallback alla vecchia immagine
