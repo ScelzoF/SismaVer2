@@ -1,6 +1,7 @@
 import streamlit as st
 from PIL import Image
 import os
+from datetime import datetime
 
 def show():
     st.title("📜 Termini d'Uso e Diritti Riservati")
@@ -117,7 +118,7 @@ def show():
     **meteotorre@gmail.com**
     """)
     
-    st.caption("Ultimo aggiornamento dei termini: Aprile 2025")
+    st.caption(f"Ultimo aggiornamento dei termini: Aprile {datetime.now().year}")
     
     st.markdown("---")
     

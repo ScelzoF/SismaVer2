@@ -1,4 +1,9 @@
 import streamlit as st
+try:
+    from streamlit_autorefresh import st_autorefresh as _st_autorefresh
+    _AUTOREFRESH = True
+except ImportError:
+    _AUTOREFRESH = False
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, timezone
@@ -24,6 +29,10 @@ def _get_tz_italia():
 FUSO_ORARIO_ITALIA = _get_tz_italia()
 
 def show():
+    # Auto-refresh ogni 5 minuti per dati sismici live
+    if _AUTOREFRESH:
+        _st_autorefresh(interval=300_000, limit=None, key="monit_autorefresh")
+
     st.title("📡 Monitoraggio Sismico Nazionale")
     
     # Opzioni di visualizzazione: nazionale o per regione
@@ -141,11 +150,11 @@ def show():
                     source = "INGV"
                 
                 # Utilizziamo il caching avanzato con TTL esteso per migliorare le prestazioni
-                @st.cache_data(ttl=1800, show_spinner=False)  # Cache validità aumentata a 30 minuti
+                @st.cache_data(ttl=300, show_spinner=False)  # Cache sismici live 5 minuti
                 def fetch_seismic_data(url):
                     """
                     Recupera i dati sismici con sistema di cache avanzato a quattro livelli:
-                    1. Cache di Streamlit (TTL 30 minuti)
+                    1. Cache di Streamlit (TTL 5 minuti)
                     2. Cache in session_state (15 minuti) 
                     3. Sistema multiserver INGV con strategie adattive di resilienza
                     4. Dati persistenti statici come fallback di emergenza

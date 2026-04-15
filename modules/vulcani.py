@@ -1,4 +1,9 @@
 import streamlit as st
+try:
+    from streamlit_autorefresh import st_autorefresh as _st_autorefresh
+    _AUTOREFRESH_OK = True
+except ImportError:
+    _AUTOREFRESH_OK = False
 import pandas as pd
 import numpy as np
 import requests
@@ -265,6 +270,10 @@ def get_stromboli_recent_events():
     return get_vulcano_recent_events("Stromboli", 38.789, 15.213, 30, 0.1)
 
 def show():
+    # Auto-refresh ogni 30 minuti per dati vulcanici
+    if _AUTOREFRESH_OK:
+        _st_autorefresh(interval=1_800_000, limit=None, key="vulcani_autorefresh")
+
     st.title("🌋 Monitoraggio Vulcani Italiani")
 
     # Informazioni sui vulcani attivi italiani

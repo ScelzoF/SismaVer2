@@ -22,3 +22,4 @@ trafilatura
 geopy
 branca
 defusedxml
+streamlit-autorefresh

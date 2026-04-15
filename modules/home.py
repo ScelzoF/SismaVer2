@@ -1,6 +1,11 @@
 import streamlit as st
 import requests
 from datetime import datetime, timezone, timedelta
+try:
+    from streamlit_autorefresh import st_autorefresh
+    _AUTOREFRESH = True
+except ImportError:
+    _AUTOREFRESH = False
 
 def _get_tz():
     now = datetime.now()
@@ -95,13 +100,18 @@ def show():
                 pass
             return
 
+    # Auto-refresh ogni 5 minuti
+    if _AUTOREFRESH:
+        st_autorefresh(interval=300_000, limit=None, key="home_autorefresh")
+
     ora = datetime.now(FUSO_ORARIO_ITALIA)
 
     st.title("🇮🇹 SismaVer2 — Monitoraggio Nazionale")
     st.markdown(
         f"<p style='color:#64748B;font-size:0.9rem;margin-top:-12px;'>"
         f"Sistema integrato di monitoraggio rischi naturali · "
-        f"Aggiornato: <b>{ora.strftime('%d/%m/%Y %H:%M')}</b> (IT)</p>",
+        f"Aggiornato: <b>{ora.strftime('%d/%m/%Y %H:%M')}</b> (IT) · "
+        f"<i>Auto-aggiornamento ogni 5 min</i></p>",
         unsafe_allow_html=True,
     )
 

@@ -13,6 +13,11 @@ import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
+try:
+    from streamlit_autorefresh import st_autorefresh
+    _AUTOREFRESH = True
+except ImportError:
+    _AUTOREFRESH = False
 
 
 # ─── Fuso orario DST-aware ─────────────────────────────────────────────────
@@ -239,12 +244,9 @@ def show():
         unsafe_allow_html=True,
     )
 
-    # Auto-refresh ogni 2 minuti
-    if "allerte_last_refresh" not in st.session_state:
-        st.session_state.allerte_last_refresh = ora
-    elif (ora - st.session_state.allerte_last_refresh).total_seconds() > 120:
-        st.session_state.allerte_last_refresh = ora
-        st.rerun()
+    # Auto-refresh ogni 2 minuti (JavaScript nativo)
+    if _AUTOREFRESH:
+        st_autorefresh(interval=120_000, limit=None, key="allerte_autorefresh")
 
     col_btn, _ = st.columns([1, 5])
     with col_btn:
