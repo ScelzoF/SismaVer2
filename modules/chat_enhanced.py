@@ -547,7 +547,7 @@ def show():
                     ).add_to(marker_cluster)
                 
                 # Mostra la mappa
-                folium_static(m, width=700)
+                folium_static(m, width=1100, height=500)
                 
                 st.info(f"Visualizzati {len(geo_messages)} messaggi con posizione")
         

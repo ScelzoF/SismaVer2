@@ -442,7 +442,7 @@ CREATE INDEX idx_chat_messages_regione ON public.chat_messages(regione);
 
             # Mostra la mappa
             if geo_messages:
-                folium_static(m, width=700)
+                folium_static(m, width=1100, height=500)
                 st.caption("Mappa delle segnalazioni con geolocalizzazione")
             else:
                 st.info("Nessun messaggio con informazioni di geolocalizzazione disponibile.")

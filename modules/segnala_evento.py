@@ -289,7 +289,7 @@ def show():
                                             icon=folium.Icon(color=color)
                                         ).add_to(m)
                                     
-                                    folium_static(m, width=700)
+                                    folium_static(m, width=1100, height=500)
                                     st.caption("Mappa delle segnalazioni con geolocalizzazione")
                             
                             except Exception as e:

@@ -368,7 +368,7 @@ def show():
                                             ).add_to(marker_cluster)
                                         
                                         # Mostra la mappa
-                                        folium_static(m, width=700)
+                                        folium_static(m, width=1100, height=500)
                                 
                                 except ImportError:
                                     st.warning("📦 Librerie per mappe non installate (folium, streamlit-folium)")
@@ -613,7 +613,7 @@ def carica_segnalazioni_locali(filtro_tipo="Tutti i tipi", filtro_regione="Tutte
                         ).add_to(marker_cluster)
                     
                     # Mostra la mappa
-                    folium_static(m, width=700)
+                    folium_static(m, width=1100, height=500)
             
             except ImportError:
                 st.warning("📦 Librerie per mappe non installate (folium, streamlit-folium)")

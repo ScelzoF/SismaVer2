@@ -516,7 +516,7 @@ def show():
                         folium.LayerControl().add_to(m)
                         
                         # Visualizza la mappa
-                        folium_static(m, width=340)
+                        folium_static(m, width=500, height=420)
                     
                     # Allerta meteo migliorata
                     if coords:
@@ -781,7 +781,7 @@ def show():
             ).add_to(m_italy)
         
         # Visualizza la mappa
-        folium_static(m_italy)
+        folium_static(m_italy, width=1100, height=520)
         
         st.markdown(f"""
         **Legenda del radar meteorologico:**
@@ -1088,7 +1088,7 @@ def show_monitoraggio_meteo():
         folium.LayerControl().add_to(m)
     
     # Visualizza la mappa
-    folium_static(m, width=700)
+    folium_static(m, width=1100, height=500)
     
     # Informazioni aggiuntive
     st.caption(f"Fonte dati: {allerte_data['fonte']} - Ultimo aggiornamento: {allerte_data['aggiornamento']}")

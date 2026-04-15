@@ -681,7 +681,7 @@ def show():
     ).add_to(m)
     
     # Visualizza la mappa in Streamlit
-    folium_static(m, width=820, height=440)
+    folium_static(m, width=1100, height=520)
     
     # Monitoraggio in tempo reale e webcam
     st.markdown("---")
