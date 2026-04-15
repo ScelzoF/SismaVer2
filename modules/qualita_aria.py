@@ -171,15 +171,14 @@ def show():
 
         df = pd.DataFrame(rows)
 
+        color_map = df.set_index(df.index)["_color"].to_dict()
+
         def _style_row(row):
-            colors = []
-            for col in row.index:
-                if col == "Livello":
-                    c = row["_color"]
-                    colors.append(f"background-color:{c};color:white;font-weight:600")
-                else:
-                    colors.append("")
-            return colors
+            c = color_map.get(row.name, "#ffffff")
+            return [
+                f"background-color:{c};color:white;font-weight:600" if col == "Livello" else ""
+                for col in row.index
+            ]
 
         display_df = df.drop(columns=["_color"])
         st.dataframe(

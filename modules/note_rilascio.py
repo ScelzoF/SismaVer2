@@ -8,7 +8,7 @@ def show():
     st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
     
     st.markdown("""
-    ## Versione attuale: 2.7.0 (Aprile 2026)
+    ## Versione attuale: 2.8.0 (Aprile 2026)
     
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -21,14 +21,38 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # Versione 2.7.0 — NUOVA
+        # Versione 2.8.0 — NUOVA
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background-color:#059669; color:white; padding:10px; border-radius:5px; text-align:center;">
+                <h3>v2.8.0</h3>
+                <p>Aprile 2026</p>
+                <span style="font-size:11px; background:#047857; padding:2px 6px; border-radius:3px;">ATTUALE</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 2.8.0 (Aprile 2026)
+            #### Bug fix massicci, vulcani completi, mappe full-width, MeteoAlarm in italiano
+
+            - 🌋 **Vulcani — dropdown completo** — Aggiunti 7 vulcani mancanti: Colli Albani, Monte Amiata, Ustica, Linosa, Salina, Alicudi, Filicudi. Rimosso Stromboli duplicato. Totale: 16 vulcani nel dropdown con schede dettagliate
+            - 🗺️ **Mappe full-width** — Tutte le mappe Folium ora usano width=1100px (era 400-780px): sismico, intensità, vulcani, emergenza, vulcano singolo. Niente più spazio bianco a destra
+            - 🇮🇹 **MeteoAlarm in italiano** — Aggiunte 50+ traduzioni automatiche EN→IT. "Yellow Thunderstorm Warning issued for Italy - Sardegna" → "Allerta Gialla Temporali — Sardegna". Tutti i livelli, tutti i tipi di allerta, tutte le regioni
+            - 🔧 **Fix log moderazione** — Path log dinamico relativo al file (non più hardcoded `/mount/src/...`). Fallback automatico a stdout su filesystem read-only (Streamlit Cloud)
+            - 🔧 **Fix previsioni meteo** — Rimosso `forecast_cols undefined` nell'interfaccia OpenWeather: intestazione "Previsioni 5 giorni" e colonne ora definite prima del caricamento dati
+            - 🎨 **Fix qualità aria** — Corretto `KeyError: _color` nella funzione di stile tabella. Ora usa `color_map` via indice invece di colonna già droppata dal DataFrame
+            """)
+
+        st.markdown("---")
+
+        # Versione 2.7.0
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background-color:#7C3AED; color:white; padding:10px; border-radius:5px; text-align:center;">
                 <h3>v2.7.0</h3>
                 <p>Aprile 2026</p>
-                <span style="font-size:11px; background:#6D28D9; padding:2px 6px; border-radius:3px;">ATTUALE</span>
             </div>
             """, unsafe_allow_html=True)
         with col2:

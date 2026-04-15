@@ -346,6 +346,10 @@ def show():
                     else:
                         forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?q={city_name}&appid={API_KEY}&units=metric&lang=it"
                     
+                    # Colonne previsioni 5 giorni
+                    st.subheader("📅 Previsioni 5 giorni")
+                    forecast_cols = st.columns(5)
+
                     # Utilizziamo la funzione di cache per i dati previsioni
                     forecast_data, forecast_error = fetch_weather_data(forecast_url)
                     if not forecast_error and forecast_data:

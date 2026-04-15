@@ -17,19 +17,21 @@ import streamlit as st
 import logging
 from datetime import datetime, timedelta
 
-# Configurazione logging
+# Configurazione logging — log su file se il filesystem è scrivibile, altrimenti solo stdout
+_LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs")
+try:
+    os.makedirs(_LOG_DIR, exist_ok=True)
+    _log_file = os.path.join(_LOG_DIR, "moderation.log")
+    _handlers = [logging.FileHandler(_log_file), logging.StreamHandler()]
+except Exception:
+    _handlers = [logging.StreamHandler()]
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("logs/moderation.log"),
-        logging.StreamHandler()
-    ]
+    handlers=_handlers
 )
 logger = logging.getLogger("moderazione")
-
-# Assicurati che la cartella logs esista
-os.makedirs("logs", exist_ok=True)
 
 # Dizionari per moderazione basata su regole
 PAROLE_INAPPROPRIATE = {

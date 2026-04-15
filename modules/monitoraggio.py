@@ -581,7 +581,7 @@ def show():
                             
                         # Visualizza la mappa
                         st.subheader("🗺️ Mappa eventi sismici in tempo reale")
-                        folium_static(m, width=700)
+                        folium_static(m, width=1100, height=520)
                         
                         # Grafico magnitudo nel tempo
                         st.subheader("📈 Andamento sismico eventi recenti")
@@ -801,7 +801,7 @@ def show():
                                             continue
                             
                             # Mostra questa mappa alternativa invece della heatmap
-                            folium_static(intensity_map, width=700)
+                            folium_static(intensity_map, width=1100, height=520)
                             st.info("Nota: La mappa mostra l'intensità degli eventi sismici con cerchi. La dimensione e il colore rappresentano la magnitudo.")
                             
                         except Exception as map_err:
@@ -959,7 +959,7 @@ def show():
                         icon=folium.Icon(color=col_m, icon="fire", prefix="fa"),
                         tooltip=vname
                     ).add_to(vmap)
-            folium_static(vmap, width=780, height=480)
+            folium_static(vmap, width=1100, height=520)
             st.caption("Fonte: INGV · Aggiornato: " + datetime.now(FUSO_ORARIO_ITALIA).strftime("%d/%m/%Y"))
 
         else:
@@ -1312,7 +1312,7 @@ def show():
                             icon=folium.Icon(color=color, icon="fire", prefix="fa")
                         ).add_to(vulcani_map)
                 
-                    folium_static(vulcani_map, width=800, height=500)
+                    folium_static(vulcani_map, width=1100, height=520)
             
                 else:
                     st.info(f"Il monitoraggio dettagliato per {vulcano_selezionato} non è ancora integrato. Seleziona un altro vulcano o consulta il portale INGV.")

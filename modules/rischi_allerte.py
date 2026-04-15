@@ -199,6 +199,70 @@ def _vulcan_level(count):
         return f"🔴 {count} eventi", "#EF4444"
 
 
+def _traduci_allerta(testo: str) -> str:
+    """Traduce il testo MeteoAlarm dall'inglese all'italiano."""
+    sostituzioni = [
+        ("Yellow Thunderstorm Warning",   "Allerta Gialla Temporali"),
+        ("Yellow Rain Warning",           "Allerta Gialla Pioggia"),
+        ("Yellow Wind Warning",           "Allerta Gialla Vento"),
+        ("Yellow Snow/Ice Warning",       "Allerta Gialla Neve/Ghiaccio"),
+        ("Yellow Fog Warning",            "Allerta Gialla Nebbia"),
+        ("Yellow Coastal Event Warning",  "Allerta Gialla Maremoto"),
+        ("Yellow Flooding Warning",       "Allerta Gialla Alluvioni"),
+        ("Yellow Forest Fire Warning",    "Allerta Gialla Incendi"),
+        ("Orange Thunderstorm Warning",   "Allerta Arancione Temporali"),
+        ("Orange Rain Warning",           "Allerta Arancione Pioggia"),
+        ("Orange Wind Warning",           "Allerta Arancione Vento"),
+        ("Orange Snow/Ice Warning",       "Allerta Arancione Neve/Ghiaccio"),
+        ("Orange Flooding Warning",       "Allerta Arancione Alluvioni"),
+        ("Orange Forest Fire Warning",    "Allerta Arancione Incendi"),
+        ("Red Thunderstorm Warning",      "Allerta Rossa Temporali"),
+        ("Red Rain Warning",              "Allerta Rossa Pioggia"),
+        ("Red Wind Warning",              "Allerta Rossa Vento"),
+        ("Red Flooding Warning",          "Allerta Rossa Alluvioni"),
+        ("issued for Italy - ",           "— "),
+        ("issued for Italy",              ""),
+        ("Thunderstorm Warning",          "Allerta Temporali"),
+        ("Rain Warning",                  "Allerta Pioggia"),
+        ("Wind Warning",                  "Allerta Vento"),
+        ("Snow/Ice Warning",              "Allerta Neve/Ghiaccio"),
+        ("Flooding Warning",              "Allerta Alluvioni"),
+        ("Forest Fire Warning",           "Allerta Incendi Boschivi"),
+        ("Fog Warning",                   "Allerta Nebbia"),
+        ("Avalanche Warning",             "Allerta Valanghe"),
+        ("Coastal Event Warning",         "Allerta Evento Costiero"),
+        ("Warning",                       "Allerta"),
+        ("Advisory",                      "Avviso"),
+        ("Watch",                         "Sorveglianza"),
+        ("Yellow",                        "Giallo"),
+        ("Orange",                        "Arancione"),
+        ("Red",                           "Rosso"),
+        ("Sardinia",                      "Sardegna"),
+        ("Sicily",                        "Sicilia"),
+        ("Tuscany",                       "Toscana"),
+        ("Liguria",                       "Liguria"),
+        ("Lombardy",                      "Lombardia"),
+        ("Piedmont",                      "Piemonte"),
+        ("Veneto",                        "Veneto"),
+        ("Campania",                      "Campania"),
+        ("Apulia",                        "Puglia"),
+        ("Calabria",                      "Calabria"),
+        ("Basilicata",                    "Basilicata"),
+        ("Abruzzo",                       "Abruzzo"),
+        ("Molise",                        "Molise"),
+        ("Marche",                        "Marche"),
+        ("Umbria",                        "Umbria"),
+        ("Lazio",                         "Lazio"),
+        ("Emilia-Romagna",                "Emilia-Romagna"),
+        ("Trentino-South Tyrol",          "Trentino-Alto Adige"),
+        ("Friuli-Venezia Giulia",         "Friuli-Venezia Giulia"),
+        ("Valle d'Aosta",                 "Valle d'Aosta"),
+    ]
+    for en, it in sostituzioni:
+        testo = testo.replace(en, it)
+    return testo.strip()
+
+
 def _parse_meteoalarm(raw_bytes):
     """Estrae allerte dal feed Atom di MeteoAlarm."""
     try:
@@ -210,7 +274,10 @@ def _parse_meteoalarm(raw_bytes):
             title = (entry.findtext("atom:title", default="", namespaces=ns) or "").strip()
             summary = (entry.findtext("atom:summary", default="", namespaces=ns) or "").strip()
             updated = (entry.findtext("atom:updated", default="", namespaces=ns) or "")[:16]
-            # Cerca livello di severità nel testo
+            # Traduzione in italiano
+            title_it = _traduci_allerta(title)
+            summary_it = _traduci_allerta(summary)
+            # Cerca livello di severità nel testo originale (inglese)
             txt = (title + summary).lower()
             if "red" in txt or "extreme" in txt:
                 color, lvl = "#EF4444", "🔴 Rosso"
@@ -223,7 +290,7 @@ def _parse_meteoalarm(raw_bytes):
             else:
                 color, lvl = "#94A3B8", "⚫ N/D"
             if title:
-                alerts.append({"title": title, "summary": summary[:200],
+                alerts.append({"title": title_it, "summary": summary_it[:200],
                                 "updated": updated, "color": color, "livello": lvl})
         return alerts[:10]
     except Exception:

@@ -349,24 +349,6 @@ def show():
             "sollevamento": "Variabile - Deformazioni legate ai cicli eruttivi",
             "danni": "Occasionali danni da caduta cenere e materiale vulcanico"
         },
-        "Stromboli": {
-            "regione": "Sicilia",
-            "lat": 38.789,
-            "lon": 15.213,
-            "altezza": 926,
-            "tipo": "Stratovulcano",
-            "ultima_eruzione": "Attivo",
-            "stato": "Attivo",
-            "livello_allerta": "Arancione",
-            "pericolosita": "Media",
-            "descrizione": "Lo Stromboli è noto per la sua attività esplosiva regolare, tanto da aver dato il nome alle eruzioni 'stromboliane'. In attività continua da almeno 2000 anni, è uno dei vulcani più attivi e studiati al mondo. Le sue esplosioni regolari gli hanno valso il soprannome di 'Faro del Mediterraneo'. Recenti eruzioni più violente nel 2019 e 2022 hanno causato preoccupazione.",
-            "webcam": "http://193.206.127.20/Stromboli_Punta_Labronzo.jpg",
-            "monitoraggio": "http://lgs.geo.unifi.it/index.php/monitoraggio",
-            "bollettino_settimanale": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
-            "sismicita": "Continua - Tremore vulcanico legato alle esplosioni sommitali",
-            "sollevamento": "Minimo - Deformazioni del suolo limitate",
-            "danni": "Recenti episodi parossistici hanno causato danni e un morto (2019)"
-        },
         "Vulcano": {
             "regione": "Sicilia",
             "lat": 38.404,
@@ -481,6 +463,132 @@ def show():
             },
             "attivita_recente": "Attività stromboliana regolare con esplosioni discrete ed occasionali esplosioni maggiori. Colate laviche limitate all'area della Sciara del Fuoco.",
             "danni": "Rari danni legati principalmente a eruzioni eccezionali"
+        },
+        "Colli Albani": {
+            "regione": "Lazio",
+            "lat": 41.73,
+            "lon": 12.72,
+            "altezza": 949,
+            "tipo": "Vulcano a scudo / caldera",
+            "ultima_eruzione": "~36.000 anni fa",
+            "stato": "Quiescente (sorvegliato)",
+            "livello_allerta": "Verde",
+            "pericolosita": "Media",
+            "descrizione": "Il Vulcano Laziale, o Colli Albani, è un grande complesso vulcanico situato a sud-est di Roma. La sua ultima eruzione avvenne circa 36.000 anni fa. Nonostante la quiescenza, il sistema mostra segni di attività con emissioni di CO₂ e leggero sollevamento del suolo, monitorati dall'INGV. La sua prossimità all'area metropolitana di Roma lo rende oggetto di sorveglianza costante.",
+            "webcam": "Non disponibile",
+            "monitoraggio": "https://www.ingv.it/",
+            "bollettino_settimanale": "Non pubblicato per questo vulcano",
+            "sismicita": "Bassa - Sporadici micro-eventi",
+            "sollevamento": "Lieve sollevamento nell'area di Albano Laziale",
+            "danni": "Nessuno recente"
+        },
+        "Monte Amiata": {
+            "regione": "Toscana",
+            "lat": 42.89,
+            "lon": 11.63,
+            "altezza": 1738,
+            "tipo": "Vulcano a scudo / domo lavico",
+            "ultima_eruzione": "~180.000 anni fa",
+            "stato": "Estinto",
+            "livello_allerta": "Verde",
+            "pericolosita": "Molto bassa",
+            "descrizione": "Il Monte Amiata è un grande vulcano estinto della Toscana meridionale. La sua ultima attività risale a circa 180.000-130.000 anni fa. Oggi ospita importanti campi geotermici sfruttati per la produzione di energia elettrica. Non presenta attività vulcanica né sismica rilevante.",
+            "webcam": "Non disponibile",
+            "monitoraggio": "https://www.ingv.it/",
+            "bollettino_settimanale": "Non pubblicato per questo vulcano",
+            "sismicita": "Molto bassa",
+            "sollevamento": "Non significativo",
+            "danni": "Nessuno"
+        },
+        "Ustica": {
+            "regione": "Sicilia",
+            "lat": 38.70,
+            "lon": 13.18,
+            "altezza": 248,
+            "tipo": "Isola vulcanica",
+            "ultima_eruzione": "~750.000 anni fa",
+            "stato": "Estinto",
+            "livello_allerta": "Verde",
+            "pericolosita": "Molto bassa",
+            "descrizione": "L'isola di Ustica è di origine interamente vulcanica, frutto di eruzioni avvenute tra 750.000 e 130.000 anni fa. Attualmente non mostra attività vulcanica. È nota per il suo mare cristallino e la riserva marina. Non è monitorata specificamente come area vulcanica attiva.",
+            "webcam": "Non disponibile",
+            "monitoraggio": "https://www.ingv.it/",
+            "bollettino_settimanale": "Non pubblicato per questo vulcano",
+            "sismicita": "Molto bassa",
+            "sollevamento": "Non significativo",
+            "danni": "Nessuno"
+        },
+        "Linosa": {
+            "regione": "Sicilia",
+            "lat": 35.86,
+            "lon": 12.86,
+            "altezza": 195,
+            "tipo": "Isola vulcanica",
+            "ultima_eruzione": "~2.000 anni fa (stimata)",
+            "stato": "Quiescente",
+            "livello_allerta": "Verde",
+            "pericolosita": "Bassa",
+            "descrizione": "Linosa è la più meridionale delle Isole Pelagie ed è interamente di origine vulcanica. I tre coni vulcanici principali (Vulcano di Monte, Monte Rosso e Monte Nero) si sono formati in ere relativamente recenti. La relativa giovinezza dei suoi vulcani suggerisce potenziale attività futura, ma al momento è considerata quiescente. Non è monitorata in modo specifico dall'INGV.",
+            "webcam": "Non disponibile",
+            "monitoraggio": "https://www.ingv.it/",
+            "bollettino_settimanale": "Non pubblicato per questo vulcano",
+            "sismicita": "Molto bassa",
+            "sollevamento": "Non significativo",
+            "danni": "Nessuno recente"
+        },
+        "Salina": {
+            "regione": "Sicilia",
+            "lat": 38.57,
+            "lon": 14.87,
+            "altezza": 962,
+            "tipo": "Isola vulcanica / Stratovulcano",
+            "ultima_eruzione": "~13.000 anni fa",
+            "stato": "Quiescente",
+            "livello_allerta": "Verde",
+            "pericolosita": "Bassa",
+            "descrizione": "Salina è la seconda isola più grande delle Eolie e deve il suo nome alle antiche saline ancora presenti. È formata da sei vulcani sovrapposti, i più recenti dei quali sono Monte dei Porri (eruzione ~13.000 anni fa) e Fossa delle Felci (962 m, il punto più alto delle Eolie). Al momento non mostra attività vulcanica rilevante.",
+            "webcam": "Non disponibile",
+            "monitoraggio": "https://www.ct.ingv.it/",
+            "bollettino_settimanale": "Non pubblicato per questo vulcano",
+            "sismicita": "Molto bassa",
+            "sollevamento": "Non significativo",
+            "danni": "Nessuno recente"
+        },
+        "Alicudi": {
+            "regione": "Sicilia",
+            "lat": 38.54,
+            "lon": 14.35,
+            "altezza": 675,
+            "tipo": "Isola vulcanica / Stratovulcano",
+            "ultima_eruzione": "~90.000 anni fa",
+            "stato": "Estinto",
+            "livello_allerta": "Verde",
+            "pericolosita": "Molto bassa",
+            "descrizione": "Alicudi è la più occidentale e isolata delle Isole Eolie. L'intera isola è il cono di un antico vulcano la cui ultima attività risale a circa 90.000 anni fa. È considerata estinta e non mostra alcuna attività vulcanica né idrotermale rilevante. La sua scarsa accessibilità la rende una delle isole meno antropizzate delle Eolie.",
+            "webcam": "Non disponibile",
+            "monitoraggio": "https://www.ct.ingv.it/",
+            "bollettino_settimanale": "Non pubblicato per questo vulcano",
+            "sismicita": "Molto bassa",
+            "sollevamento": "Non significativo",
+            "danni": "Nessuno"
+        },
+        "Filicudi": {
+            "regione": "Sicilia",
+            "lat": 38.57,
+            "lon": 14.57,
+            "altezza": 773,
+            "tipo": "Isola vulcanica / Stratovulcano",
+            "ultima_eruzione": "~40.000 anni fa",
+            "stato": "Quiescente",
+            "livello_allerta": "Verde",
+            "pericolosita": "Molto bassa",
+            "descrizione": "Filicudi è un'isola delle Eolie formata da tre complessi vulcanici sovrapposti. La sua struttura geologica complessa include il Filo dell'Arpa, una serie di scogli a picco sul mare di straordinaria bellezza. L'ultima attività rilevante risale a circa 40.000 anni fa. Presenta attività fumarolica sottomarina minore. Non è considerata una minaccia vulcanica attuale.",
+            "webcam": "Non disponibile",
+            "monitoraggio": "https://www.ct.ingv.it/",
+            "bollettino_settimanale": "Non pubblicato per questo vulcano",
+            "sismicita": "Molto bassa",
+            "sollevamento": "Non significativo",
+            "danni": "Nessuno"
         }
     }
 
@@ -573,7 +681,7 @@ def show():
     ).add_to(m)
     
     # Visualizza la mappa in Streamlit
-    folium_static(m)
+    folium_static(m, width=820, height=440)
     
     # Monitoraggio in tempo reale e webcam
     st.markdown("---")

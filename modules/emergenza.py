@@ -644,7 +644,7 @@ def show():
                             added_points += 1
                 
                 # Visualizziamo la mappa con indicazione dei punti trovati
-                folium_static(m, width=400, height=300)
+                folium_static(m, width=800, height=420)
                 if added_points > 0:
                     st.success(f"{added_points} punti di raccolta visualizzati sulla mappa")
                 else:
