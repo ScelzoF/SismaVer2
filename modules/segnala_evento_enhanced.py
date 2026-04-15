@@ -90,6 +90,61 @@ def show():
                 except Exception:
                     supabase = None
         
+        # ── Blocco GPS esterno al form ──────────────────────────────────────────
+        if "coords_segnala" not in st.session_state:
+            st.session_state.coords_segnala = None
+        if "gps_richiesto" not in st.session_state:
+            st.session_state.gps_richiesto = False
+
+        # Tentativo automatico di rilevamento GPS al primo caricamento
+        _raw_coords = streamlit_js_eval(
+            js_expressions='new Promise((res) => { if (!navigator.geolocation) return res(null); navigator.geolocation.getCurrentPosition((pos) => res({lat: pos.coords.latitude, lon: pos.coords.longitude}), () => res(null), {timeout: 10000}); })',
+            key="geo_segnalazioni_auto"
+        )
+        if _raw_coords and isinstance(_raw_coords, dict) and "lat" in _raw_coords and "lon" in _raw_coords:
+            st.session_state.coords_segnala = _raw_coords
+            st.session_state.gps_richiesto = True
+
+        # Indicatore stato GPS
+        _c = st.session_state.coords_segnala
+        if _c:
+            st.markdown(
+                '<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+                f'<span style="font-size:18px;">✅</span>'
+                f'<span style="font-size:13px;"><b>Posizione GPS rilevata:</b> {_c["lat"]:.5f}, {_c["lon"]:.5f} — le coordinate saranno incluse nella segnalazione.</span>'
+                '</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            col_gps1, col_gps2 = st.columns([4, 1])
+            with col_gps1:
+                if st.session_state.gps_richiesto:
+                    st.markdown(
+                        '<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:8px 14px;margin-bottom:8px;">'
+                        '<span style="font-size:13px;">⚠️ <b>GPS non rilevato</b> — controlla i permessi del browser. La segnalazione verrà inviata con regione e comune.</span>'
+                        '</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.markdown(
+                        '<div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:8px 14px;margin-bottom:8px;">'
+                        '<span style="font-size:13px;">📍 <b>Rilevamento posizione in corso...</b> Consenti l\'accesso alla geolocalizzazione nel browser.</span>'
+                        '</div>',
+                        unsafe_allow_html=True
+                    )
+            with col_gps2:
+                if st.button("🔄 Riprova GPS", key="retry_gps", use_container_width=True):
+                    st.session_state.gps_richiesto = True
+                    _retry = streamlit_js_eval(
+                        js_expressions='new Promise((res) => { if (!navigator.geolocation) return res(null); navigator.geolocation.getCurrentPosition((pos) => res({lat: pos.coords.latitude, lon: pos.coords.longitude}), () => res(null), {timeout: 10000}); })',
+                        key="geo_segnalazioni_retry"
+                    )
+                    if _retry and isinstance(_retry, dict) and "lat" in _retry and "lon" in _retry:
+                        st.session_state.coords_segnala = _retry
+                        st.rerun()
+
+        st.markdown("---")
+
         with st.form("segnalazione_form"):
             col1, col2 = st.columns(2)
             
@@ -101,7 +156,6 @@ def show():
                     label_visibility="visible"
                 )
                 
-                # Nuova selezione per gravità
                 gravita = st.select_slider(
                     "Gravità dell'evento",
                     options=["Basso", "Medio", "Alto", "Critico"],
@@ -110,7 +164,6 @@ def show():
                     label_visibility="visible"
                 )
                 
-                # Selezione regione e comune
                 regioni_italiane = [
                     "Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia-Romagna",
                     "Friuli-Venezia Giulia", "Lazio", "Liguria", "Lombardia", "Marche", "Molise", 
@@ -125,35 +178,20 @@ def show():
                 data = st.date_input("Data evento", value=datetime.now(), format="DD/MM/YYYY")
                 ora = st.time_input("Ora evento", value=datetime.now().time())
                 
-                # Permette inserimento contatto (opzionale)
                 contatto = st.text_input(
                     "Contatto (opzionale)",
                     placeholder="Email o numero di telefono per verifiche",
                     help="Sarà visibile solo ai moderatori e potrà essere usato per verificare la segnalazione"
                 )
             
-            # Campo descrizione a larghezza piena
             descrizione = st.text_area(
                 "Descrizione",
                 placeholder="Descrivi brevemente l'evento, la situazione e gli effetti osservati...",
                 height=120
             )
-            
-            # Geolocalizzazione automatica
-            try:
-                coords = streamlit_js_eval(
-                    js_expressions='new Promise((res) => { if (!navigator.geolocation) return res(null); navigator.geolocation.getCurrentPosition((pos) => res({lat: pos.coords.latitude, lon: pos.coords.longitude}), () => res(null), {timeout: 8000}); })',
-                    key="geo_segnalazioni"
-                )
-                
-                if coords and isinstance(coords, dict) and "lat" in coords and "lon" in coords:
-                    st.success(f"✅ Posizione GPS rilevata: {coords['lat']:.4f}, {coords['lon']:.4f} — la segnalazione includerà le coordinate precise.")
-                else:
-                    st.info("📍 Posizione GPS non rilevata — la segnalazione verrà inviata con regione e comune inseriti manualmente. Puoi abilitare la geolocalizzazione nel browser per maggiore precisione.")
-                    coords = None
-            except:
-                st.info("📍 Geolocalizzazione non disponibile in questo browser — la segnalazione verrà inviata con regione e comune.")
-                coords = None
+
+            # Leggi le coordinate salvate in session_state
+            coords = st.session_state.coords_segnala
             
             invia = st.form_submit_button("📤 Invia segnalazione")
         
