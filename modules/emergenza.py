@@ -534,17 +534,11 @@ def show():
                 st.markdown("### 🛑 Criticità territoriali")
                 st.markdown(dati["criticita"])
 
-                # Punti di raccolta - Limitiamo a 5 punti per regione per ottimizzare le performance
+                # Punti di raccolta — mostra tutti quelli disponibili
                 st.markdown("### 📍 Punti di raccolta")
-                max_punti = min(5, len(dati["punti_raccolta"]))
-                for i, punto in enumerate(dati["punti_raccolta"]):
-                    if i < max_punti:
-                        st.markdown(f"- {punto}")
-                    else:
-                        # Se ci sono più di 5 punti, mostriamo un messaggio
-                        if i == max_punti:
-                            st.info(f"Altri {len(dati['punti_raccolta']) - max_punti} punti disponibili. Consulta il sito della Protezione Civile regionale.")
-                        break
+                for punto in dati["punti_raccolta"]:
+                    st.markdown(f"📌 {punto}")
+                st.caption(f"Totale punti: {len(dati['punti_raccolta'])} · Fonte: Protezione Civile")
 
                 # Rischio idrogeologico (se presente)
                 if "rischio_idrogeologico" in dati and dati["rischio_idrogeologico"]:
@@ -593,20 +587,14 @@ def show():
                 # Creiamo mappa folium centrata sulla regione
                 m = folium.Map(location=[start_lat, start_lon], zoom_start=9)
                 
-                # Definiamo esplicitamente quanti punti mostrare (tutti fino a 5)
-                max_punti = min(5, len(dati["punti_raccolta"]))
-                
                 # Aggiungiamo i marker alla mappa usando le coordinate precaricate
                 with st.spinner("Posizionamento punti di raccolta..."):
                     added_points = 0
                     
                     # Utilizziamo prioritariamente le coordinate precaricate
                     if "punti_raccolta_coords" in dati:
-                        # Se abbiamo coordinate precaricate per questa regione, usiamo quelle
+                        # Mostra tutti i punti disponibili sulla mappa
                         for i, punto in enumerate(dati["punti_raccolta"]):
-                            if i >= max_punti:
-                                break
-                                
                             punto_key = punto.strip()
                             if punto_key in dati["punti_raccolta_coords"]:
                                 # Usiamo le coordinate precaricate
@@ -637,14 +625,12 @@ def show():
                     else:
                         # Fallback: se non abbiamo coordinate precaricate, creiamo marker artificiali
                         # attorno al centro della regione per assicurarci che tutti i punti siano visibili
+                        n_punti = len(dati["punti_raccolta"])
                         for i, punto in enumerate(dati["punti_raccolta"]):
-                            if i >= max_punti:
-                                break
-                                
                             # Calcoliamo posizioni distribuite attorno al centro regione
                             # con un pattern circolare per massimizzare la visibilità
                             import math
-                            angle = (2 * math.pi / max_punti) * i
+                            angle = (2 * math.pi / max(n_punti, 1)) * i
                             radius = 0.05  # ~5km di raggio
                             lat = start_lat + radius * math.sin(angle)
                             lon = start_lon + radius * math.cos(angle)

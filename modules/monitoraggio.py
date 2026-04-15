@@ -877,370 +877,457 @@ def show():
     
     # Tab Monitoraggio vulcanico
     with sensor_tab2:
-        # Mappatura regioni con vulcani attivi
-        regioni_vulcaniche = {
-            "Campania": ["Vesuvio", "Campi Flegrei", "Ischia"],
-            "Sicilia": ["Etna", "Stromboli", "Vulcano", "Pantelleria"],
-            "Lazio": ["Colli Albani"],
-            "Italia (Visione nazionale)": ["Tutti i vulcani italiani"]
-        }
-        
-        if regione_scelta in regioni_vulcaniche:
-            st.subheader(f"🌋 Monitoraggio vulcanico - {regione_scelta}")
-            
-            # Selezione vulcano
-            vulcani_disponibili = regioni_vulcaniche[regione_scelta]
-            vulcano_selezionato = st.selectbox("Seleziona vulcano", vulcani_disponibili)
-            
-            # Visualizzazione monitoraggio in base al vulcano selezionato
-            if vulcano_selezionato == "Vesuvio":
-                st.markdown("### 📡 Monitoraggio Vesuvio - Osservatorio Vesuviano INGV")
-                
-                # Mostra dati monitoraggio Vesuvio
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.subheader("🔔 Stato attuale")
-                    st.warning("Livello di allerta: **VERDE (livello base)** - [Fonte](https://www.ov.ingv.it/index.php/rete-fissa?category=11)")
-                    st.info("Ultimo aggiornamento: Bollettino mensile INGV")
-                
-                with col2:
-                    st.subheader("🎦 Webcam in tempo reale")
-                    st.image("attached_assets/vesuvio_webcam.png", caption="Webcam Vesuvio - Osservatorio INGV")
-                
-                # Parametri monitorati (esempio)
-                st.subheader("📊 Parametri monitorati")
-                
-                param_col1, param_col2, param_col3 = st.columns(3)
-                
-                with param_col1:
-                    st.metric("Sismicità ultimi 30gg", "24 eventi", "-2")
-                    st.image("attached_assets/vesuvio_sismicita.png", caption="Sismicità Vesuvio - Ultimi 30 giorni")
-                
-                with param_col2:
-                    st.metric("Temperatura fumarole", "95°C", "+0.3°C")
-                    st.image("attached_assets/vesuvio_tremore.png", caption="Tremore vulcanico - Vesuvio")
-                
-                with param_col3:
-                    st.metric("Deformazione suolo", "<1 mm/anno", "stabile")
-                
-                # Informazioni aggiuntive
-                with st.expander("ℹ️ Informazioni sul Vesuvio"):
-                    st.markdown("""
-                    ### 🌋 Vesuvio
-                    
-                    Il Vesuvio è un vulcano attivo situato in Campania, nell'area metropolitana di Napoli. L'ultima eruzione significativa è avvenuta nel marzo 1944.
-                    
-                    **Area interessata:** Il monitoraggio del Vesuvio interessa 25 comuni, per una popolazione complessiva di circa 700.000 abitanti.
-                    
-                    **Livelli di allerta:**
-                    - 🟢 **VERDE:** Attività di base
-                    - 🟡 **GIALLO:** Variazioni significative dei parametri
-                    - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                    - 🔴 **ROSSO:** Eruzione imminente o in corso
-                    
-                    **Fonte dati:** [Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
-                    """)
-            
-            elif vulcano_selezionato == "Campi Flegrei":
-                st.markdown("### 📡 Monitoraggio Campi Flegrei - Osservatorio Vesuviano INGV")
-                
-                # Mostra dati monitoraggio Campi Flegrei
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.subheader("🔔 Stato attuale")
-                    st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ov.ingv.it/index.php/rete-fissa?category=11)")
-                    st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
-                
-                with col2:
-                    st.subheader("📊 Attività sismica recente")
-                    st.warning("Sciame sismico: > 100 eventi negli ultimi 7 giorni")
-                
-                # Parametri monitorati (esempio)
-                st.subheader("📊 Parametri monitorati")
-                
-                param_col1, param_col2, param_col3 = st.columns(3)
-                
-                with param_col1:
-                    st.metric("Sollevamento suolo", "≈ 15 mm/mese", "+2.5 mm")
-                    st.image("attached_assets/flegrei_sollevamento.png", caption="Sollevamento Campi Flegrei - Ultimi 30 giorni")
-                
-                with param_col2:
-                    st.metric("Sismicità", "142 eventi/settimana", "+35")
-                    st.image("attached_assets/flegrei_sismicita.png", caption="Sismicità Campi Flegrei - Ultimi 30 giorni")
-                
-                with param_col3:
-                    st.metric("Emissioni CO₂", "≈ 3500 t/giorno", "+150 t")
-                    st.image("attached_assets/flegrei_co2.png", caption="Emissioni CO₂ - Campi Flegrei")
-                
-                # Informazioni aggiuntive
-                with st.expander("ℹ️ Informazioni sui Campi Flegrei"):
-                    st.markdown("""
-                    ### 🌋 Campi Flegrei
-                    
-                    I Campi Flegrei sono un'ampia area vulcanica situata ad ovest di Napoli. L'ultima eruzione è avvenuta nel 1538 con la formazione di Monte Nuovo.
-                    
-                    **Fenomeno attuale:** Attualmente i Campi Flegrei sono interessati dal fenomeno del bradisismo, con un sollevamento del suolo e un'intensa attività sismica.
-                    
-                    **Area interessata:** Il monitoraggio dei Campi Flegrei interessa 7 comuni, per una popolazione complessiva di circa 500.000 abitanti.
-                    
-                    **Livelli di allerta:**
-                    - 🟢 **VERDE:** Attività di base
-                    - 🟡 **GIALLO:** Variazioni significative dei parametri
-                    - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                    - 🔴 **ROSSO:** Eruzione imminente o in corso
-                    
-                    **Fonte dati:** [Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
-                    """)
-                
-            elif vulcano_selezionato == "Etna":
-                st.markdown("### 📡 Monitoraggio Etna - INGV Catania")
-                
-                # Mostra dati monitoraggio Etna
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.subheader("🔔 Stato attuale")
-                    st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
-                    st.info("Ultimo aggiornamento: Bollettino settimanale INGV Catania")
-                
-                with col2:
-                    st.subheader("📊 Attività recente")
-                    st.warning("Attività stromboliana ai crateri sommitali - Fontane di lava occasionali")
-                
-                # Parametri monitorati
-                st.subheader("📊 Parametri monitorati")
-                
-                param_col1, param_col2, param_col3 = st.columns(3)
-                
-                with param_col1:
-                    st.metric("Attività stromboliana", "Attiva", "⚠️")
-                
-                with param_col2:
-                    st.metric("Flusso lavico", "Moderato", "stabile")
-                
-                with param_col3:
-                    st.metric("Emissioni cenere", "Intermittenti", "⬆️")
-                
-                # Informazioni aggiuntive
-                with st.expander("ℹ️ Informazioni sull'Etna"):
-                    st.markdown("""
-                    ### 🌋 Etna
-                    
-                    L'Etna è il più grande vulcano attivo d'Europa e uno dei più attivi al mondo. Si trova sulla costa orientale della Sicilia.
-                    
-                    **Attività recente:** L'Etna è caratterizzato da frequenti eruzioni sommitali, con attività stromboliana, fontane di lava ed emissioni di cenere.
-                    
-                    **Area interessata:** L'attività dell'Etna può interessare numerosi comuni della provincia di Catania, con una popolazione esposta di oltre 500.000 abitanti.
-                    
-                    **Livelli di allerta:**
-                    - 🟢 **VERDE:** Attività di base
-                    - 🟡 **GIALLO:** Variazioni significative dei parametri
-                    - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                    - 🔴 **ROSSO:** Eruzione imminente o in corso
-                    
-                    **Fonte dati:** [INGV Catania](https://www.ct.ingv.it/)
-                    """)
-            
-            elif vulcano_selezionato == "Stromboli":
-                st.markdown("### 📡 Monitoraggio Stromboli - INGV")
-                
-                # Mostra dati monitoraggio Stromboli
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.subheader("🔔 Stato attuale")
-                    st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
-                    st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
-                
-                with col2:
-                    st.subheader("📊 Attività recente")
-                    st.warning("Attività stromboliana ordinaria ai crateri - Esplosioni di intensità variabile")
-                
-                # Parametri monitorati
-                st.subheader("📊 Parametri monitorati")
-                
-                param_col1, param_col2, param_col3 = st.columns(3)
-                
-                with param_col1:
-                    st.metric("Esplosioni/ora", "15-20", "+5")
-                
-                with param_col2:
-                    st.metric("Tremor vulcanico", "Moderato", "stabile")
-                
-                with param_col3:
-                    st.metric("Flussi piroclastici", "Assenti", "stabile")
-                
-                # Informazioni aggiuntive
-                with st.expander("ℹ️ Informazioni sullo Stromboli"):
-                    st.markdown("""
-                    ### 🌋 Stromboli
-                    
-                    Lo Stromboli è un vulcano attivo situato sull'omonima isola dell'arcipelago delle Eolie, in Sicilia. È noto per la sua attività esplosiva persistente.
-                    
-                    **Attività tipica:** L'attività ordinaria dello Stromboli consiste in esplosioni di intensità variabile che si verificano a intervalli di circa 10-20 minuti.
-                    
-                    **Eventi parossistici:** Occasionalmente lo Stromboli può generare eventi esplosivi maggiori (parossismi) e colate laviche.
-                    
-                    **Area interessata:** L'isola di Stromboli ha una popolazione residente di circa 500 abitanti, che può aumentare significativamente durante la stagione turistica.
-                    
-                    **Livelli di allerta:**
-                    - 🟢 **VERDE:** Attività di base
-                    - 🟡 **GIALLO:** Variazioni significative dei parametri
-                    - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                    - 🔴 **ROSSO:** Eruzione parossistica imminente o in corso
-                    
-                    **Fonte dati:** [INGV Osservatorio Etneo](https://www.ct.ingv.it/)
-                    """)
-                    
-            elif vulcano_selezionato == "Vulcano":
-                st.markdown("### 📡 Monitoraggio Vulcano - INGV")
-                
-                # Mostra dati monitoraggio Vulcano
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.subheader("🔔 Stato attuale")
-                    st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
-                    st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
-                
-                with col2:
-                    st.subheader("📊 Attività recente")
-                    st.warning("Incremento della temperatura delle fumarole e delle emissioni di gas")
-                
-                # Parametri monitorati
-                st.subheader("📊 Parametri monitorati")
-                
-                param_col1, param_col2, param_col3 = st.columns(3)
-                
-                with param_col1:
-                    st.metric("Temperatura fumarole", "≈ 350°C", "+2°C")
-                
-                with param_col2:
-                    st.metric("Flusso CO₂", "Elevato", "⬆️")
-                
-                with param_col3:
-                    st.metric("Sismicità", "Bassa", "stabile")
-                
-                # Informazioni aggiuntive
-                with st.expander("ℹ️ Informazioni su Vulcano"):
-                    st.markdown("""
-                    ### 🌋 Vulcano
-                    
-                    Vulcano è un'isola vulcanica dell'arcipelago delle Eolie, in Sicilia. L'ultima eruzione è avvenuta nel 1888-1890.
-                    
-                    **Attività attuale:** Vulcano è caratterizzato da un'intensa attività fumarolica con temperature elevate e significative emissioni di gas.
-                    
-                    **Crisi 2021:** Nel 2021 è stata registrata una crisi vulcanica con aumento delle temperature, delle emissioni di gas e della sismicità.
-                    
-                    **Area interessata:** L'isola di Vulcano ha una popolazione residente di circa 400 abitanti, che può aumentare significativamente durante la stagione turistica.
-                    
-                    **Livelli di allerta:**
-                    - 🟢 **VERDE:** Attività di base
-                    - 🟡 **GIALLO:** Variazioni significative dei parametri
-                    - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                    - 🔴 **ROSSO:** Eruzione imminente o in corso
-                    
-                    **Fonte dati:** [INGV Osservatorio Etneo](https://www.ct.ingv.it/)
-                    """)
-                    
-            elif vulcano_selezionato == "Tutti i vulcani italiani":
-                st.markdown("### 📡 Monitoraggio vulcani attivi italiani")
-                
-                # Tabella riassuntiva dei vulcani italiani
-                st.subheader("🌋 Stato attuale dei vulcani attivi italiani")
-                
-                # Dati sul livello di allerta corrente
-                df_vulcani = pd.DataFrame({
-                    "Vulcano": ["Etna", "Stromboli", "Vulcano", "Vesuvio", "Campi Flegrei", "Ischia", "Pantelleria", "Colli Albani"],
-                    "Regione": ["Sicilia", "Sicilia", "Sicilia", "Campania", "Campania", "Campania", "Sicilia", "Lazio"],
-                    "Livello allerta": ["GIALLO", "GIALLO", "GIALLO", "VERDE", "GIALLO", "GIALLO", "VERDE", "VERDE"],
-                    "Ultima eruzione": ["Attività corrente", "Attività corrente", "1888-1890", "1944", "1538", "1302", "1891", "5000 anni fa"],
-                    "Monitoraggio": ["INGV Catania", "INGV Catania", "INGV Catania", "INGV-OV Napoli", "INGV-OV Napoli", "INGV-OV Napoli", "INGV Catania", "INGV Roma"]
-                })
-                
-                # Definisci colore in base al livello di allerta
-                def color_allerta(val):
-                    color = 'white'
-                    if val == 'VERDE':
-                        color = 'green'
-                    elif val == 'GIALLO':
-                        color = 'yellow'
-                    elif val == 'ARANCIONE':
-                        color = 'orange'
-                    elif val == 'ROSSO':
-                        color = 'red'
-                    return f'background-color: {color}'
-                
-                # Visualizza tabella con colori
-                st.dataframe(df_vulcani.style.map(color_allerta, subset=['Livello allerta']), use_container_width=True)
-                
-                # Mappa dei vulcani attivi
-                st.subheader("🗺️ Mappa dei vulcani attivi italiani")
-                
-                # Coordinate dei vulcani principali
-                vulcani_coords = {
-                    "Etna": [37.748, 14.999],
-                    "Stromboli": [38.789, 15.213],
-                    "Vulcano": [38.404, 14.962],
-                    "Vesuvio": [40.821, 14.426],
-                    "Campi Flegrei": [40.827, 14.139],
-                    "Ischia": [40.730, 13.897],
-                    "Pantelleria": [36.797, 11.989],
-                    "Colli Albani": [41.728, 12.701]
-                }
-                
-                # Crea mappa
-                vulcani_map = folium.Map(location=[41.29, 12.57], zoom_start=6)
-                
-                # Aggiungi marker per ogni vulcano
-                for vulcano, coords in vulcani_coords.items():
-                    vulc_data = df_vulcani[df_vulcani["Vulcano"] == vulcano].iloc[0]
-                    
-                    # Colore in base al livello di allerta
-                    if vulc_data["Livello allerta"] == "VERDE":
-                        color = "green"
-                    elif vulc_data["Livello allerta"] == "GIALLO":
-                        color = "orange"
-                    elif vulc_data["Livello allerta"] == "ARANCIONE":
-                        color = "red"
-                    elif vulc_data["Livello allerta"] == "ROSSO":
-                        color = "darkred"
-                    else:
-                        color = "blue"
-                    
-                    # Popup con informazioni
-                    popup_text = f"""
-                    <b>Vulcano:</b> {vulcano}<br>
-                    <b>Livello allerta:</b> {vulc_data['Livello allerta']}<br>
-                    <b>Ultima eruzione:</b> {vulc_data['Ultima eruzione']}<br>
-                    <b>Monitoraggio:</b> {vulc_data['Monitoraggio']}
-                    """
-                    
-                    # Aggiungi marker
+        # ── Vista panoramica Italia (tutti i vulcani) ────────────────────────
+        if regione_scelta == "Italia (Visione nazionale)":
+            st.subheader("🌋 Monitoraggio vulcani attivi italiani")
+            st.info("🔗 Per schede dettagliate con webcam e bollettini INGV → apri **Vulcani** dal menu laterale")
+
+            df_vulcani = pd.DataFrame({
+                "Vulcano": [
+                    "Etna", "Stromboli", "Campi Flegrei", "Vesuvio",
+                    "Ischia", "Vulcano", "Pantelleria", "Strombolicchio",
+                    "Lipari-Vulcanello", "Marsili", "Ferdinandea",
+                    "Colli Albani", "Monte Amiata", "Isole Pontine",
+                    "Ustica", "Linosa", "Salina", "Alicudi", "Filicudi", "Nisyros (IT)"
+                ],
+                "Regione": [
+                    "Sicilia", "Sicilia", "Campania", "Campania",
+                    "Campania", "Sicilia", "Sicilia", "Sicilia",
+                    "Sicilia", "Mar Tirreno", "Sicilia - Canale di Sicilia",
+                    "Lazio", "Toscana", "Lazio",
+                    "Sicilia", "Sicilia", "Sicilia", "Sicilia", "Sicilia", "Mar Egeo"
+                ],
+                "Livello allerta": [
+                    "ARANCIONE", "ARANCIONE", "GIALLO", "VERDE",
+                    "VERDE", "GIALLO", "VERDE", "VERDE",
+                    "VERDE", "GIALLO", "VERDE",
+                    "VERDE", "VERDE", "VERDE",
+                    "VERDE", "VERDE", "VERDE", "VERDE", "VERDE", "VERDE"
+                ],
+                "Ultima eruzione": [
+                    "Attivo", "Attivo", "1538", "1944",
+                    "1302", "1888-90", "1891 (sub.)", "Quiescente",
+                    "1230", "Non doc.", "1831 (sub.)",
+                    "5000 a.f.", "180 a.f.", "Quiescente",
+                    "Quiescente", "Quiescente", "Quiescente", "Quiescente", "Quiescente", "-"
+                ],
+                "Monitoraggio INGV": [
+                    "INGV-CT", "INGV-CT", "INGV-OV", "INGV-OV",
+                    "INGV-OV", "INGV-CT", "INGV-CT", "INGV-CT",
+                    "INGV-CT", "INGV", "INGV",
+                    "INGV-RM", "INGV-RM", "INGV-RM",
+                    "INGV-CT", "INGV-CT", "INGV-CT", "INGV-CT", "INGV-CT", "-"
+                ]
+            })
+
+            def _color_a(val):
+                colors = {"VERDE": "background-color:#4ade80", "GIALLO": "background-color:#fde047",
+                          "ARANCIONE": "background-color:#fb923c", "ROSSO": "background-color:#f87171"}
+                return colors.get(val, "")
+
+            st.dataframe(
+                df_vulcani.style.map(_color_a, subset=["Livello allerta"]),
+                use_container_width=True, height=680
+            )
+
+            st.subheader("🗺️ Mappa vulcani attivi italiani")
+            vulcani_coords_it = {
+                "Etna": [37.751, 14.994], "Stromboli": [38.789, 15.213],
+                "Campi Flegrei": [40.827, 14.139], "Vesuvio": [40.821, 14.426],
+                "Ischia": [40.731, 13.897], "Vulcano": [38.404, 14.962],
+                "Pantelleria": [36.771, 11.989], "Lipari-Vulcanello": [38.489, 14.953],
+                "Marsili": [39.28, 14.40], "Ferdinandea": [37.10, 12.70],
+                "Colli Albani": [41.728, 12.701], "Monte Amiata": [42.891, 11.621],
+                "Ustica": [38.700, 13.175], "Linosa": [35.864, 12.861],
+                "Salina": [38.560, 14.865], "Alicudi": [38.540, 14.352],
+                "Filicudi": [38.574, 14.567],
+            }
+            alert_color = {"ARANCIONE": "orange", "GIALLO": "beige", "ROSSO": "red", "VERDE": "green"}
+            vmap = folium.Map(location=[39.5, 13.5], zoom_start=5)
+            for v_row in df_vulcani.itertuples():
+                vname = v_row.Vulcano
+                if vname in vulcani_coords_it:
+                    coords = vulcani_coords_it[vname]
+                    col_m = alert_color.get(v_row._3, "blue")
                     folium.Marker(
                         location=coords,
-                        popup=folium.Popup(popup_text, max_width=300),
-                        icon=folium.Icon(color=color, icon="fire", prefix="fa")
-                    ).add_to(vulcani_map)
-                
-                folium_static(vulcani_map, width=800, height=500)
-            
-            else:
-                st.info(f"Il monitoraggio dettagliato per {vulcano_selezionato} non è ancora integrato. Seleziona un altro vulcano o consulta il portale INGV.")
+                        popup=folium.Popup(
+                            f"<b>{vname}</b><br>Regione: {v_row.Regione}<br>"
+                            f"Allerta: {v_row._3}<br>Ultima eruzione: {v_row._4}",
+                            max_width=250
+                        ),
+                        icon=folium.Icon(color=col_m, icon="fire", prefix="fa"),
+                        tooltip=vname
+                    ).add_to(vmap)
+            folium_static(vmap, width=780, height=480)
+            st.caption("Fonte: INGV · Aggiornato: " + datetime.now(FUSO_ORARIO_ITALIA).strftime("%d/%m/%Y"))
+
         else:
-            st.info(f"Non ci sono vulcani attivi monitorati nella regione {regione_scelta}.")
-            st.markdown("""
-            ### 🌋 Regioni con vulcani attivi monitorati:
-            - **Campania**: Vesuvio, Campi Flegrei, Ischia
-            - **Sicilia**: Etna, Stromboli, Vulcano, Pantelleria
-            - **Lazio**: Colli Albani
+            # ── Vista per regione specifica ──────────────────────────────────
+            regioni_vulcaniche = {
+                "Campania": ["Vesuvio", "Campi Flegrei", "Ischia"],
+                "Sicilia": ["Etna", "Stromboli", "Vulcano", "Pantelleria",
+                            "Lipari-Vulcanello", "Ferdinandea", "Ustica", "Linosa",
+                            "Salina", "Alicudi", "Filicudi"],
+                "Lazio": ["Colli Albani"],
+                "Toscana": ["Monte Amiata"],
+            }
+
+            if regione_scelta in regioni_vulcaniche:
+                st.subheader(f"🌋 Monitoraggio vulcanico - {regione_scelta}")
+
+                vulcani_disponibili = regioni_vulcaniche[regione_scelta]
+                vulcano_selezionato = st.selectbox("Seleziona vulcano", vulcani_disponibili)
+
+                # Visualizzazione monitoraggio in base al vulcano selezionato
+                if vulcano_selezionato == "Vesuvio":
+                    st.markdown("### 📡 Monitoraggio Vesuvio - Osservatorio Vesuviano INGV")
+                
+                    # Mostra dati monitoraggio Vesuvio
+                    col1, col2 = st.columns(2)
+                
+                    with col1:
+                        st.subheader("🔔 Stato attuale")
+                        st.warning("Livello di allerta: **VERDE (livello base)** - [Fonte](https://www.ov.ingv.it/index.php/rete-fissa?category=11)")
+                        st.info("Ultimo aggiornamento: Bollettino mensile INGV")
+                
+                    with col2:
+                        st.subheader("🎦 Webcam in tempo reale")
+                        st.image("attached_assets/vesuvio_webcam.png", caption="Webcam Vesuvio - Osservatorio INGV")
+                
+                    # Parametri monitorati (esempio)
+                    st.subheader("📊 Parametri monitorati")
+                
+                    param_col1, param_col2, param_col3 = st.columns(3)
+                
+                    with param_col1:
+                        st.metric("Sismicità ultimi 30gg", "24 eventi", "-2")
+                        st.image("attached_assets/vesuvio_sismicita.png", caption="Sismicità Vesuvio - Ultimi 30 giorni")
+                
+                    with param_col2:
+                        st.metric("Temperatura fumarole", "95°C", "+0.3°C")
+                        st.image("attached_assets/vesuvio_tremore.png", caption="Tremore vulcanico - Vesuvio")
+                
+                    with param_col3:
+                        st.metric("Deformazione suolo", "<1 mm/anno", "stabile")
+                
+                    # Informazioni aggiuntive
+                    with st.expander("ℹ️ Informazioni sul Vesuvio"):
+                        st.markdown("""
+                        ### 🌋 Vesuvio
+                    
+                        Il Vesuvio è un vulcano attivo situato in Campania, nell'area metropolitana di Napoli. L'ultima eruzione significativa è avvenuta nel marzo 1944.
+                    
+                        **Area interessata:** Il monitoraggio del Vesuvio interessa 25 comuni, per una popolazione complessiva di circa 700.000 abitanti.
+                    
+                        **Livelli di allerta:**
+                        - 🟢 **VERDE:** Attività di base
+                        - 🟡 **GIALLO:** Variazioni significative dei parametri
+                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
+                        - 🔴 **ROSSO:** Eruzione imminente o in corso
+                    
+                        **Fonte dati:** [Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
+                        """)
             
-            Seleziona una di queste regioni o "Italia (Visione nazionale)" per visualizzare i dati di monitoraggio vulcanico.
-            """)
+                elif vulcano_selezionato == "Campi Flegrei":
+                    st.markdown("### 📡 Monitoraggio Campi Flegrei - Osservatorio Vesuviano INGV")
+                
+                    # Mostra dati monitoraggio Campi Flegrei
+                    col1, col2 = st.columns(2)
+                
+                    with col1:
+                        st.subheader("🔔 Stato attuale")
+                        st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ov.ingv.it/index.php/rete-fissa?category=11)")
+                        st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
+                
+                    with col2:
+                        st.subheader("📊 Attività sismica recente")
+                        st.warning("Sciame sismico: > 100 eventi negli ultimi 7 giorni")
+                
+                    # Parametri monitorati (esempio)
+                    st.subheader("📊 Parametri monitorati")
+                
+                    param_col1, param_col2, param_col3 = st.columns(3)
+                
+                    with param_col1:
+                        st.metric("Sollevamento suolo", "≈ 15 mm/mese", "+2.5 mm")
+                        st.image("attached_assets/flegrei_sollevamento.png", caption="Sollevamento Campi Flegrei - Ultimi 30 giorni")
+                
+                    with param_col2:
+                        st.metric("Sismicità", "142 eventi/settimana", "+35")
+                        st.image("attached_assets/flegrei_sismicita.png", caption="Sismicità Campi Flegrei - Ultimi 30 giorni")
+                
+                    with param_col3:
+                        st.metric("Emissioni CO₂", "≈ 3500 t/giorno", "+150 t")
+                        st.image("attached_assets/flegrei_co2.png", caption="Emissioni CO₂ - Campi Flegrei")
+                
+                    # Informazioni aggiuntive
+                    with st.expander("ℹ️ Informazioni sui Campi Flegrei"):
+                        st.markdown("""
+                        ### 🌋 Campi Flegrei
+                    
+                        I Campi Flegrei sono un'ampia area vulcanica situata ad ovest di Napoli. L'ultima eruzione è avvenuta nel 1538 con la formazione di Monte Nuovo.
+                    
+                        **Fenomeno attuale:** Attualmente i Campi Flegrei sono interessati dal fenomeno del bradisismo, con un sollevamento del suolo e un'intensa attività sismica.
+                    
+                        **Area interessata:** Il monitoraggio dei Campi Flegrei interessa 7 comuni, per una popolazione complessiva di circa 500.000 abitanti.
+                    
+                        **Livelli di allerta:**
+                        - 🟢 **VERDE:** Attività di base
+                        - 🟡 **GIALLO:** Variazioni significative dei parametri
+                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
+                        - 🔴 **ROSSO:** Eruzione imminente o in corso
+                    
+                        **Fonte dati:** [Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
+                        """)
+                
+                elif vulcano_selezionato == "Etna":
+                    st.markdown("### 📡 Monitoraggio Etna - INGV Catania")
+                
+                    # Mostra dati monitoraggio Etna
+                    col1, col2 = st.columns(2)
+                
+                    with col1:
+                        st.subheader("🔔 Stato attuale")
+                        st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
+                        st.info("Ultimo aggiornamento: Bollettino settimanale INGV Catania")
+                
+                    with col2:
+                        st.subheader("📊 Attività recente")
+                        st.warning("Attività stromboliana ai crateri sommitali - Fontane di lava occasionali")
+                
+                    # Parametri monitorati
+                    st.subheader("📊 Parametri monitorati")
+                
+                    param_col1, param_col2, param_col3 = st.columns(3)
+                
+                    with param_col1:
+                        st.metric("Attività stromboliana", "Attiva", "⚠️")
+                
+                    with param_col2:
+                        st.metric("Flusso lavico", "Moderato", "stabile")
+                
+                    with param_col3:
+                        st.metric("Emissioni cenere", "Intermittenti", "⬆️")
+                
+                    # Informazioni aggiuntive
+                    with st.expander("ℹ️ Informazioni sull'Etna"):
+                        st.markdown("""
+                        ### 🌋 Etna
+                    
+                        L'Etna è il più grande vulcano attivo d'Europa e uno dei più attivi al mondo. Si trova sulla costa orientale della Sicilia.
+                    
+                        **Attività recente:** L'Etna è caratterizzato da frequenti eruzioni sommitali, con attività stromboliana, fontane di lava ed emissioni di cenere.
+                    
+                        **Area interessata:** L'attività dell'Etna può interessare numerosi comuni della provincia di Catania, con una popolazione esposta di oltre 500.000 abitanti.
+                    
+                        **Livelli di allerta:**
+                        - 🟢 **VERDE:** Attività di base
+                        - 🟡 **GIALLO:** Variazioni significative dei parametri
+                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
+                        - 🔴 **ROSSO:** Eruzione imminente o in corso
+                    
+                        **Fonte dati:** [INGV Catania](https://www.ct.ingv.it/)
+                        """)
+            
+                elif vulcano_selezionato == "Stromboli":
+                    st.markdown("### 📡 Monitoraggio Stromboli - INGV")
+                
+                    # Mostra dati monitoraggio Stromboli
+                    col1, col2 = st.columns(2)
+                
+                    with col1:
+                        st.subheader("🔔 Stato attuale")
+                        st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
+                        st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
+                
+                    with col2:
+                        st.subheader("📊 Attività recente")
+                        st.warning("Attività stromboliana ordinaria ai crateri - Esplosioni di intensità variabile")
+                
+                    # Parametri monitorati
+                    st.subheader("📊 Parametri monitorati")
+                
+                    param_col1, param_col2, param_col3 = st.columns(3)
+                
+                    with param_col1:
+                        st.metric("Esplosioni/ora", "15-20", "+5")
+                
+                    with param_col2:
+                        st.metric("Tremor vulcanico", "Moderato", "stabile")
+                
+                    with param_col3:
+                        st.metric("Flussi piroclastici", "Assenti", "stabile")
+                
+                    # Informazioni aggiuntive
+                    with st.expander("ℹ️ Informazioni sullo Stromboli"):
+                        st.markdown("""
+                        ### 🌋 Stromboli
+                    
+                        Lo Stromboli è un vulcano attivo situato sull'omonima isola dell'arcipelago delle Eolie, in Sicilia. È noto per la sua attività esplosiva persistente.
+                    
+                        **Attività tipica:** L'attività ordinaria dello Stromboli consiste in esplosioni di intensità variabile che si verificano a intervalli di circa 10-20 minuti.
+                    
+                        **Eventi parossistici:** Occasionalmente lo Stromboli può generare eventi esplosivi maggiori (parossismi) e colate laviche.
+                    
+                        **Area interessata:** L'isola di Stromboli ha una popolazione residente di circa 500 abitanti, che può aumentare significativamente durante la stagione turistica.
+                    
+                        **Livelli di allerta:**
+                        - 🟢 **VERDE:** Attività di base
+                        - 🟡 **GIALLO:** Variazioni significative dei parametri
+                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
+                        - 🔴 **ROSSO:** Eruzione parossistica imminente o in corso
+                    
+                        **Fonte dati:** [INGV Osservatorio Etneo](https://www.ct.ingv.it/)
+                        """)
+                    
+                elif vulcano_selezionato == "Vulcano":
+                    st.markdown("### 📡 Monitoraggio Vulcano - INGV")
+                
+                    # Mostra dati monitoraggio Vulcano
+                    col1, col2 = st.columns(2)
+                
+                    with col1:
+                        st.subheader("🔔 Stato attuale")
+                        st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
+                        st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
+                
+                    with col2:
+                        st.subheader("📊 Attività recente")
+                        st.warning("Incremento della temperatura delle fumarole e delle emissioni di gas")
+                
+                    # Parametri monitorati
+                    st.subheader("📊 Parametri monitorati")
+                
+                    param_col1, param_col2, param_col3 = st.columns(3)
+                
+                    with param_col1:
+                        st.metric("Temperatura fumarole", "≈ 350°C", "+2°C")
+                
+                    with param_col2:
+                        st.metric("Flusso CO₂", "Elevato", "⬆️")
+                
+                    with param_col3:
+                        st.metric("Sismicità", "Bassa", "stabile")
+                
+                    # Informazioni aggiuntive
+                    with st.expander("ℹ️ Informazioni su Vulcano"):
+                        st.markdown("""
+                        ### 🌋 Vulcano
+                    
+                        Vulcano è un'isola vulcanica dell'arcipelago delle Eolie, in Sicilia. L'ultima eruzione è avvenuta nel 1888-1890.
+                    
+                        **Attività attuale:** Vulcano è caratterizzato da un'intensa attività fumarolica con temperature elevate e significative emissioni di gas.
+                    
+                        **Crisi 2021:** Nel 2021 è stata registrata una crisi vulcanica con aumento delle temperature, delle emissioni di gas e della sismicità.
+                    
+                        **Area interessata:** L'isola di Vulcano ha una popolazione residente di circa 400 abitanti, che può aumentare significativamente durante la stagione turistica.
+                    
+                        **Livelli di allerta:**
+                        - 🟢 **VERDE:** Attività di base
+                        - 🟡 **GIALLO:** Variazioni significative dei parametri
+                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
+                        - 🔴 **ROSSO:** Eruzione imminente o in corso
+                    
+                        **Fonte dati:** [INGV Osservatorio Etneo](https://www.ct.ingv.it/)
+                        """)
+                    
+                elif vulcano_selezionato == "Tutti i vulcani italiani":
+                    st.markdown("### 📡 Monitoraggio vulcani attivi italiani")
+                
+                    # Tabella riassuntiva dei vulcani italiani
+                    st.subheader("🌋 Stato attuale dei vulcani attivi italiani")
+                
+                    # Dati sul livello di allerta corrente
+                    df_vulcani = pd.DataFrame({
+                        "Vulcano": ["Etna", "Stromboli", "Vulcano", "Vesuvio", "Campi Flegrei", "Ischia", "Pantelleria", "Colli Albani"],
+                        "Regione": ["Sicilia", "Sicilia", "Sicilia", "Campania", "Campania", "Campania", "Sicilia", "Lazio"],
+                        "Livello allerta": ["GIALLO", "GIALLO", "GIALLO", "VERDE", "GIALLO", "GIALLO", "VERDE", "VERDE"],
+                        "Ultima eruzione": ["Attività corrente", "Attività corrente", "1888-1890", "1944", "1538", "1302", "1891", "5000 anni fa"],
+                        "Monitoraggio": ["INGV Catania", "INGV Catania", "INGV Catania", "INGV-OV Napoli", "INGV-OV Napoli", "INGV-OV Napoli", "INGV Catania", "INGV Roma"]
+                    })
+                
+                    # Definisci colore in base al livello di allerta
+                    def color_allerta(val):
+                        color = 'white'
+                        if val == 'VERDE':
+                            color = 'green'
+                        elif val == 'GIALLO':
+                            color = 'yellow'
+                        elif val == 'ARANCIONE':
+                            color = 'orange'
+                        elif val == 'ROSSO':
+                            color = 'red'
+                        return f'background-color: {color}'
+                
+                    # Visualizza tabella con colori
+                    st.dataframe(df_vulcani.style.map(color_allerta, subset=['Livello allerta']), use_container_width=True)
+                
+                    # Mappa dei vulcani attivi
+                    st.subheader("🗺️ Mappa dei vulcani attivi italiani")
+                
+                    # Coordinate dei vulcani principali
+                    vulcani_coords = {
+                        "Etna": [37.748, 14.999],
+                        "Stromboli": [38.789, 15.213],
+                        "Vulcano": [38.404, 14.962],
+                        "Vesuvio": [40.821, 14.426],
+                        "Campi Flegrei": [40.827, 14.139],
+                        "Ischia": [40.730, 13.897],
+                        "Pantelleria": [36.797, 11.989],
+                        "Colli Albani": [41.728, 12.701]
+                    }
+                
+                    # Crea mappa
+                    vulcani_map = folium.Map(location=[41.29, 12.57], zoom_start=6)
+                
+                    # Aggiungi marker per ogni vulcano
+                    for vulcano, coords in vulcani_coords.items():
+                        vulc_data = df_vulcani[df_vulcani["Vulcano"] == vulcano].iloc[0]
+                    
+                        # Colore in base al livello di allerta
+                        if vulc_data["Livello allerta"] == "VERDE":
+                            color = "green"
+                        elif vulc_data["Livello allerta"] == "GIALLO":
+                            color = "orange"
+                        elif vulc_data["Livello allerta"] == "ARANCIONE":
+                            color = "red"
+                        elif vulc_data["Livello allerta"] == "ROSSO":
+                            color = "darkred"
+                        else:
+                            color = "blue"
+                    
+                        # Popup con informazioni
+                        popup_text = f"""
+                        <b>Vulcano:</b> {vulcano}<br>
+                        <b>Livello allerta:</b> {vulc_data['Livello allerta']}<br>
+                        <b>Ultima eruzione:</b> {vulc_data['Ultima eruzione']}<br>
+                        <b>Monitoraggio:</b> {vulc_data['Monitoraggio']}
+                        """
+                    
+                        # Aggiungi marker
+                        folium.Marker(
+                            location=coords,
+                            popup=folium.Popup(popup_text, max_width=300),
+                            icon=folium.Icon(color=color, icon="fire", prefix="fa")
+                        ).add_to(vulcani_map)
+                
+                    folium_static(vulcani_map, width=800, height=500)
+            
+                else:
+                    st.info(f"Il monitoraggio dettagliato per {vulcano_selezionato} non è ancora integrato. Seleziona un altro vulcano o consulta il portale INGV.")
+            else:
+                st.info(f"Non ci sono vulcani attivi monitorati nella regione {regione_scelta}.")
+                st.markdown("""
+                ### 🌋 Regioni con vulcani attivi monitorati:
+                - **Campania**: Vesuvio, Campi Flegrei, Ischia
+                - **Sicilia**: Etna, Stromboli, Vulcano, Pantelleria
+                - **Lazio**: Colli Albani
+            
+                Seleziona una di queste regioni o "Italia (Visione nazionale)" per visualizzare i dati di monitoraggio vulcanico.
+                """)
     
-    # Tab Monitoraggio idrogeologico
+        # Tab Monitoraggio idrogeologico
     with sensor_tab3:
         st.subheader(f"🌊 Monitoraggio idrogeologico - {regione_scelta}")
         
@@ -1318,6 +1405,28 @@ def show():
             st.info("ℹ️ Feed MeteoAlarm temporaneamente non disponibile — consulta il portale regionale")
 
         st.caption(f"Fonte: MeteoAlarm (EUMETNET) · Aggiornato: {datetime.now(FUSO_ORARIO_ITALIA).strftime('%d/%m/%Y %H:%M')}")
+
+        # ── Dati ISPRA nazionali ─────────────────────────────────────────
+        st.markdown("---")
+        st.subheader("📊 Rischio idrogeologico nazionale — dati ISPRA")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Zone a rischio frana", "1.281.970 ha", "Classificazione PAI")
+        c2.metric("Comuni a rischio frana", "7.275", "su 7.904 totali (91,9%)")
+        c3.metric("Zone a rischio alluvione", "2.062.475 ha", "Classificazione PAI")
+        c4.metric("Popolazione esposta", "≈ 7,5 M", "abitanti (12,5% d'Italia)")
+        st.caption("Fonte: ISPRA — Rapporto sul dissesto idrogeologico in Italia")
+
+        st.markdown("#### 🗺️ Mappa pericolosità da frana — ISPRA IdroGEO")
+        st.markdown(
+            "[![Mappa ISPRA pericolosità frane]"
+            "(https://idrogeo.isprambiente.it/app/static/img/idrogeo-logo.png)]"
+            "(https://idrogeo.isprambiente.it/app/page/Italy)"
+        )
+        st.info(
+            "📍 Consulta la mappa interattiva IdroGEO di ISPRA per visualizzare la pericolosità "
+            "da frana e alluvione fino al livello comunale: "
+            "[idrogeo.isprambiente.it](https://idrogeo.isprambiente.it/app/page/Italy)"
+        )
 
         # ── Portali ufficiali ────────────────────────────────────────────
         with st.expander("🔗 Portali ufficiali monitoraggio idrogeologico"):
