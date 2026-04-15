@@ -811,6 +811,58 @@ def show():
         st.markdown(f"- [Monitoraggio sismico INGV {vulcano_selezionato}]({info_vulcano['monitoraggio']})")
         st.markdown(f"- [Centro Allerta Tsunami (CAT-INGV)](https://www.ingv.it/cat/)")
         st.markdown(f"- [Mappa interattiva INGV terremoti recenti](https://terremoti.ingv.it/)")
+
+        # ── Indicatore live rischio tsunami (EMSC) ──────────────────────
+        st.markdown("### 🌊 Stato rischio tsunami — Mediterraneo (live)")
+
+        @st.cache_data(ttl=120)
+        def _check_tsunami_risk():
+            try:
+                now_utc = datetime.utcnow()
+                start = (now_utc - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
+                url = (
+                    "https://seismicportal.eu/fdsnws/event/1/query"
+                    f"?format=json&starttime={start}&minmagnitude=5.5"
+                    "&minlatitude=25&maxlatitude=47&minlongitude=-10&maxlongitude=42"
+                    "&limit=5&orderby=magnitude"
+                )
+                r = requests.get(url, timeout=8)
+                if r.status_code != 200:
+                    return None
+                feats = r.json().get("features", [])
+                if not feats:
+                    return []
+                events = []
+                for f in feats:
+                    p = f["properties"]
+                    events.append({
+                        "mag": p.get("mag", 0),
+                        "luogo": p.get("flynn_region", p.get("place", "N/D")),
+                        "ora": p.get("time", "")
+                    })
+                return events
+            except Exception:
+                return None
+
+        ev = _check_tsunami_risk()
+
+        if ev is None:
+            st.info("ℹ️ Controllo tsunami temporaneamente non disponibile (EMSC offline)")
+        elif len(ev) == 0:
+            st.success("🟢 Nessun evento M≥5.5 nel Mediterraneo nelle ultime 24h — rischio tsunami assente")
+        else:
+            m_max = ev[0]["mag"]
+            luogo = ev[0]["luogo"]
+            if m_max >= 7.0:
+                st.error(f"🔴 **ATTENZIONE** — Evento M{m_max:.1f} ({luogo}). Possibile tsunami. Seguire indicazioni CAT-INGV.")
+            elif m_max >= 6.0:
+                st.warning(f"🟠 Evento M{m_max:.1f} ({luogo}) nelle ultime 24h — sorveglianza attiva")
+            else:
+                st.warning(f"🟡 Evento M{m_max:.1f} ({luogo}) — sotto soglia tsunami critica")
+            for e in ev:
+                st.caption(f"• M{e['mag']:.1f} — {e['luogo']}")
+
+        st.caption("Fonte: EMSC seismicportal.eu · Per allerta ufficiale: [CAT-INGV](https://www.ingv.it/cat/) · Aggiornato ogni 2 min")
         
         # Aggiunta specifica per Marsili (vulcano sottomarino)
         if vulcano_selezionato == "Marsili":

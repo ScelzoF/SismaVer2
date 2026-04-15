@@ -1261,48 +1261,67 @@ def show():
             "Italia (Visione nazionale)": "http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico"
         }
         
-        st.warning("📊 Monitoraggio idrogeologico in tempo reale")
-        
-        # Dati idrogeologici (esempio statico)
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.metric("Livello idrometrico", "1.8 m", "-0.2 m")
-            st.metric("Precipitazioni ultime 24h", "25 mm", "+5 mm")
-        
-        with col2:
-            st.metric("Rischio frane", "Moderato", "stabile")
-            st.metric("Saturazione suolo", "65%", "+10%")
-        
-        # Allerta idrogeologica per regione (esempio statico)
-        st.subheader("🚨 Allerta idrogeologica")
-        
-        if regione_scelta == "Liguria":
-            st.warning("⚠️ Allerta GIALLA per temporali e rischio idrogeologico in corso")
-        elif regione_scelta == "Emilia-Romagna":
-            st.warning("⚠️ Allerta GIALLA per piene dei fiumi nelle zone della pianura")
-        elif regione_scelta == "Calabria":
-            st.warning("⚠️ Allerta GIALLA per rischio idrogeologico nella fascia tirrenica")
-        elif regione_scelta == "Campania":
-            st.warning("⚠️ Allerta GIALLA per temporali e rischio idrogeologico")
+        # ── Allerte MeteoAlarm live ──────────────────────────────────────
+        @st.cache_data(ttl=1800)
+        def _meteoalarm_allerte_italia():
+            """Recupera allerte MeteoAlarm per l'Italia dal feed Atom."""
+            try:
+                url = "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-italy"
+                r = requests.get(url, timeout=10)
+                if r.status_code != 200:
+                    return []
+                import xml.etree.ElementTree as ET
+                root = ET.fromstring(r.content)
+                ns = {"atom": "http://www.w3.org/2005/Atom",
+                      "cap":  "urn:oasis:names:tc:emergency:cap:1.2"}
+                allerte = []
+                for entry in root.findall("atom:entry", ns):
+                    title = entry.findtext("atom:title", "", ns)
+                    summary = entry.findtext("atom:summary", "", ns)
+                    allerte.append({"titolo": title, "sommario": summary})
+                return allerte
+            except Exception:
+                return []
+
+        allerte = _meteoalarm_allerte_italia()
+
+        st.subheader("🚨 Allerta idrogeologica e meteo")
+
+        # Filtra allerte per la regione selezionata (match parziale sul nome)
+        regione_key = regione_scelta.lower().replace("-", " ").replace("'", "")
+        allerte_reg = [a for a in allerte
+                       if regione_key in a["titolo"].lower() or regione_key in a["sommario"].lower()]
+
+        if allerte_reg:
+            for a in allerte_reg:
+                titolo = a["titolo"]
+                if "red" in titolo.lower() or "rossa" in titolo.lower():
+                    st.error(f"🔴 {titolo}")
+                elif "orange" in titolo.lower() or "arancione" in titolo.lower():
+                    st.warning(f"🟠 {titolo}")
+                elif "yellow" in titolo.lower() or "gialla" in titolo.lower():
+                    st.warning(f"🟡 {titolo}")
+                else:
+                    st.info(f"ℹ️ {titolo}")
+        elif allerte:
+            st.success(f"✅ Nessuna allerta MeteoAlarm attiva per {regione_scelta}")
         else:
-            st.success("✅ Nessuna allerta idrogeologica attiva")
-            
-        # Info bollettini
-        st.info(f"Ultimo bollettino idrogeologico aggiornato: {datetime.now(FUSO_ORARIO_ITALIA).strftime('%d/%m/%Y')}")
-        
-        # Visualizza informazioni sui portali ufficiali
+            st.info("ℹ️ Feed MeteoAlarm temporaneamente non disponibile — consulta il portale regionale")
+
+        st.caption(f"Fonte: MeteoAlarm (EUMETNET) · Aggiornato: {datetime.now(FUSO_ORARIO_ITALIA).strftime('%d/%m/%Y %H:%M')}")
+
+        # ── Portali ufficiali ────────────────────────────────────────────
         with st.expander("🔗 Portali ufficiali monitoraggio idrogeologico"):
             if regione_scelta in regione_link:
-                st.markdown(f"[Centro Funzionale {regione_scelta}]({regione_link[regione_scelta]})")
-                
-                # Aggiungiamo info aggiuntive sul monitoraggio nazionale
-                st.markdown("""
-                ### 🔗 Portali nazionali monitoraggio idrogeologico
-                - [Protezione Civile - Centro Funzionale Centrale](http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico)
-                - [Servizio Meteorologico dell'Aeronautica Militare](http://www.meteoam.it/)
-                - [ISPRA - Istituto Superiore per la Protezione e la Ricerca Ambientale](https://www.isprambiente.gov.it/)
-                """)
+                st.markdown(f"**[Centro Funzionale {regione_scelta}]({regione_link[regione_scelta]})**")
+            st.markdown("""
+            **Portali nazionali:**
+            - [DPC — Mappa allerte in tempo reale](https://mappe.protezionecivile.gov.it/)
+            - [DPC — Centro Funzionale Centrale](https://www.protezionecivile.gov.it/it/risk-activities/meteo-hydro/activities/forecasting-prevention/central-functional-center)
+            - [ISPRA — IdroGEO (frane e alluvioni)](https://idrogeo.isprambiente.it/)
+            - [MeteoAlarm Italia](https://www.meteoalarm.org/it/live/?s=italy)
+            - [Aeronautica Militare — CNMCA](http://www.meteoam.it/)
+            """)
     
 
 
