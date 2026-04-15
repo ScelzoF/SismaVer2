@@ -927,84 +927,85 @@ def show_monitoraggio_meteo():
     import requests
     
     st.subheader("☀️ Monitoraggio Meteo Nazionale")
-    
-    # Ottieni la chiave API OpenWeather dalle variabili d'ambiente
-    API_KEY = os.environ.get("OPENWEATHER_API_KEY", "d23fb9868855e4bcb4dcf04404d14a78")
-    
-    # Nota: abbiamo impostato un valore di fallback per essere sicuri che le mappe funzionino
-    
-    # Dati aggiornati sul sistema di allerta meteo nazionale
+
+    # Ottieni la chiave API OpenWeather dalle variabili d'ambiente (opzionale)
+    API_KEY = os.environ.get("OPENWEATHER_API_KEY")
+
+    # Allerte MeteoAlarm live per tutte le regioni italiane
+    @st.cache_data(ttl=1800)
+    def _fetch_meteoalarm_national():
+        try:
+            url = "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-italy"
+            r = requests.get(url, timeout=10)
+            if r.status_code != 200:
+                return []
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(r.content)
+            ns = {"atom": "http://www.w3.org/2005/Atom"}
+            allerte = []
+            for entry in root.findall("atom:entry", ns):
+                title = entry.findtext("atom:title", "", ns)
+                summary = entry.findtext("atom:summary", "", ns)
+                if title:
+                    allerte.append({"titolo": title, "sommario": summary})
+            return allerte
+        except Exception:
+            return []
+
+    allerte_live = _fetch_meteoalarm_national()
+
+    # Mappa colori e coordinate regioni italiane
+    regioni_coords = {
+        "Lombardia": [9.9, 45.6], "Veneto": [12.3, 45.9],
+        "Emilia-Romagna": [11.3, 44.6], "Lazio": [12.8, 41.9],
+        "Campania": [14.9, 40.9], "Sicilia": [14.0, 37.5],
+        "Piemonte": [8.0, 45.1], "Toscana": [11.1, 43.4],
+        "Puglia": [16.6, 41.0], "Sardegna": [9.1, 40.1],
+        "Calabria": [16.0, 38.9], "Liguria": [8.9, 44.3],
+        "Marche": [13.5, 43.6], "Abruzzo": [13.7, 42.3],
+        "Umbria": [12.4, 43.1], "Basilicata": [16.0, 40.5],
+        "Friuli-Venezia Giulia": [13.2, 46.1], "Trentino-Alto Adige": [11.1, 46.5],
+        "Valle d'Aosta": [7.3, 45.7], "Molise": [14.7, 41.6],
+    }
+
+    def _livello_da_titolo(titolo):
+        t = titolo.lower()
+        if "red" in t or "rossa" in t:     return "rossa",   "red"
+        if "orange" in t or "arancione" in t: return "arancione", "orange"
+        if "yellow" in t or "gialla" in t: return "gialla",  "#DAA520"
+        return "verde", "green"
+
+    # Costruisci allerte_data da MeteoAlarm live
+    allerte_per_regione = {}
+    for a in allerte_live:
+        for reg in regioni_coords:
+            if reg.lower() in a["titolo"].lower() or reg.lower() in a["sommario"].lower():
+                lvl, _ = _livello_da_titolo(a["titolo"])
+                if reg not in allerte_per_regione or lvl > allerte_per_regione[reg]["livello"]:
+                    allerte_per_regione[reg] = {"livello": lvl, "fenomeno": a["titolo"], "valido_fino": ""}
+
     allerte_data = {
         "regioni": [
-            {"nome": "Lombardia", "livello": "gialla", "fenomeno": "temporali", "valido_fino": "2025-04-05 23:59"},
-            {"nome": "Veneto", "livello": "gialla", "fenomeno": "temporali", "valido_fino": "2025-04-05 20:00"},
-            {"nome": "Emilia-Romagna", "livello": "gialla", "fenomeno": "temporali", "valido_fino": "2025-04-06 12:00"},
-            {"nome": "Lazio", "livello": "gialla", "fenomeno": "idrogeologico", "valido_fino": "2025-04-05 18:00"},
-            {"nome": "Campania", "livello": "verde", "fenomeno": "nessuno", "valido_fino": ""},
-            {"nome": "Sicilia", "livello": "gialla", "fenomeno": "vento forte", "valido_fino": "2025-04-05 20:00"},
+            {**{"nome": r}, **allerte_per_regione.get(r, {"livello": "verde", "fenomeno": "nessuno", "valido_fino": ""})}
+            for r in regioni_coords
         ],
-        "aggiornamento": "2025-04-04 08:00",
-        "fonte": "Protezione Civile"
+        "aggiornamento": datetime.now(FUSO_ORARIO_ITALIA).strftime("%Y-%m-%d %H:%M"),
+        "fonte": "MeteoAlarm (EUMETNET)"
     }
     
     # Crea una mappa delle allerte
     st.markdown("### 🚨 Mappa Allerte Meteo")
     
-    # Carica il GeoJSON delle regioni italiane (dati simplificati)
-    # Nel caso reale utilizzeremmo un file GeoJSON completo delle regioni italiane
+    # GeoJSON generato dinamicamente da regioni_coords (tutte le 20 regioni)
     regioni_geojson = {
         "type": "FeatureCollection",
         "features": [
             {
                 "type": "Feature",
-                "properties": {"name": "Lombardia"},
-                "geometry": {"type": "Point", "coordinates": [9.9, 45.6]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Veneto"},
-                "geometry": {"type": "Point", "coordinates": [12.3, 45.9]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Emilia-Romagna"},
-                "geometry": {"type": "Point", "coordinates": [11.3, 44.6]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Lazio"},
-                "geometry": {"type": "Point", "coordinates": [12.8, 41.9]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Campania"},
-                "geometry": {"type": "Point", "coordinates": [14.9, 40.9]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Sicilia"},
-                "geometry": {"type": "Point", "coordinates": [14.0, 37.5]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Piemonte"},
-                "geometry": {"type": "Point", "coordinates": [8.0, 45.1]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Toscana"},
-                "geometry": {"type": "Point", "coordinates": [11.1, 43.4]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Puglia"},
-                "geometry": {"type": "Point", "coordinates": [16.6, 41.0]}
-            },
-            {
-                "type": "Feature",
-                "properties": {"name": "Sardegna"},
-                "geometry": {"type": "Point", "coordinates": [9.1, 40.1]}
+                "properties": {"name": nome},
+                "geometry": {"type": "Point", "coordinates": coords}
             }
+            for nome, coords in regioni_coords.items()
         ]
     }
     
