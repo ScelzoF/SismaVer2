@@ -1,22 +1,44 @@
-name: Keep-Alive Ping
+name: Keep-Alive Anti-Sleep
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    # Ogni 4 ore — Streamlit Cloud dorme dopo 7 giorni senza visite
+    - cron: '0 */4 * * *'
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping SismaVer2 Streamlit App
+      - name: Ping SismaVer2 — Browser-like request
         run: |
-          echo "Pinging sos-italia.streamlit.app..."
-          curl -s -o /dev/null -w "Status: %{http_code}" --max-time 30 https://sos-italia.streamlit.app || true
+          echo "Pinging sos-italia.streamlit.app (ogni 4h anti-sleep)..."
+          for attempt in 1 2 3; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time 45 \
+              --retry 2 \
+              -H "User-Agent: Mozilla/5.0 (compatible; SismaVer2-Keepalive/2.7)" \
+              -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+              -H "Accept-Language: it-IT,it;q=0.9,en-US;q=0.8" \
+              -H "Cache-Control: no-cache" \
+              https://sos-italia.streamlit.app || echo "000")
+            echo "Tentativo $attempt — Status: $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "App attiva e raggiungibile!"
+              break
+            fi
+            sleep 15
+          done
 
-      - name: Ping Supabase SismaVer2
+      - name: Ping Supabase SismaVer2 (keepalive DB)
         run: |
-          echo "Pinging Supabase SismaVer2..."
-          curl -s -o /dev/null -w "Status: %{http_code}" --max-time 10 \
+          echo "Pinging Supabase..."
+          curl -s -o /dev/null -w "Supabase status: %{http_code}\n" --max-time 15 \
             "https://ycdwgehifbyxarrsofmz.supabase.co/rest/v1/" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" || true
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Accept: application/json" || echo "Supabase ping fallito (non critico)"
+
+      - name: Log completamento
+        run: |
+          echo "Keepalive completato: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          echo "Prossimo ping tra 4 ore"
