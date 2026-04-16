@@ -115,7 +115,7 @@ _VULCANO_FOTO = {
     "Alicudi":           "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lipari_Island_from_the_air.jpg/1280px-Lipari_Island_from_the_air.jpg",
     "Filicudi":          "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg",
     # Vulcani sottomarini → immagine arco eoliano / storica
-    "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/CalabrianArc-GeotectonicSection.jpg/1280px-CalabrianArc-GeotectonicSection.jpg",
+    "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/CalabrianArc-GeotectonicSection.jpg/1280px-CalabrianArc-GeotectonicSection.jpg",
     "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Graham_Island_Eruption.jpg/1280px-Graham_Island_Eruption.jpg",
 }
 
