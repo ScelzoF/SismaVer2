@@ -99,13 +99,13 @@ def banner_vulcani():
 
 # ── Foto Wikimedia verificate per ogni vulcano italiano (CDN upload.wikimedia) ──
 _VULCANO_FOTO = {
-    "Vesuvio":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Vesuvio_visto_dal_lungomare.jpg/1280px-Vesuvio_visto_dal_lungomare.jpg",
+    "Vesuvio":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Il_cratere_del_Vulcano_-_panoramio.jpg/1280px-Il_cratere_del_Vulcano_-_panoramio.jpg",
     "Etna":              "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Mt_Etna_and_Catania1.jpg/1280px-Mt_Etna_and_Catania1.jpg",
     "Stromboli":         "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg/1280px-Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg",
     "Campi Flegrei":     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Panorama_con_Cratere_degli_Astroni.jpg/1280px-Panorama_con_Cratere_degli_Astroni.jpg",
     "Vulcano":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Aerial_image_of_Vulcano_%28view_from_the_east%29.jpg/1280px-Aerial_image_of_Vulcano_%28view_from_the_east%29.jpg",
-    "Ischia":            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/ISS017-E-9734_-_View_of_Italy.jpg/1280px-ISS017-E-9734_-_View_of_Italy.jpg",
-    "Pantelleria":       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Pantelleria-pan.jpg/1280px-Pantelleria-pan.jpg",
+    "Ischia":            "https://upload.wikimedia.org/wikipedia/commons/0/0d/Ischia_da_procida.jpg",
+    "Pantelleria":       "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Pantelleria_sulla_Costa.jpg/1280px-Pantelleria_sulla_Costa.jpg",
     "Lipari-Vulcanello": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lipari_Island_from_the_air.jpg/1280px-Lipari_Island_from_the_air.jpg",
     "Colli Albani":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Monte_Cavo_Visto_da_castel_gandolfo.jpg/1280px-Monte_Cavo_Visto_da_castel_gandolfo.jpg",
     "Monte Amiata":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/MonteAmiataFromEast.jpg/1280px-MonteAmiataFromEast.jpg",
@@ -121,7 +121,7 @@ _VULCANO_FOTO = {
 
 # Inquadratura ottimale per vulcano (object-position) — evita teste tagliate / mare vuoto
 _VULCANO_FOCUS = {
-    "Vesuvio":           "70% 35%",
+    "Vesuvio":           "center 50%",
     "Etna":              "center 45%",
     "Stromboli":         "center 40%",
     "Campi Flegrei":     "center 50%",
