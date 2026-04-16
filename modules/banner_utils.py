@@ -105,7 +105,7 @@ _VULCANO_FOTO = {
     "Campi Flegrei":     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Panorama_con_Cratere_degli_Astroni.jpg/1280px-Panorama_con_Cratere_degli_Astroni.jpg",
     "Vulcano":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Aerial_image_of_Vulcano_%28view_from_the_east%29.jpg/1280px-Aerial_image_of_Vulcano_%28view_from_the_east%29.jpg",
     "Ischia":            "https://upload.wikimedia.org/wikipedia/commons/0/0d/Ischia_da_procida.jpg",
-    "Pantelleria":       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Montagna_grande._Pantelleria.jpg/1280px-Montagna_grande._Pantelleria.jpg",
+    "Pantelleria":       "https://upload.wikimedia.org/wikipedia/commons/a/a1/Specchio_di_Venere.jpg",
     "Lipari-Vulcanello": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lipari_Island_from_the_air.jpg/1280px-Lipari_Island_from_the_air.jpg",
     "Colli Albani":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Monte_Cavo_Visto_da_castel_gandolfo.jpg/1280px-Monte_Cavo_Visto_da_castel_gandolfo.jpg",
     "Monte Amiata":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/MonteAmiataFromEast.jpg/1280px-MonteAmiataFromEast.jpg",
