@@ -399,8 +399,7 @@ def show():
     if _AUTOREFRESH_OK:
         _st_autorefresh(interval=1_800_000, limit=None, key="vulcani_autorefresh")
 
-    from modules.banner_utils import banner_vulcani
-    banner_vulcani()
+    from modules.banner_utils import vulcano_hero_card
 
     # Informazioni sui vulcani attivi italiani
     vulcani_italiani = {
@@ -731,6 +730,9 @@ def show():
             
             # Mostra scheda informativa sul vulcano selezionato
             info_vulcano = vulcani_italiani[vulcano_selezionato]
+
+            # Hero card unica con foto del vulcano selezionato
+            vulcano_hero_card(vulcano_selezionato, info_vulcano)
             
         with col2:
             # Link a bollettino ufficiale
@@ -873,32 +875,20 @@ def show():
 
             _show_deformazione_block("Campi Flegrei")
 
-            # Bollettino web settimanale (immagine ufficiale INGV OV)
-            st.markdown("### 📋 Bollettino settimanale INGV OV — Campi Flegrei")
-            try:
-                import requests as _req
-                _boll = _req.get(
-                    "https://www.ov.ingv.it/joomlatools-files/docman-images/BollettinoWeb_CF.jpg",
-                    timeout=8
-                )
-                if _boll.status_code == 200:
-                    from io import BytesIO
-                    st.image(BytesIO(_boll.content), caption="Bollettino Web Campi Flegrei — INGV OV", use_container_width=True)
-                else:
-                    raise ValueError(f"HTTP {_boll.status_code}")
-            except Exception:
-                st.markdown(
-                    "🔗 [Visualizza il bollettino settimanale sul sito INGV OV]"
-                    "(https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/boll-sett-flegrei)"
-                )
 
-            st.markdown("---")
-
-            # Sismicità recente in tempo reale
+            # Sismicità recente in tempo reale — fetch FDSN filtrato sulla bbox flegrea
             st.subheader("🌊 Ultimi eventi sismici nell'area flegrea")
-            st.markdown(f"""
-            <iframe width="100%" height="600" src="https://terremoti.ingv.it/events?starttime={_d_start}+00%3A00%3A00&endtime={_d_end}+23%3A59%3A59&minmag=-1&maxmag=10&mindepth=-10&maxdepth=1000&minlat=40.75&maxlat=40.9&minlon=14.0&maxlon=14.3&minversion=100&limit=30&orderby=ot-desc&lat=40.827&lon=14.139&maxradiuskm=10&wheretype=area&box_search=Campi+Flegrei" frameborder="0"></iframe>
-            """, unsafe_allow_html=True)
+            cf_events = get_campi_flegrei_recent_events()
+            if cf_events:
+                df_cf = pd.DataFrame(cf_events)
+                df_cf = df_cf.rename(columns={
+                    "time": "Data/Ora", "magnitude": "Magnitudo",
+                    "depth": "Profondità (km)", "location": "Località"
+                })
+                st.caption(f"📡 Ultimi 30 giorni · raggio 22 km da Pozzuoli (40.827°N, 14.139°E) · {len(df_cf)} eventi · fonte INGV FDSN")
+                st.dataframe(df_cf, use_container_width=True, hide_index=True)
+            else:
+                st.info("Nessun evento sismico significativo registrato nell'area flegrea negli ultimi 30 giorni.")
 
             st.markdown(
                 "🔗 [Tutti i bollettini settimanali CF](https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/boll-sett-flegrei) · "

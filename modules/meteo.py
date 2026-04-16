@@ -215,6 +215,31 @@ def show():
         lat_om, lon_om, city_label = 41.0, 14.25, "Napoli"
         coords = None
 
+        @st.cache_data(ttl=3600, show_spinner=False)
+        def _reverse_geocode(lat, lon):
+            """Lat/lon → 'Comune (Provincia, Regione)' in italiano via Nominatim OSM."""
+            try:
+                r = requests.get(
+                    "https://nominatim.openstreetmap.org/reverse",
+                    params={"lat": lat, "lon": lon, "format": "json", "zoom": 12, "addressdetails": 1},
+                    headers={"User-Agent": "SismaVer2/1.0 (monitoraggio italiano)",
+                             "Accept-Language": "it"},
+                    timeout=6,
+                )
+                if r.status_code == 200:
+                    a = r.json().get("address", {})
+                    comune = (a.get("city") or a.get("town") or a.get("village")
+                              or a.get("municipality") or a.get("hamlet") or a.get("county"))
+                    provincia = a.get("county") or a.get("state_district") or ""
+                    regione = a.get("state") or ""
+                    parts = [p for p in [provincia, regione] if p and p != comune]
+                    extra = f" ({', '.join(parts)})" if parts else ""
+                    if comune:
+                        return f"{comune}{extra}"
+            except Exception:
+                pass
+            return f"GPS {lat:.4f}°N, {lon:.4f}°E"
+
         if metodo == "📍 Usa posizione attuale":
             with st.spinner("Recupero posizione GPS..."):
                 coords = streamlit_js_eval(
@@ -223,7 +248,9 @@ def show():
                 )
             if coords and "lat" in coords:
                 lat_om, lon_om = coords["lat"], coords["lon"]
-                city_label = "Posizione attuale"
+                with st.spinner("Identificazione località..."):
+                    city_label = _reverse_geocode(lat_om, lon_om)
+                st.success(f"📍 Posizione rilevata: **{city_label}** · `{lat_om:.4f}°N, {lon_om:.4f}°E`")
             else:
                 st.info("GPS non disponibile — mostro dati per Napoli.")
         else:
@@ -264,7 +291,8 @@ def show():
                     try:
                         from datetime import date as _date
                         d = _date.fromisoformat(days[i])
-                        label = "Oggi" if d == _date.today() else d.strftime("%a %d/%m")
+                        _giorni_it = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"]
+                        label = "Oggi" if d == _date.today() else f"{_giorni_it[d.weekday()]} {d.strftime('%d/%m')}"
                     except Exception:
                         label = days[i]
                     ico, _ = _wmo(codes[i] if i < len(codes) else 0)

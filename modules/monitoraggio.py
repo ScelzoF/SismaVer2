@@ -28,6 +28,80 @@ def _get_tz_italia():
 
 FUSO_ORARIO_ITALIA = _get_tz_italia()
 
+import re as _re_prov
+
+_PROVINCE_TO_REGION = {
+    "AQ": "Abruzzo", "CH": "Abruzzo", "PE": "Abruzzo", "TE": "Abruzzo",
+    "MT": "Basilicata", "PZ": "Basilicata",
+    "CS": "Calabria", "CZ": "Calabria", "KR": "Calabria", "RC": "Calabria", "VV": "Calabria",
+    "AV": "Campania", "BN": "Campania", "CE": "Campania", "NA": "Campania", "SA": "Campania",
+    "BO": "Emilia-Romagna", "FC": "Emilia-Romagna", "FE": "Emilia-Romagna", "MO": "Emilia-Romagna",
+    "PC": "Emilia-Romagna", "PR": "Emilia-Romagna", "RA": "Emilia-Romagna", "RE": "Emilia-Romagna", "RN": "Emilia-Romagna",
+    "GO": "Friuli-Venezia Giulia", "PN": "Friuli-Venezia Giulia", "TS": "Friuli-Venezia Giulia", "UD": "Friuli-Venezia Giulia",
+    "FR": "Lazio", "LT": "Lazio", "RI": "Lazio", "RM": "Lazio", "VT": "Lazio",
+    "GE": "Liguria", "IM": "Liguria", "SP": "Liguria", "SV": "Liguria",
+    "BG": "Lombardia", "BS": "Lombardia", "CO": "Lombardia", "CR": "Lombardia", "LC": "Lombardia",
+    "LO": "Lombardia", "MB": "Lombardia", "MI": "Lombardia", "MN": "Lombardia", "PV": "Lombardia",
+    "SO": "Lombardia", "VA": "Lombardia",
+    "AN": "Marche", "AP": "Marche", "FM": "Marche", "MC": "Marche", "PU": "Marche",
+    "CB": "Molise", "IS": "Molise",
+    "AL": "Piemonte", "AT": "Piemonte", "BI": "Piemonte", "CN": "Piemonte", "NO": "Piemonte",
+    "TO": "Piemonte", "VB": "Piemonte", "VC": "Piemonte",
+    "BA": "Puglia", "BR": "Puglia", "BT": "Puglia", "FG": "Puglia", "LE": "Puglia", "TA": "Puglia",
+    "CA": "Sardegna", "NU": "Sardegna", "OR": "Sardegna", "SS": "Sardegna", "SU": "Sardegna",
+    "AG": "Sicilia", "CL": "Sicilia", "CT": "Sicilia", "EN": "Sicilia", "ME": "Sicilia",
+    "PA": "Sicilia", "RG": "Sicilia", "SR": "Sicilia", "TP": "Sicilia",
+    "AR": "Toscana", "FI": "Toscana", "GR": "Toscana", "LI": "Toscana", "LU": "Toscana",
+    "MS": "Toscana", "PI": "Toscana", "PO": "Toscana", "PT": "Toscana", "SI": "Toscana",
+    "BZ": "Trentino-Alto Adige", "TN": "Trentino-Alto Adige",
+    "PG": "Umbria", "TR": "Umbria",
+    "AO": "Valle d'Aosta",
+    "BL": "Veneto", "PD": "Veneto", "RO": "Veneto", "TV": "Veneto", "VE": "Veneto", "VI": "Veneto", "VR": "Veneto",
+}
+
+_REGIONI_BBOX = {
+    "Abruzzo": (41.68, 42.90, 13.02, 14.79),
+    "Basilicata": (39.90, 41.14, 15.34, 16.87),
+    "Calabria": (37.91, 40.15, 15.63, 17.21),
+    "Campania": (39.99, 41.51, 13.75, 15.81),
+    "Emilia-Romagna": (43.73, 45.14, 9.20, 12.76),
+    "Friuli-Venezia Giulia": (45.58, 46.65, 12.32, 13.92),
+    "Lazio": (40.78, 42.84, 11.45, 14.03),
+    "Liguria": (43.77, 44.68, 7.49, 10.07),
+    "Lombardia": (44.68, 46.64, 8.50, 11.42),
+    "Marche": (42.69, 43.97, 12.18, 13.92),
+    "Molise": (41.36, 42.06, 14.10, 15.16),
+    "Piemonte": (44.06, 46.46, 6.62, 9.21),
+    "Puglia": (39.79, 42.22, 14.94, 18.55),
+    "Sardegna": (38.85, 41.32, 8.13, 9.83),
+    "Sicilia": (35.49, 38.81, 11.93, 15.65),
+    "Toscana": (42.24, 44.47, 9.69, 12.37),
+    "Trentino-Alto Adige": (45.67, 47.10, 10.38, 12.48),
+    "Umbria": (42.36, 43.62, 11.89, 13.27),
+    "Valle d'Aosta": (45.46, 45.99, 6.79, 7.94),
+    "Veneto": (44.79, 46.68, 10.62, 13.10),
+}
+
+def _evento_in_regione(place: str, lat: float, lon: float, regione: str) -> bool:
+    """Filtro robusto: prima sigla provincia tra parentesi, poi bounding box come fallback."""
+    if not regione or regione.startswith("Italia"):
+        return True
+    try:
+        if isinstance(place, str):
+            m = _re_prov.search(r"\(([A-Z]{2})\)", place)
+            if m:
+                sigla = m.group(1)
+                reg_match = _PROVINCE_TO_REGION.get(sigla)
+                if reg_match is not None:
+                    return reg_match == regione
+        bbox = _REGIONI_BBOX.get(regione)
+        if bbox and lat is not None and lon is not None:
+            lat_min, lat_max, lon_min, lon_max = bbox
+            return (lat_min <= float(lat) <= lat_max) and (lon_min <= float(lon) <= lon_max)
+    except Exception:
+        return False
+    return False
+
 def show():
     # Auto-refresh ogni 5 minuti per dati sismici live
     if _AUTOREFRESH:
@@ -469,7 +543,38 @@ def show():
                     # Recupera i dati con gestione errori efficiente
                     sensor_data, error_msg = fetch_seismic_data(ingv_url)
                     features = sensor_data.get("features", [])
-                    
+
+                    # Filtro post-fetch per regione (sigla provincia + bbox di fallback)
+                    # oppure bbox Italia stretto per visione nazionale (esclude Balcani, Grecia, ecc.)
+                    _is_nazionale = (not regione_scelta) or regione_scelta.startswith("Italia")
+                    _ITA_BBOX = (35.5, 47.1, 6.6, 18.55)  # lat_min, lat_max, lon_min, lon_max
+                    _tot_pre = len(features)
+                    _filtered = []
+                    for _f in features:
+                        try:
+                            _props = _f.get("properties", {}) or {}
+                            _geom = (_f.get("geometry", {}) or {}).get("coordinates", []) or []
+                            _place = _props.get("place", "") or ""
+                            _lon = _geom[0] if len(_geom) > 0 else None
+                            _lat = _geom[1] if len(_geom) > 1 else None
+                            if _is_nazionale:
+                                if _lat is None or _lon is None:
+                                    continue
+                                la, lo = float(_lat), float(_lon)
+                                if _ITA_BBOX[0] <= la <= _ITA_BBOX[1] and _ITA_BBOX[2] <= lo <= _ITA_BBOX[3]:
+                                    _filtered.append(_f)
+                            else:
+                                if _evento_in_regione(_place, _lat, _lon, regione_scelta):
+                                    _filtered.append(_f)
+                        except Exception:
+                            continue
+                    features = _filtered
+                    _label = "Italia" if _is_nazionale else regione_scelta
+                    if _tot_pre and not features:
+                        st.info(f"Nessun evento nelle ultime 24 ore con epicentro in {_label} (esclusi {_tot_pre} eventi esteri/limitrofi).")
+                    elif _tot_pre != len(features):
+                        st.caption(f"🔎 Filtrati {len(features)} eventi su {_tot_pre} con epicentro effettivo in {_label}.")
+
                     if error_msg:
                         # Se è un messaggio di ripristino INGV (inizia con ✅), usa st.success invece di warning
                         if error_msg.startswith("✅"):

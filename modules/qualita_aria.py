@@ -97,21 +97,77 @@ def show():
 
     st.markdown("---")
 
-    # Selezione città
-    citta_scelta = st.selectbox("Seleziona città per dettaglio", ["Tutte le città"] + sorted(CITTA.keys()))
+    @st.cache_data(ttl=86400, show_spinner=False)
+    def _geocode_it(name):
+        try:
+            r = requests.get(
+                "https://geocoding-api.open-meteo.com/v1/search",
+                params={"name": name, "count": 5, "language": "it", "countryCode": "IT"},
+                timeout=6
+            )
+            if r.status_code == 200:
+                data = r.json().get("results", []) or []
+                return [x for x in data if x.get("country_code") == "IT"]
+        except Exception:
+            pass
+        return []
 
-    if citta_scelta != "Tutte le città":
+    # ── Ricerca libera (sempre visibile) ──
+    st.markdown("#### 🔎 Cerca un qualsiasi comune italiano")
+    c_in, c_btn = st.columns([4, 1])
+    with c_in:
+        comune_input = st.text_input(
+            "Nome comune", value="",
+            placeholder="Es. Pozzuoli, Lecce, Aosta, Torre Annunziata…",
+            key="aqi_city_search", label_visibility="collapsed"
+        )
+    with c_btn:
+        cerca = st.button("Cerca", use_container_width=True, type="primary")
+
+    lat = lon = None
+    citta_scelta = None
+    d = None
+
+    if comune_input.strip() and (cerca or st.session_state.get("aqi_last_search") == comune_input.strip()):
+        st.session_state["aqi_last_search"] = comune_input.strip()
+        results = _geocode_it(comune_input.strip())
+        if not results:
+            st.warning(f"Nessun comune italiano trovato per '**{comune_input}**'. Controlla l'ortografia (es. 'Reggio Emilia', 'L'Aquila').")
+        else:
+            opzioni = {}
+            for r in results:
+                prov = r.get("admin2") or ""
+                reg = r.get("admin1") or ""
+                extra = f" ({prov}, {reg})" if prov else (f" ({reg})" if reg else "")
+                opzioni[f"{r['name']}{extra}"] = r
+            scelta = st.selectbox("Risultati", list(opzioni.keys()), key="aqi_city_match")
+            match = opzioni[scelta]
+            citta_scelta = match["name"]
+            lat, lon = match["latitude"], match["longitude"]
+
+    st.markdown("---")
+    st.markdown("#### 🏙️ …oppure scegli tra le 20 principali città")
+    citta_dropdown = st.selectbox(
+        "Seleziona città", ["— Mostra panoramica di tutte le città —"] + sorted(CITTA.keys()),
+        key="aqi_city_dropdown", label_visibility="collapsed"
+    )
+
+    # Priorità: ricerca libera > dropdown
+    if lat is None and citta_dropdown != "— Mostra panoramica di tutte le città —":
+        citta_scelta = citta_dropdown
         lat, lon = CITTA[citta_scelta]
+
+    if lat is not None:
         with st.spinner(f"Caricamento dati {citta_scelta}..."):
             d = _fetch_aqi(lat, lon)
 
-        if d:
+        if d and d.get("aqi") is not None:
             aqi_label, aqi_color = _aqi_label(d.get("aqi"))
             st.markdown(f"""
             <div style='background:{aqi_color};color:white;padding:20px;border-radius:10px;text-align:center;margin:10px 0;'>
                 <h2 style='margin:0;'>🌬️ {citta_scelta}</h2>
                 <h1 style='margin:5px 0;font-size:3rem;'>{aqi_label}</h1>
-                <p style='margin:0;opacity:0.9;'>Indice di Qualità dell'Aria Europeo</p>
+                <p style='margin:0;opacity:0.9;'>Indice di Qualità dell'Aria Europeo · 📍 {lat:.4f}°N, {lon:.4f}°E</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -136,7 +192,7 @@ def show():
             })
             st.dataframe(df_who, use_container_width=True, hide_index=True)
         else:
-            st.warning("Dati non disponibili per questa città. Riprova tra qualche minuto.")
+            st.warning("Dati di qualità dell'aria non disponibili per questa località. Riprova tra qualche minuto.")
     else:
         st.subheader("📍 Panoramica qualità aria — tutte le principali città")
         st.info("Caricamento di 20 città in parallelo — potrebbe richiedere alcuni secondi...")
