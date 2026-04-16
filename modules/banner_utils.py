@@ -115,8 +115,8 @@ _VULCANO_FOTO = {
     "Alicudi":           "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Aerial_image_of_Alicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Alicudi_%28view_from_the_south%29.jpg",
     "Filicudi":          "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg",
     # Vulcani sottomarini → immagine arco eoliano / storica
-    "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/CalabrianArc-GeotectonicSection.jpg/1280px-CalabrianArc-GeotectonicSection.jpg",
-    "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/L%27isola_Ferdinandea_-_Camillo_De_Vito.jpg/1280px-L%27isola_Ferdinandea_-_Camillo_De_Vito.jpg",
+    "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/CentralMediterranean-GeotectonicMap.jpg/1280px-CentralMediterranean-GeotectonicMap.jpg",
+    "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/3/3f/HMS_Melville_and_Graham_Island.jpg",
 }
 
 # Inquadratura ottimale per vulcano (object-position) — evita teste tagliate / mare vuoto
