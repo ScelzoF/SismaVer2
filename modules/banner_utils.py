@@ -105,7 +105,7 @@ _VULCANO_FOTO = {
     "Campi Flegrei":     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Panorama_con_Cratere_degli_Astroni.jpg/1280px-Panorama_con_Cratere_degli_Astroni.jpg",
     "Vulcano":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Aerial_image_of_Vulcano_%28view_from_the_east%29.jpg/1280px-Aerial_image_of_Vulcano_%28view_from_the_east%29.jpg",
     "Ischia":            "https://upload.wikimedia.org/wikipedia/commons/0/0d/Ischia_da_procida.jpg",
-    "Pantelleria":       "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Pantelleria_sulla_Costa.jpg/1280px-Pantelleria_sulla_Costa.jpg",
+    "Pantelleria":       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Montagna_grande._Pantelleria.jpg/1280px-Montagna_grande._Pantelleria.jpg",
     "Lipari-Vulcanello": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lipari_Island_from_the_air.jpg/1280px-Lipari_Island_from_the_air.jpg",
     "Colli Albani":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Monte_Cavo_Visto_da_castel_gandolfo.jpg/1280px-Monte_Cavo_Visto_da_castel_gandolfo.jpg",
     "Monte Amiata":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/MonteAmiataFromEast.jpg/1280px-MonteAmiataFromEast.jpg",
@@ -116,7 +116,7 @@ _VULCANO_FOTO = {
     "Filicudi":          "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg",
     # Vulcani sottomarini → immagine arco eoliano / storica
     "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/CalabrianArc-GeotectonicSection.jpg/1280px-CalabrianArc-GeotectonicSection.jpg",
-    "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Graham_Island_Eruption.jpg/1280px-Graham_Island_Eruption.jpg",
+    "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/L%27isola_Ferdinandea_-_Camillo_De_Vito.jpg/1280px-L%27isola_Ferdinandea_-_Camillo_De_Vito.jpg",
 }
 
 # Inquadratura ottimale per vulcano (object-position) — evita teste tagliate / mare vuoto
