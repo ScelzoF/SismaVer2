@@ -109,14 +109,14 @@ _VULCANO_FOTO = {
     "Lipari-Vulcanello": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lipari_Island_from_the_air.jpg/1280px-Lipari_Island_from_the_air.jpg",
     "Colli Albani":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Monte_Cavo_Visto_da_castel_gandolfo.jpg/1280px-Monte_Cavo_Visto_da_castel_gandolfo.jpg",
     "Monte Amiata":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/MonteAmiataFromEast.jpg/1280px-MonteAmiataFromEast.jpg",
-    "Ustica":            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Mia_amata_Ustica.jpg/1280px-Mia_amata_Ustica.jpg",
+    "Ustica":            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Area_Marina_Protetta_-_Isola_di_Ustica_-_Sicilia.jpg/1280px-Area_Marina_Protetta_-_Isola_di_Ustica_-_Sicilia.jpg",
     "Linosa":            "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Linosa_2.jpg/1280px-Linosa_2.jpg",
     "Salina":            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Aerial_image_of_Salina_%28view_from_the_southwest%29.jpg/1280px-Aerial_image_of_Salina_%28view_from_the_southwest%29.jpg",
     "Alicudi":           "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lipari_Island_from_the_air.jpg/1280px-Lipari_Island_from_the_air.jpg",
     "Filicudi":          "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg",
     # Vulcani sottomarini → immagine arco eoliano / storica
     "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Aeolian_Arc.jpg/1280px-Aeolian_Arc.jpg",
-    "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/L%27isola_Ferdinandea_-_Camillo_De_Vito.jpg/1280px-L%27isola_Ferdinandea_-_Camillo_De_Vito.jpg",
+    "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Graham_Island_Eruption.jpg/1280px-Graham_Island_Eruption.jpg",
 }
 
 # Inquadratura ottimale per vulcano (object-position) — evita teste tagliate / mare vuoto
