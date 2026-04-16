@@ -122,7 +122,7 @@ _VULCANO_FOTO = {
 # Inquadratura ottimale per vulcano (object-position) — evita teste tagliate / mare vuoto
 _VULCANO_FOCUS = {
     "Vesuvio":           "center 30%",
-    "Etna":              "center 35%",
+    "Etna":              "center 62%",
     "Stromboli":         "center 40%",
     "Campi Flegrei":     "center 50%",
     "Vulcano":           "center 50%",
