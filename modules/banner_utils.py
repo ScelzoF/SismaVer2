@@ -112,7 +112,7 @@ _VULCANO_FOTO = {
     "Ustica":            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Area_Marina_Protetta_-_Isola_di_Ustica_-_Sicilia.jpg/1280px-Area_Marina_Protetta_-_Isola_di_Ustica_-_Sicilia.jpg",
     "Linosa":            "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Linosa_2.jpg/1280px-Linosa_2.jpg",
     "Salina":            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Aerial_image_of_Salina_%28view_from_the_southwest%29.jpg/1280px-Aerial_image_of_Salina_%28view_from_the_southwest%29.jpg",
-    "Alicudi":           "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lipari_Island_from_the_air.jpg/1280px-Lipari_Island_from_the_air.jpg",
+    "Alicudi":           "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Aerial_image_of_Alicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Alicudi_%28view_from_the_south%29.jpg",
     "Filicudi":          "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg",
     # Vulcani sottomarini → immagine arco eoliano / storica
     "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/CalabrianArc-GeotectonicSection.jpg/1280px-CalabrianArc-GeotectonicSection.jpg",
