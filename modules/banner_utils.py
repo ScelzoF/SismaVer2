@@ -219,8 +219,8 @@ def vulcano_hero_card(nome: str, info: dict):
     obj_pos = _VULCANO_FOCUS.get(nome, "center 45%")
 
     html = (
-        '<div style="position:relative;width:100%;aspect-ratio:16/9;'
-        'border-radius:16px;overflow:hidden;margin-bottom:18px;'
+        '<div style="position:relative;width:100%;aspect-ratio:21/9;'
+        'max-height:280px;border-radius:16px;overflow:hidden;margin-bottom:18px;'
         'box-shadow:0 8px 28px rgba(0,0,0,0.32);background:#0F172A;">'
         f'<img src="{foto}" alt="{nome}" loading="eager" decoding="async" '
         f'fetchpriority="high" '
