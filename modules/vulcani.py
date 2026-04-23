@@ -28,7 +28,7 @@ def _get_tz_italia():
 FUSO_ORARIO_ITALIA = _get_tz_italia()
 
 # Funzione per recuperare eventi vulcanici - accessibile a tutto il modulo
-@st.cache_data(ttl=7200)  # Cache di due ore per dati vulcanici (più stabili)
+@st.cache_data(ttl=300)  # Cache 5 min — dati sismici vulcani live
 @lru_cache(maxsize=8)  # Doppio livello di cache per maggiore efficienza
 def get_vulcano_recent_events(vulcano_name, lat, lon, days=30, max_radius=0.2):
     """
@@ -60,44 +60,14 @@ def get_vulcano_recent_events(vulcano_name, lat, lon, days=30, max_radius=0.2):
     # Verifica cache in session_state (più veloce)
     if cache_key in st.session_state and cache_time_key in st.session_state:
         cache_age = datetime.now(FUSO_ORARIO_ITALIA) - st.session_state[cache_time_key]
-        # Usa cache se più recente di 2 ore
-        if cache_age.total_seconds() < 7200:
+        # Usa cache se più recente di 5 minuti
+        if cache_age.total_seconds() < 300:
             print(f"INFO: Dati {vulcano_name} da cache (età: {int(cache_age.total_seconds())}s)")
             return st.session_state[cache_key]
     
-    # Funzione per il fallback a dati storici
+    # Fallback: lista vuota — mai dati inventati
     def get_historical_events():
-        # Dati storici per resilienza
-        historical_events = []
-        # Vesuvio
-        if vulcano_name == "Vesuvio":
-            historical_events = [
-                {"time": "2026-03-28 10:14", "magnitude": 1.6, "depth": 1.1, "location": "Vesuvio"},
-                {"time": "2026-03-15 07:52", "magnitude": 1.9, "depth": 1.4, "location": "Vesuvio"},
-                {"time": "2026-02-20 18:33", "magnitude": 1.4, "depth": 0.8, "location": "Vesuvio"}
-            ]
-        # Campi Flegrei
-        elif vulcano_name == "Campi Flegrei":
-            historical_events = [
-                {"time": "2026-04-10 14:22", "magnitude": 2.4, "depth": 2.0, "location": "Pozzuoli"},
-                {"time": "2026-04-05 08:47", "magnitude": 2.1, "depth": 1.6, "location": "Solfatara"},
-                {"time": "2026-03-29 22:15", "magnitude": 2.7, "depth": 2.3, "location": "Pozzuoli"}
-            ]
-        # Etna
-        elif vulcano_name == "Etna":
-            historical_events = [
-                {"time": "2026-04-08 11:30", "magnitude": 2.8, "depth": 3.0, "location": "Cratere SE"},
-                {"time": "2026-04-02 19:55", "magnitude": 2.3, "depth": 2.5, "location": "Piano Provenzana"},
-                {"time": "2026-03-25 08:10", "magnitude": 3.2, "depth": 4.2, "location": "Cratere Centrale"}
-            ]
-        # Stromboli
-        elif vulcano_name == "Stromboli":
-            historical_events = [
-                {"time": "2026-04-09 17:44", "magnitude": 2.0, "depth": 0.9, "location": "Stromboli"},
-                {"time": "2026-04-03 23:11", "magnitude": 1.7, "depth": 0.6, "location": "Ginostra"},
-                {"time": "2026-03-28 04:38", "magnitude": 2.3, "depth": 1.2, "location": "Stromboli"}
-            ]
-        return historical_events
+        return []
         
     try:
         # Prepara richiesta con fuso orario corretto
@@ -253,19 +223,19 @@ def get_vulcano_recent_events(vulcano_name, lat, lon, days=30, max_radius=0.2):
         return get_historical_events()
 
 # Funzioni helper per il monitoraggio vulcanico
-@st.cache_data(ttl=7200)
+@st.cache_data(ttl=300)
 def get_vesuvio_recent_events():
     return get_vulcano_recent_events("Vesuvio", 40.821, 14.426, 30, 0.2)
 
-@st.cache_data(ttl=7200)
+@st.cache_data(ttl=300)
 def get_etna_recent_events():
     return get_vulcano_recent_events("Etna", 37.751, 14.994, 30, 0.3)
 
-@st.cache_data(ttl=7200)
+@st.cache_data(ttl=300)
 def get_campi_flegrei_recent_events():
     return get_vulcano_recent_events("Campi Flegrei", 40.827, 14.139, 30, 0.2)
 
-@st.cache_data(ttl=7200)
+@st.cache_data(ttl=300)
 def get_stromboli_recent_events():
     return get_vulcano_recent_events("Stromboli", 38.789, 15.213, 30, 0.1)
 
@@ -360,17 +330,17 @@ _DEFORMAZIONE = {
     "Campi Flegrei": {
         "station": "GPS-RITE (Rione Terra, Pozzuoli)",
         "color": "#DC2626",
-        "source": "INGV OV — bollettini mensili",
-        "note": "Bradisismo in corso — sollevamento accelerato dal 2022",
+        "source": "INGV OV — bollettini mensili (agg. apr 2026)",
+        "note": "Bradisismo in corso — sollevamento accelerato dal 2022 · ~1-1.5 cm/mese",
         "link": "https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/bollettini-tutti/bollett-mensili-cf",
         "dates": ["2005-01","2006-01","2007-01","2008-01","2009-01","2010-01",
                   "2011-01","2012-01","2013-01","2014-01","2015-01","2016-01",
                   "2017-01","2018-01","2019-01","2020-01","2021-01","2022-01",
                   "2022-07","2023-01","2023-07","2024-01","2024-07","2025-01",
                   "2025-07","2026-01","2026-04"],
-        "values": [0, 5, 6, 7, 8, 10, 14, 22, 28, 32, 34, 38,
-                   46, 55, 62, 72, 82, 92, 100, 112, 122, 132, 142, 152,
-                   162, 170, 174],
+        "values": [0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.5, 7.0, 8.5, 10.0, 11.5,
+                   14.0, 18.0, 21.0, 27.0, 37.0, 57.0, 71.0, 85.0, 98.0,
+                   108.0, 115.0, 120.0, 123.0, 124.5, 125.0],
     },
 }
 
@@ -380,7 +350,12 @@ def _show_deformazione_block(vulcano_nome):
     if not d:
         return
     st.markdown(f"### 📈 Deformazione del suolo — {d['station']}")
-    st.caption(f"Fonte: {d['source']} · {d['note']}")
+    st.caption(f"📋 {d['source']} · {d['note']}")
+    st.info(
+        "⚠️ **Nota:** Il grafico riporta i valori cumulativi dal bollettino mensile INGV "
+        "(non è un dato in tempo reale). Per il dato live aggiornato consulta il link sottostante.",
+        icon="📋"
+    )
     try:
         fig = _plot_deformazione(
             d["dates"], d["values"],
@@ -391,13 +366,13 @@ def _show_deformazione_block(vulcano_nome):
         st.plotly_chart(fig, width='stretch')
     except Exception as _e:
         st.warning(f"Grafico non disponibile: {_e}")
-    st.markdown(f"📡 [Dati live bollettini INGV →]({d['link']})")
+    st.markdown(f"📡 [Consulta il bollettino INGV aggiornato →]({d['link']})")
     st.markdown("---")
 
 def show():
-    # Auto-refresh ogni 30 minuti per dati vulcanici
+    # Auto-refresh ogni 5 minuti per dati sismici vulcani
     if _AUTOREFRESH_OK:
-        _st_autorefresh(interval=1_800_000, limit=None, key="vulcani_autorefresh")
+        _st_autorefresh(interval=300_000, limit=None, key="vulcani_autorefresh")
 
     from modules.banner_utils import vulcano_hero_card
 
@@ -766,9 +741,14 @@ def show():
                 "Rosso": "red"
             }.get(info_vulcano["livello_allerta"], "gray")
             
+            livello_ita = info_vulcano["livello_allerta"]
+            bollettino_link = info_vulcano.get("bollettino_settimanale", "https://www.ingv.it/it/monitoraggio-e-infrastrutture/bollettini")
             st.markdown(f"""
-            <div style="background-color: {alert_color}; padding: 10px; border-radius: 5px; color: {'black' if alert_color in ['yellow', 'green'] else 'white'}; text-align: center; font-weight: bold;">
-                Livello {info_vulcano["livello_allerta"]}
+            <div style="background-color:{alert_color};padding:10px;border-radius:5px;color:{'black' if alert_color in ['yellow','green'] else 'white'};text-align:center;font-weight:bold;">
+                🔔 Livello {livello_ita}
+            </div>
+            <div style="text-align:center;font-size:11px;color:#888;margin-top:4px;">
+                Fonte ufficiale INGV · <a href="{bollettino_link}" target="_blank" style="color:#4da6ff;">Bollettino ↗</a>
             </div>
             """, unsafe_allow_html=True)
 
@@ -875,13 +855,15 @@ def show():
             # Ottieni eventi dal Vesuvio
             vesuvio_events = get_vesuvio_recent_events()
             
-            # Se non ci sono eventi, fornisci informazioni
-            if not vesuvio_events:
-                st.info("Nessun evento sismico significativo registrato nell'area del Vesuvio negli ultimi 30 giorni.")
-                vesuvio_events = []
-            
-            df_sismi = pd.DataFrame(vesuvio_events)
-            st.dataframe(df_sismi, width='stretch')
+            if vesuvio_events:
+                df_sismi = pd.DataFrame(vesuvio_events).rename(columns={
+                    "time": "Data/Ora", "magnitude": "Magnitudo",
+                    "depth": "Profondità (km)", "location": "Località"
+                })
+                st.caption(f"📡 Ultimi 30 giorni · raggio 10 km · {len(df_sismi)} eventi · fonte INGV FDSN")
+                st.dataframe(df_sismi, width='stretch', hide_index=True)
+            else:
+                st.info("📡 Nessun evento sismico significativo registrato nell'area del Vesuvio negli ultimi 30 giorni secondo INGV FDSN.")
             
             # Inserisci link alla fonte dei dati
             st.markdown("[🔍 Consulta tutti gli eventi sismici del Vesuvio - INGV](https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/bollettini-tutti/bollett-mensili-ves)")
@@ -972,22 +954,17 @@ def show():
             else:
                 st.info("Nessun evento sismico significativo registrato nell'area dell'Etna negli ultimi 30 giorni.")
             
-            # Attività recente documentata da INGV
-            st.subheader("Attività vulcanica recente")
-            st.write("Dati di attività vulcanica recente elaborati dai bollettini INGV:")
-            
-            # Dati reali basati sui bollettini INGV più recenti
-            attività_recente = [
-                {"data": "2025-03-25", "fenomeno": "Attività stromboliana", "cratere": "Cratere di Sud-Est", "intensità": "Media"},
-                {"data": "2025-03-22", "fenomeno": "Emissione di cenere", "cratere": "Bocca Nuova", "intensità": "Bassa"},
-                {"data": "2025-03-18", "fenomeno": "Colata lavica", "cratere": "Cratere di Sud-Est", "intensità": "Bassa"},
-                {"data": "2025-03-14", "fenomeno": "Fontana di lava", "cratere": "Cratere di Sud-Est", "intensità": "Alta"},
-                {"data": "2025-03-10", "fenomeno": "Attività stromboliana", "cratere": "Cratere di Nord-Est", "intensità": "Media"}
-            ]
-            
-            df_attività = pd.DataFrame(attività_recente)
-            st.dataframe(df_attività, width='stretch')
-            
+            # Attività recente — dati sismici live INGV FDSN
+            st.subheader("🔴 Sismicità recente area Etna (LIVE)")
+            st.caption("Ultimi 30 giorni · raggio 30 km da Etna (37.751°N, 14.994°E) · fonte INGV FDSN")
+            etna_events = get_etna_recent_events()
+            if etna_events:
+                df_etna = pd.DataFrame(etna_events)
+                cols_show = [c for c in ["Data/Ora UTC","Magnitudo","Profondità (km)","Località"] if c in df_etna.columns]
+                st.dataframe(df_etna[cols_show].head(20) if cols_show else df_etna.head(20), width='stretch')
+            else:
+                st.info("Nessun evento sismico significativo registrato nell'area dell'Etna negli ultimi 30 giorni.")
+
             # Link al bollettino settimanale e alle webcam
             st.markdown("---")
             col_links1, col_links2 = st.columns(2)
@@ -999,8 +976,7 @@ def show():
                 st.markdown("📷 **Webcam in diretta:**")
                 st.markdown("[Accedi alle webcam dell'Etna](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/segnali-in-tempo-reale/videocamere)")
                 
-            # Aggiungi informazione sui livelli di allerta
-            st.info("**Stato attuale:** L'Etna mostra attività moderata con occasionali eventi stromboliani e modeste colate. L'accesso ai crateri sommitali è regolamentato in base alle condizioni di attività.")
+            st.info("**Stato attuale:** Per l'attività eruttiva dell'Etna (fontane di lava, colate, cenere) consulta il bollettino settimanale INGV in tempo reale.")
             
             
         elif vulcano_selezionato == "Stromboli":
