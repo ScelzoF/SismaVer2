@@ -133,13 +133,13 @@ def banner_vulcani():
 
 # ── Foto Wikimedia verificate per ogni vulcano italiano (CDN upload.wikimedia) ──
 _VULCANO_FOTO = {
-    "Vesuvio":           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Vesuvio_da_Pompei.jpg/1280px-Vesuvio_da_Pompei.jpg",
+    "Vesuvio":           "https://upload.wikimedia.org/wikipedia/commons/a/af/Vesuvius_from_plane.jpg",
     "Etna":              "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Mt_Etna_and_Catania1.jpg/1280px-Mt_Etna_and_Catania1.jpg",
     "Stromboli":         "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg/1280px-Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg",
     "Campi Flegrei":     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Panorama_con_Cratere_degli_Astroni.jpg/1280px-Panorama_con_Cratere_degli_Astroni.jpg",
     "Vulcano":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Aerial_image_of_Vulcano_%28view_from_the_east%29.jpg/1280px-Aerial_image_of_Vulcano_%28view_from_the_east%29.jpg",
     "Ischia":            "https://upload.wikimedia.org/wikipedia/commons/0/0d/Ischia_da_procida.jpg",
-    "Pantelleria":       "https://upload.wikimedia.org/wikipedia/commons/a/a1/Specchio_di_Venere.jpg",
+    "Pantelleria":       "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Volcanic_Rocks_on_Pantelleria_in_Italy_001.jpg/1280px-Volcanic_Rocks_on_Pantelleria_in_Italy_001.jpg",
     "Lipari-Vulcanello": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lipari_Island_from_the_air.jpg/1280px-Lipari_Island_from_the_air.jpg",
     "Colli Albani":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Monte_Cavo_Visto_da_castel_gandolfo.jpg/1280px-Monte_Cavo_Visto_da_castel_gandolfo.jpg",
     "Monte Amiata":      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/MonteAmiataFromEast.jpg/1280px-MonteAmiataFromEast.jpg",
@@ -148,7 +148,7 @@ _VULCANO_FOTO = {
     "Salina":            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Aerial_image_of_Salina_%28view_from_the_southwest%29.jpg/1280px-Aerial_image_of_Salina_%28view_from_the_southwest%29.jpg",
     "Alicudi":           "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Aerial_image_of_Alicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Alicudi_%28view_from_the_south%29.jpg",
     "Filicudi":          "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg",
-    "Panarea":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Panarea.jpg/1280px-Panarea.jpg",
+    "Panarea":           "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Aerial_image_of_Panarea_%28view_from_the_southeast%29.jpg/1280px-Aerial_image_of_Panarea_%28view_from_the_southeast%29.jpg",
     # Vulcani sottomarini → immagine arco eoliano / storica
     "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/CalabrianArc-GeotectonicSection.jpg/1280px-CalabrianArc-GeotectonicSection.jpg",
     "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/3/3f/HMS_Melville_and_Graham_Island.jpg",
