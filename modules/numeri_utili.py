@@ -113,9 +113,9 @@ def show():
     col1, col2 = st.columns(2)
     half = len(df_reg) // 2
     with col1:
-        st.dataframe(df_reg.iloc[:half], width='stretch', hide_index=True)
+        st.dataframe(df_reg.iloc[:half], use_container_width=True, hide_index=True)
     with col2:
-        st.dataframe(df_reg.iloc[half:], width='stretch', hide_index=True)
+        st.dataframe(df_reg.iloc[half:], use_container_width=True, hide_index=True)
 
     st.markdown("---")
 
@@ -135,7 +135,7 @@ def show():
         "Sassari — A.O.U. Sassari": "079 228 482",
     }
     df_av = pd.DataFrame(list(centri_av.items()), columns=["Centro Antiveleni", "Telefono"])
-    st.dataframe(df_av, width='stretch', hide_index=True)
+    st.dataframe(df_av, use_container_width=True, hide_index=True)
 
     st.markdown("---")
 
