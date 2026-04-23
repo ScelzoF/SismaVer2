@@ -50,14 +50,14 @@ def show():
                 time = None
             rows.append({"Luogo": place, "Magnitudo": mag, "Data/Ora UTC": time})
         df_ita = pd.DataFrame(rows)
-        st.dataframe(df_ita, width='stretch')
+        st.dataframe(df_ita, use_container_width=True)
 
         # Grafico media magnitudo giornaliera
         if not df_ita.empty:
             df_ita = df_ita.dropna(subset=["Data/Ora UTC"])
             media_mag = df_ita.groupby(df_ita["Data/Ora UTC"].dt.date)["Magnitudo"].mean().reset_index()
             fig = px.line(media_mag, x="Data/Ora UTC", y="Magnitudo", title="📈 Media Magnitudo Giornaliera (Italia)")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
     except Exception as e:
         st.error(f"Errore dati INGV: {e}")
 
@@ -79,7 +79,7 @@ def show():
                 "lon": coords_q[0],
             })
         df_global = pd.DataFrame(quakes)
-        st.dataframe(df_global[["Luogo", "Magnitudo", "Data/Ora UTC"]], width='stretch')
+        st.dataframe(df_global[["Luogo", "Magnitudo", "Data/Ora UTC"]], use_container_width=True)
 
         st.pydeck_chart(pdk.Deck(
             initial_view_state=pdk.ViewState(latitude=42.5, longitude=12.5, zoom=3),
