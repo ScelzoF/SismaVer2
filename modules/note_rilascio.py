@@ -5,31 +5,230 @@ from datetime import datetime
 def show():
     from modules.banner_utils import banner_note_rilascio
     banner_note_rilascio()
-    
-    st.write("Questa pagina contiene la cronologia delle versioni e i dettagli sugli aggiornamenti dell'applicazione.")
-    
+
+    st.markdown(
+        "<p style='color:#64748B;font-size:0.9rem;margin-top:0;'>"
+        "Cronologia completa degli aggiornamenti — SismaVer2 · Sviluppato da Fabio Scelzo</p>",
+        unsafe_allow_html=True
+    )
+
     st.markdown("""
-    ## Versione attuale: 2.9.8 (Aprile 2026)
-    
-    SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema 
+    ## Versione attuale: 3.4 (Aprile 2026)
+
+    SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema
     completo di monitoraggio e prevenzione per il territorio italiano.
-    
-    L'applicazione integra dati in tempo reale da fonti ufficiali, offrendo un servizio affidabile 
+    L'applicazione integra dati in tempo reale da fonti ufficiali, offrendo un servizio affidabile
     e aggiornato per tutti i cittadini, con copertura nazionale e funzionalità avanzate.
     """)
-    
-    # Timeline delle versioni con componente visivo
+
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # Versione 2.9.8 — NUOVA
+        # ── Versione 3.4 — ATTUALE ────────────────────────────────────────────
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background:linear-gradient(135deg,#064E3B 0%,#059669 100%);
+                color:white; padding:14px 10px; border-radius:10px; text-align:center;
+                box-shadow:0 4px 12px rgba(5,150,105,0.5);">
+                <div style="font-size:1.6rem; font-weight:800;">v3.4</div>
+                <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
+                <span style="font-size:11px; background:rgba(255,255,255,0.25);
+                    padding:3px 8px; border-radius:8px; font-weight:700;
+                    letter-spacing:0.5px; display:inline-block; margin-top:6px;">
+                    ATTUALE
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 3.4 (Aprile 2026)
+            #### MeteoAlarm dettagliato + feed notizie multi-fonte
+
+            **Home — Allerte MeteoAlarm:**
+            - 📋 **Lista allerte espandibile** — il KPI "N allerte" ora ha un pannello
+              espandibile che mostra per ogni allerta attiva: regione italiana, tipo di
+              fenomeno (Vento/Temporali/Pioggia/Neve/ecc.), livello di gravità
+              (🔴 Rossa / 🟠 Arancione / 🟡 Gialla). Griglia a 3 colonne ordinata
+              per gravità decrescente.
+            - 🗂️ **Feed parser potenziato** — `_fetch_meteoalarm()` ora restituisce
+              `(count, details)` con mapping completo EN→IT per 13 tipi di fenomeno
+              e 4 livelli di allerta.
+
+            **Home — Sezione Notizie:**
+            - 📰 **Titolo corretto** — da "Governo Italiano" a "Protezione Civile & Istituzioni"
+            - ✅ **Feed doppio affidabile** — `governo.it/it/rss.xml` (primario) +
+              `ingvterremoti.com/feed` (secondario scientifico), sempre disponibile
+              anche se una fonte è irraggiungibile. Max 8 notizie combinate.
+            - 🎨 **Colori per fonte** — notizie governo in blu, notizie INGV in verde,
+              con indicatore della fonte per ogni articolo.
+            - ⚠️ **Fallback migliorato** — se entrambe le fonti falliscono, link diretti
+              a DPC + INGV Blog invece di messaggio silenzioso.
+
+            **Home — Attività Vulcanica:**
+            - 🌋 **8 vulcani in griglia 2×4** — più compatta della lista verticale,
+              bilanciata con la colonna dei terremoti. Aggiunta barra attività proporzionale.
+            - 🟠 **Livello Arancione** — scala completa 🟢/🟡/🟠/🔴 (Arancione mancava).
+
+            **Monitoraggio Sismico — Tab Vulcani:**
+            - 📐 **Altezza tabella dinamica** — eliminato `height=340` fisso che creava
+              righe vuote. Ora calcolata esattamente: `38 + n_righe × 36` px.
+            """)
+
+        st.markdown("---")
+
+        # ── Versione 3.3 ──────────────────────────────────────────────────────
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background:linear-gradient(135deg,#064E3B 0%,#059669 100%);
+                color:white; padding:14px 10px; border-radius:10px; text-align:center;
+                box-shadow:0 4px 12px rgba(5,150,105,0.5);">
+                <div style="font-size:1.6rem; font-weight:800;">v3.3</div>
+                <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 3.3 (Aprile 2026)
+            #### Monitoraggio sismico rifatto — tutto live, niente dati statici
+
+            **Monitoraggio Sismico (Tab 1) — correzioni strutturali:**
+            - 🏗️ **Fetch INGV a livello modulo** — `_fetch_ingv_seismic()` è ora una funzione
+              top-level con `@st.cache_data(ttl=300)` corretta. Eliminato l'anti-pattern di
+              `session_state` dentro una funzione cached che causava dati stantii e crash.
+            - ⚡ **Nessun HEAD check preliminare** — rimossi i 4 ping ai server INGV che
+              aggiungevano 10 secondi a freddo. Ora prova direttamente INGV → mirror → USGS.
+            - 🚫 **Nessun `time.sleep()`** dentro funzioni cached — eliminato il blocco UI.
+            - 📋 **100 eventi invece di 20** — il limite `max_events` aumentato da 20 a 100
+              (API restituisce fino a 300 eventi).
+            - 📅 **Conversione date corretta** — la divisione `/1000` veniva applicata anche
+              a stringhe ISO 8601, causando errori. Ora gestisce correttamente timestamp INGV
+              (ms interi) e stringhe ISO (formato INGV e USGS).
+            - 🗑️ **Messaggi fuorvianti rimossi** — eliminati `st.info("Recupero dati...")` che
+              appariva su ogni caricamento e `st.success("Generazione mappa...")` nel mezzo
+              del rendering.
+            - 📜 **Terremoti storici inline** — rimossa dipendenza da `terremoti_italia.csv`
+              (file non esistente). Dati storici ora inline con 17 eventi dal catalogo INGV CPTI.
+            - 🔗 **Link HTTPS** — corretto `http://terremoti.ingv.it` → `https://terremoti.ingv.it`
+              in tutti i link e fallback iframe.
+
+            **Monitoraggio Vulcanico (Tab 2) — live INGV FDSN:**
+            - 🌋 **Livelli allerta 100% live** — eliminato il DataFrame con livelli hardcoded
+              (ARANCIONE/GIALLO/VERDE fissi). Ora ogni vulcano usa `_fetch_volcano_seismicity_all()`
+              che interroga INGV FDSN in parallelo (ThreadPoolExecutor), stessa scala di v3.2.
+            - 📊 **Metriche vulcano live** — nelle schede Vesuvio/Flegrei/Etna/Stromboli/Vulcano,
+              i valori non sono più hardcoded ("24 eventi", "95°C", "142 eventi/settimana").
+              Ora mostra il count sismico INGV FDSN effettivo + livello + link bollettino INGV.
+            - 🖼️ **Immagini statiche rimosse** — `attached_assets/vesuvio_webcam.png`,
+              `flegrei_*.png` etc. (file non esistenti) sostituiti con link diretti alle
+              pagine webcam e bollettini ufficiali INGV.
+            - 🗺️ **Mappa con colori live** — i marker della mappa riflettono il livello
+              di attività reale recuperato da INGV FDSN.
+            - 📋 **Elenco completo vulcani** — tabella aggiuntiva con tutti i 14 vulcani
+              italiani monitorati (non solo gli 8 principali con FDSN attivo).
+
+            **Performance:**
+            - `_fetch_ingv_seismic()`: cache 5 minuti, TTL corretto
+            - `_fetch_volcano_seismicity_all()`: cache 30 minuti, fetch parallelo (6 worker)
+            - Tab idrogeologico: invariato (già ottimale con MeteoAlarm live + ISPRA)
+            """)
+
+        st.markdown("---")
+
+        # ── Versione 3.2 ──────────────────────────────────────────────────────
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background:linear-gradient(135deg,#065F46 0%,#059669 100%);
+                color:white; padding:14px 10px; border-radius:10px; text-align:center;
+                box-shadow:0 4px 12px rgba(5,150,105,0.4);">
+                <div style="font-size:1.6rem; font-weight:800;">v3.2</div>
+                <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 3.2 (Aprile 2026)
+            #### Vulcani 100% live · nessun dato fisso residuo
+
+            - 🌋 **Attività vulcani ora LIVE** — I livelli nella Dashboard Rischi non sono più fissi.
+              Ogni vulcano interroga in tempo reale l'API INGV FDSN: conta gli eventi sismici M≥0.5
+              nell'area vulcanica negli ultimi 7 giorni e li mappa in Verde/Giallo/Arancione/Rosso.
+              Questa è la **stessa metrica usata dall'INGV come parametro primario di sorveglianza**.
+            - 📡 **Fonte**: `webservices.ingv.it/fdsnws` — dati ufficiali INGV, TTL cache 30 minuti
+            - 🔢 **Scala attività sismica vulcanica** (M≥0.5, ultimi 7 giorni, raggio specifico per vulcano):
+              Verde = 0 eventi · Giallo = 1–4 · Arancione = 5–19 · Rosso = 20+
+            - 📊 **KPI aggiornato** — Il 4° indicatore Home mostra "Vulcani con attività"
+            - 🗺️ **Popup mappa migliorato** — ogni marker vulcano mostra il numero esatto di eventi
+            - 📋 **Tabella stato vulcani** — tutti gli 8 vulcani con count eventi in tempo reale
+            - ✅ **Zero valori fissi residui** nella Dashboard Rischi
+            """)
+
+        st.markdown("---")
+
+        # ── Versione 3.1 ─────────────────────────────────────────────────────
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background:linear-gradient(135deg,#4338CA 0%,#6D28D9 100%);
+                color:white; padding:14px 10px; border-radius:10px; text-align:center;
+                box-shadow:0 4px 12px rgba(99,102,241,0.35);">
+                <div style="font-size:1.6rem; font-weight:800;">v3.1</div>
+                <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 3.1 (Aprile 2026)
+            #### KPI live reali · Dashboard Rischi · Mediterraneo + Tsunami · Banner dinamico
+
+            - 📊 **KPI Home 100% live** — I 4 indicatori in alto calcolati live da INGV e MeteoAlarm EU in parallelo
+            - 🌊 **Sezione Mediterraneo + Rischio Tsunami** — Nuova sezione con eventi EMSC M≥4.5 nelle ultime 24h
+            - ⚠️ **NUOVA pagina "Dashboard Rischi"** — Mappa allerte MeteoAlarm per regione + EMSC + vulcani
+            - 🔔 **Banner allerta dinamico** — aggiornato in base a dati reali MeteoAlarm ed EMSC
+            - ⚡ **Fetch parallelo** — ThreadPoolExecutor riduce il tempo di caricamento da ~9s a ~3s
+            - 📰 **Notizie DPC** — Feed RSS Protezione Civile con link diretti
+            """)
+
+        st.markdown("---")
+
+        # ── Versione 3.0 ─────────────────────────────────────────────────────
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background:linear-gradient(135deg,#4338CA 0%,#6D28D9 100%);
+                color:white; padding:14px 10px; border-radius:10px; text-align:center;
+                box-shadow:0 4px 12px rgba(99,102,241,0.35);">
+                <div style="font-size:1.6rem; font-weight:800;">v3.0</div>
+                <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 3.0 (Aprile 2026)
+            #### Restyling completo UI + Nuova sezione Statistiche Sismiche
+
+            - 🎨 **Restyling UI completo** — Nuovo design moderno con font Inter, cards con ombre e hover, sidebar dark navy elegante
+            - 📈 **NUOVA sezione "Statistiche Sismiche"** — Analisi storica con grafici interattivi Plotly: frequenza eventi nel tempo,
+              distribuzione magnitudo, mappa epicentri, analisi oraria/settimanale, top zone sismiche
+            - 🖥️ **Sidebar rinnovata** — Sfondo dark navy con testo leggibile, badge LIVE, organizzazione sezioni migliorata
+            - 🏠 **Home page migliorata** — Cards feature moderne, barra emergenza 112, badge magnitudo con barra progress visiva
+            - ⚙️ **Streamlit Theme** — Tema colori nativo configurato (primaryColor, backgroundColor, font)
+            - 🦶 **Footer moderno** — Badge versione, badge LIVE, fonti dati elencate, anno automatico
+            - 🔢 **KPI home** — 4 metriche rapide con stile card arricchito
+            - 🗂️ **CSS globale** — Metric cards, Tab moderni, Buttons hover, animazioni fade-in, scrollbar custom
+            """)
+
+        st.markdown("---")
+
+        # ── Versione 2.9.8 ───────────────────────────────────────────────────
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background-color:#059669; color:white; padding:10px; border-radius:5px; text-align:center;">
                 <h3>v2.9.8</h3>
                 <p>Aprile 2026</p>
-                <span style="font-size:11px; background:#047857; padding:2px 6px; border-radius:3px;">ATTUALE</span>
             </div>
             """, unsafe_allow_html=True)
         with col2:
