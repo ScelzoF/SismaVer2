@@ -13,11 +13,16 @@ def show():
     import time
     from io import BytesIO
     from PIL import Image
-    
     from functools import wraps
 
     from modules.banner_utils import banner_meteo
     banner_meteo()
+
+    try:
+        from streamlit_autorefresh import st_autorefresh as _sar
+        _sar(interval=600_000, limit=None, key="meteo_autorefresh")
+    except ImportError:
+        pass
     
     # Fuso orario italiano con ora legale automatica
     def _get_tz_it():
