@@ -494,7 +494,7 @@ def show():
                                 labels={'Temperatura': 'Temperatura (°C)', 'Data': 'Data e ora'}
                             )
                             fig.update_layout(height=400)
-                            st.plotly_chart(fig, width='stretch')
+                            st.plotly_chart(fig, use_container_width=True)
     
                 with col2:
                     # Visualizzazione della mappa meteorologica avanzata
@@ -931,7 +931,7 @@ def show():
         height=400
     )
     
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
     
     # Fonte dati
     st.caption("Fonte dati: Elaborazione da ISPRA - Sistema Nazionale per la Protezione dell'Ambiente")
@@ -1250,7 +1250,7 @@ def show_monitoraggio_meteo():
         height=450
     )
     
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
     
     # Aggiorna l'ultimo aggiornamento
     st.info("Ultimo aggiornamento dati: " + datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
