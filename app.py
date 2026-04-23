@@ -23,6 +23,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ─── ANTI-IBERNAZIONE (prima di tutto il resto) ───────────────────────────────
+try:
+    from modules.keep_alive import activate as _keepalive_activate
+    _keepalive_activate()
+except Exception:
+    pass  # Non blocca mai l'app se il modulo ha problemi
+
 # Misura le prestazioni di caricamento
 start_time = time.time()
 
@@ -116,99 +123,290 @@ try:
 except ImportError:
     pass
 
-# Configura il tema personalizzato
+# ─── CSS GLOBALE RESTYLING v3.0 ─────────────────────────────────────────────
 st.markdown("""
 <style>
-    .main-title {
-        font-size: 2.5rem !important;
-        color: #1E3A8A;
-    }
-    .subtitle {
-        font-size: 1.2rem;
-        font-style: italic;
-        color: #64748B;
-    }
-    .stApp a {
-        color: #2563EB;
-    }
-    .stApp a:hover {
-        color: #1E40AF;
-        text-decoration: underline;
-    }
-    .warning-box {
-        background-color: #FEF3C7;
-        border-left: 5px solid #F59E0B;
-        padding: 1rem;
-        border-radius: 5px;
-    }
-    .info-box {
-        background-color: #E0F2FE;
-        border-left: 5px solid #0EA5E9;
-        padding: 1rem; 
-        border-radius: 5px;
-    }
-    .success-box {
-        background-color: #DCFCE7;
-        border-left: 5px solid #10B981;
-        padding: 1rem;
-        border-radius: 5px;
-    }
-    .sidebar-header {
-        font-weight: bold;
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-        color: #1E3A8A;
-    }
-    .sidebar-subheader {
-        font-weight: bold;
-        font-size: 1rem;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-        color: #334155;
-    }
-    .footer {
-        font-size: 0.8rem;
-        color: #64748B;
-        text-align: center;
-        margin-top: 3rem;
-        border-top: 1px solid #E2E8F0;
-        padding-top: 1rem;
-    }
-    .footer p:last-child {
-        margin-top: 0.5rem;
-        color: #94A3B8;
-        font-size: 0.75rem;
-    }
-    .visit-counter {
-        background: #F1F5F9;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        font-weight: 500;
-        color: #475569;
-        display: inline-block;
-        margin: 0.5rem 0;
-    }
+/* ── Import Google Font ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Base app ── */
+html, body, [class*="css"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+/* ── Rimuovi padding eccessivo dal container principale ── */
+.block-container {
+    padding-top: 1.5rem !important;
+    padding-bottom: 2rem !important;
+    max-width: 1200px;
+}
+
+/* ── Sidebar moderna ── */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0F172A 0%, #1E293B 50%, #0F172A 100%) !important;
+    border-right: 1px solid rgba(255,255,255,0.08) !important;
+}
+[data-testid="stSidebar"] * {
+    color: #E2E8F0 !important;
+}
+[data-testid="stSidebar"] .stRadio label {
+    color: #CBD5E1 !important;
+    transition: all 0.2s ease;
+    padding: 2px 0;
+}
+[data-testid="stSidebar"] .stRadio label:hover {
+    color: #60A5FA !important;
+}
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+    color: #94A3B8 !important;
+}
+[data-testid="stSidebar"] .stExpander {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSidebar"] .stSuccess {
+    background: rgba(16,185,129,0.15) !important;
+    border: 1px solid rgba(16,185,129,0.3) !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSidebar"] .stSuccess p {
+    color: #6EE7B7 !important;
+}
+
+/* ── Cards con ombra e bordo ── */
+.sisma-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 6px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    border: 1px solid #E2E8F0;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.sisma-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+}
+
+/* ── Card terremoto con indicatore laterale ── */
+.quake-card {
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 5px 0;
+    background: white;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: all 0.2s ease;
+}
+.quake-card:hover {
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transform: translateX(2px);
+}
+
+/* ── Metric cards ── */
+[data-testid="stMetric"] {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 16px !important;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+[data-testid="stMetricValue"] {
+    color: #1E40AF !important;
+    font-weight: 700 !important;
+}
+
+/* ── Tabs moderni ── */
+[data-testid="stTabs"] [role="tab"] {
+    border-radius: 8px 8px 0 0 !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+}
+[data-testid="stTabs"] [role="tab"][aria-selected="true"] {
+    background: #EFF6FF !important;
+    color: #1D4ED8 !important;
+}
+
+/* ── Buttons ── */
+.stButton > button {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+}
+.stButton > button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.3) !important;
+}
+
+/* ── Info/Warning/Success box ── */
+.warning-box {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    border-left: 5px solid #F59E0B;
+    padding: 1rem 1.2rem;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.15);
+}
+.info-box {
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+    border-left: 5px solid #3B82F6;
+    padding: 1rem 1.2rem;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.12);
+}
+.success-box {
+    background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+    border-left: 5px solid #10B981;
+    padding: 1rem 1.2rem;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.12);
+}
+
+/* ── Stat pill badge ── */
+.stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid #BFDBFE;
+}
+
+/* ── Separatori ── */
+hr {
+    border: none !important;
+    border-top: 1px solid #E2E8F0 !important;
+    margin: 1.5rem 0 !important;
+}
+
+/* ── Footer ── */
+.footer {
+    font-size: 0.82rem;
+    color: #64748B;
+    text-align: center;
+    margin-top: 3rem;
+    background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 1.2rem 1rem;
+}
+.footer a {
+    color: #2563EB !important;
+    text-decoration: none;
+    font-weight: 500;
+}
+.footer a:hover {
+    text-decoration: underline;
+}
+.footer-badge {
+    display: inline-block;
+    background: #DBEAFE;
+    color: #1E40AF;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 0 4px;
+}
+
+/* ── Emergency banner ── */
+.emergency-bar {
+    background: linear-gradient(90deg, #DC2626 0%, #B91C1C 100%);
+    color: white;
+    text-align: center;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+    margin: 12px 0;
+}
+
+/* ── Sidebar title ── */
+.sidebar-logo {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: white !important;
+    letter-spacing: -0.5px;
+    margin: 0;
+    padding: 0;
+}
+.sidebar-tagline {
+    font-size: 0.78rem;
+    color: #94A3B8 !important;
+    margin-top: 2px;
+    font-style: italic;
+}
+.sidebar-section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #64748B !important;
+    margin: 14px 0 4px 0;
+    padding-left: 2px;
+}
+
+/* ── Scrollbar personalizzata ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ── Animazioni fade-in ── */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.stMarkdown, .stDataFrame, [data-testid="stMetric"] {
+    animation: fadeInUp 0.35s ease both;
+}
+
+/* ── Link globali ── */
+a { color: #2563EB !important; }
+a:hover { color: #1E40AF !important; text-decoration: underline; }
+
+/* ── Plotly charts ── */
+.js-plotly-plot .plotly { border-radius: 12px; }
+
+/* ── Spinner ── */
+[data-testid="stSpinner"] { color: #2563EB !important; }
+
+/* ── Sidebar radio: evidenzia voce attiva ── */
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] label {
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] label:hover {
+    background: rgba(255,255,255,0.08) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar con menu di navigazione
+# ─── Sidebar moderna v3.0 ────────────────────────────────────────────────────
 with st.sidebar:
-    # Logo SismaVer2
-    st.markdown("## 🇮🇹 SismaVer2")
-    st.markdown('<div class="sidebar-header">Sistema Nazionale di Monitoraggio</div>', unsafe_allow_html=True)
-
     st.markdown("""
-    <div style="font-size:0.9rem; margin-bottom:15px; color:#475569;">
-    Piattaforma integrata per il monitoraggio e la gestione delle emergenze sul territorio italiano.
-    Dati in tempo reale da fonti ufficiali e strumenti di segnalazione per i cittadini.
+    <div style="padding: 14px 4px 10px 4px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px;">
+        <div class="sidebar-logo">🇮🇹 SismaVer2</div>
+        <div class="sidebar-tagline">Sistema Nazionale di Monitoraggio Rischi</div>
     </div>
     """, unsafe_allow_html=True)
 
     pagine = {
         "🏠 Home": "home",
+        "🗺️ Mappa Rischi": "mappa_rischi",
         "🌊 Monitoraggio Sismico": "monitoraggio",
         "🌋 Vulcani": "vulcani",
         "📊 Allerte e Rischi": "rischi_allerte",
+        "📈 Statistiche Sismiche": "statistiche",
         "🌦 Meteo": "meteo",
         "🌬️ Qualità dell'Aria": "qualita_aria",
         "📞 Numeri Utili": "numeri_utili",
@@ -222,37 +420,57 @@ with st.sidebar:
         "ℹ️ Licenza e Info": "licenza"
     }
 
-    st.markdown('<div class="sidebar-subheader">Navigazione</div>', unsafe_allow_html=True)
-
-    # Spiegazione delle sezioni
-    with st.expander("ℹ️ Guida alle sezioni"):
-        st.markdown("""
-        - **Home**: Panoramica live — ultimi terremoti, stato vulcani, notizie DPC
-        - **Monitoraggio Sismico**: Dati INGV in tempo reale, mappa, grafici, idrogeologico
-        - **Vulcani**: 20+ vulcani italiani con schede dettagliate, mappa, webcam, bollettini
-        - **Allerte e Rischi**: Dashboard live — allerta tsunami, sismica, meteo, idrogeologico
-        - **Meteo**: Previsioni 7 giorni, radar, allerte per qualsiasi comune italiano
-        - **Qualità dell'Aria**: Indice AQI europeo per 20 città italiane (Open-Meteo/CAMS)
-        - **Numeri Utili**: Tutti i numeri di emergenza nazionali e regionali
-        - **Chat Pubblica**: Comunicazione in tempo reale tra cittadini
-        - **Punti di Emergenza**: Mappa punti raccolta e strutture di emergenza per regione
-        - **Primo Soccorso**: Guide e procedure di primo intervento
-        - **Segnala Evento**: Segnala terremoti, frane o altri eventi
-        - **Fonti dei Dati**: Tutte le fonti ufficiali utilizzate con frequenza aggiornamento
-        - **Note di Rilascio**: Cronologia aggiornamenti
-        - **Licenza e Info**: Sviluppatore e termini d'uso
-        """)
+    st.markdown('<div class="sidebar-section-label">Navigazione</div>', unsafe_allow_html=True)
 
     selezione = st.radio("Menu di navigazione", list(pagine.keys()), label_visibility="collapsed")
     pagina_selezionata = pagine[selezione]
 
-    # Banner allerta
-    st.markdown("""---""")
-    st.success("✅ Nessuna allerta critica in corso")
+    st.markdown('<div style="border-top: 1px solid rgba(255,255,255,0.08); margin: 12px 0 10px 0;"></div>', unsafe_allow_html=True)
 
-    # Data e ora con fuso orario italiano
+    # ── Banner supporto / monetizzazione ────────────────────────────────────
+    st.markdown("""
+    <div style="background:linear-gradient(135deg,rgba(0,48,135,0.25),rgba(0,48,135,0.10));
+                border:1px solid rgba(0,48,135,0.35); border-radius:10px;
+                padding:10px 12px; margin-bottom:10px; text-align:center;">
+        <div style="color:#93C5FD; font-size:0.78rem; font-weight:700; letter-spacing:0.5px;
+                    text-transform:uppercase; margin-bottom:8px;">❤️ Supporta il progetto</div>
+        <a href="https://www.paypal.com/donate/?business=meteotorre%40gmail.com" target="_blank"
+           style="background:#003087; color:white; padding:7px 18px; border-radius:16px;
+                  font-weight:700; text-decoration:none; font-size:0.84rem;
+                  display:inline-block;">💙 Dona con PayPal</a>
+    </div>
+    """, unsafe_allow_html=True)
+
     ora_attuale = datetime.now(FUSO_ORARIO_ITALIA)
-    st.markdown(f"Aggiornato: {ora_attuale.strftime('%d/%m/%Y %H:%M:%S')} (IT)")
+    st.markdown(f"""
+    <div style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25);
+         border-radius: 8px; padding: 8px 10px; margin-bottom: 8px;">
+        <span style="color: #6EE7B7; font-size: 0.82rem; font-weight: 600;">
+            ✅ Nessuna allerta critica
+        </span>
+    </div>
+    <div style="color: #475569; font-size: 0.72rem; text-align: center; padding: 2px 0;">
+        🕒 {ora_attuale.strftime('%d/%m/%Y %H:%M')} (IT)
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="sidebar-section-label" style="margin-top:14px;">Informazioni</div>', unsafe_allow_html=True)
+    with st.expander("ℹ️ Guida alle sezioni"):
+        st.markdown("""
+        - **Home**: Panoramica live — KPI reali, terremoti, vulcani, EMSC
+        - **🗺️ Mappa Rischi**: Mappa interattiva allerte per regione · MeteoAlarm · EMSC · Vulcani
+        - **📊 Allerte e Rischi**: Tab dettagliati · Tsunami · Sismica · Vulcani · Meteo · Idrogeologico
+        - **Monitoraggio Sismico**: Dati INGV real-time, mappa, grafici
+        - **Vulcani**: 20+ vulcani con schede e webcam
+        - **Statistiche Sismiche**: Tendenze e analisi storiche *(NUOVO)*
+        - **Meteo**: Previsioni 7 giorni per ogni comune
+        - **Qualità Aria**: AQI europeo per 20 città
+        - **Numeri Utili**: Tutti i numeri di emergenza
+        - **Chat Pubblica**: Comunicazione tra cittadini
+        - **Punti Emergenza**: Mappa raccolta per regione
+        - **Primo Soccorso**: Guide pratiche di intervento
+        - **Segnala Evento**: Segnala terremoti e frane
+        """)
 
 # Cache di caricamento moduli e misura performance
 def load_module(module_name):
@@ -393,15 +611,30 @@ if "visit_counted" not in st.session_state:
 else:
     visit_count = read_visit_counter()
 
-# Footer
+# Footer moderno v3.0
 st.markdown(f"""
 <div class="footer">
-<p>🇮🇹 SismaVer2 - Sistema Nazionale di Monitoraggio e Prevenzione</p>
-<p>© {ora_attuale.year} – Versione 2.9.8 – Dati da fonti ufficiali</p>
-<p><a href="https://github.com/ScelzoF/SismaVer2" target="_blank">GitHub</a> · 
-<a href="mailto:meteotorre@gmail.com">Contatti</a> · 
-<a href="https://www.protezionecivile.gov.it/it/privacy" target="_blank">Privacy</a></p>
-<p>👥 Visite totali: {visit_count:,}</p>
-<p>🔄 Ultimo aggiornamento: {ora_attuale.strftime('%d/%m/%Y %H:%M:%S')} (IT)</p>
+    <div style="margin-bottom: 8px;">
+        <span style="font-size: 1.1rem; font-weight: 700; color: #1E293B;">🇮🇹 SismaVer2</span>
+        &nbsp;
+        <span class="footer-badge">v3.0</span>
+        <span class="footer-badge" style="background:#DCFCE7; color:#166534;">LIVE</span>
+    </div>
+    <p style="color: #475569; margin: 4px 0;">Sistema Nazionale di Monitoraggio e Prevenzione Rischi Naturali</p>
+    <p style="margin: 6px 0;">
+        <a href="https://github.com/ScelzoF/SismaVer2" target="_blank">GitHub</a> &nbsp;·&nbsp;
+        <a href="mailto:meteotorre@gmail.com">Contatti</a> &nbsp;·&nbsp;
+        <a href="https://www.protezionecivile.gov.it/it/privacy" target="_blank">Privacy</a>
+    </p>
+    <p style="color: #94A3B8; font-size: 0.75rem; margin: 6px 0;">
+        👥 Visite totali: <strong style="color:#475569;">{visit_count:,}</strong>
+        &nbsp;·&nbsp;
+        🕒 {ora_attuale.strftime('%d/%m/%Y %H:%M')} (IT)
+        &nbsp;·&nbsp;
+        © {ora_attuale.year} Fabio Scelzo
+    </p>
+    <p style="color: #CBD5E1; font-size: 0.72rem; margin: 4px 0;">
+        Dati: INGV · Protezione Civile · EMSC · MeteoAlarm · Open-Meteo · Copernicus CAMS
+    </p>
 </div>
 """, unsafe_allow_html=True)
