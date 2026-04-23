@@ -102,7 +102,7 @@ _HDR = {"User-Agent": "SismaVer2/4.0 (https://sos-italia.replit.app; meteotorre@
 # FETCH FUNCTIONS
 # ─────────────────────────────────────────────────────────────────────────────
 
-@st.cache_data(ttl=1800, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def _fetch_volcano_alerts_live():
     """
     Indicatori attività vulcanica LIVE: INGV FDSN primario, EMSC come fallback.
@@ -331,7 +331,7 @@ def _fetch_emsc_italy_m3():
     return []
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def _fetch_seismic_heatmap():
     """
     EMSC (primario) + INGV (fallback): eventi M≥2.0 in Italia ultimi 7gg per heatmap.
@@ -390,7 +390,7 @@ def _fetch_seismic_heatmap():
     return []
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def _fetch_fire_risk():
     """
     Rischio incendi derivato da Open-Meteo: temperatura, umidità relativa,
