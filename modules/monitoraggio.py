@@ -191,8 +191,8 @@ def _fetch_ingv_seismic(url: str):
            "⚠️ Impossibile accedere ai dati sismici — riprova tra qualche minuto."
 
 
-# ── Fetch attività sismica per vulcano (cache 30 minuti) ─────────────────────
-@st.cache_data(ttl=1800, show_spinner=False)
+# ── Fetch attività sismica per vulcano (cache 5 minuti) ─────────────────────
+@st.cache_data(ttl=300, show_spinner=False)
 def _fetch_volcano_seismicity_all():
     """
     Fetch parallelo INGV FDSN per ogni vulcano monitorato.
