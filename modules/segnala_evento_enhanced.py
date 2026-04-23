@@ -181,7 +181,7 @@ def show():
                         unsafe_allow_html=True
                     )
             with col_gps2:
-                if st.button("🔄 Riprova GPS", key="retry_gps", width='stretch'):
+                if st.button("🔄 Riprova GPS", key="retry_gps", use_container_width=True):
                     st.session_state.gps_richiesto = True
                     _retry = streamlit_js_eval(
                         js_expressions='new Promise((res) => { if (!navigator.geolocation) return res(null); navigator.geolocation.getCurrentPosition((pos) => res({lat: pos.coords.latitude, lon: pos.coords.longitude}), () => res(null), {timeout: 10000}); })',
@@ -502,8 +502,7 @@ def show():
                                 
                                 # Mostra dataframe
                                 st.dataframe(
-                                    df_segnalazioni[display_columns].rename(columns=column_names),
-                                    width='stretch',
+                                    df_segnalazioni[display_columns].rename(columns=column_names), use_container_width=True,
                                     hide_index=True
                                 )
                             else:
@@ -751,8 +750,7 @@ def carica_segnalazioni_locali(filtro_tipo="Tutti i tipi", filtro_regione="Tutte
                 st.error("Nessuna colonna valida disponibile per la visualizzazione.")
             else:
                 st.dataframe(
-                    df_segnalazioni[available_columns].rename(columns={col: column_names.get(col, col) for col in available_columns}),
-                    width='stretch',
+                    df_segnalazioni[available_columns].rename(columns={col: column_names.get(col, col) for col in available_columns}), use_container_width=True,
                     hide_index=True
                 )
         else:
