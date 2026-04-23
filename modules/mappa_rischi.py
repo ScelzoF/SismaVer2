@@ -334,11 +334,30 @@ def _fetch_emsc_italy_m3():
 @st.cache_data(ttl=3600, show_spinner=False)
 def _fetch_seismic_heatmap():
     """
-    EMSC: eventi M≥2.0 in Italia negli ultimi 7 giorni per heatmap.
+    EMSC (primario) + INGV (fallback): eventi M≥2.0 in Italia ultimi 7gg per heatmap.
     Restituisce lista [lat, lon, peso] dove peso = mag^2.
     """
+    start = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S")
+
+    def _parse_features(features):
+        points = []
+        for f in features:
+            p = f.get("properties", {})
+            g = f.get("geometry", {}).get("coordinates", [])
+            if len(g) < 2:
+                continue
+            try:
+                mag = float(p.get("mag") or p.get("magnitude") or 2.0)
+                lat, lon = float(g[1]), float(g[0])
+                # Filtra bbox Italia
+                if 35.5 <= lat <= 47.1 and 6.6 <= lon <= 18.6:
+                    points.append([lat, lon, max(mag ** 2, 0.5)])
+            except Exception:
+                pass
+        return points
+
+    # 1) EMSC
     try:
-        start = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S")
         r = requests.get(
             "https://www.seismicportal.eu/fdsnws/event/1/query?format=json"
             f"&starttime={start}&minmagnitude=2.0"
@@ -347,20 +366,27 @@ def _fetch_seismic_heatmap():
             "&limit=300&orderby=time",
             timeout=10, headers=_HDR)
         if r.status_code == 200:
-            points = []
-            for f in r.json().get("features", []):
-                p = f.get("properties", {})
-                g = f.get("geometry", {}).get("coordinates", [])
-                if len(g) < 2:
-                    continue
-                try:
-                    mag = float(p.get("mag") or p.get("magnitude") or 2.0)
-                    points.append([float(g[1]), float(g[0]), mag ** 2])
-                except Exception:
-                    pass
-            return points
+            pts = _parse_features(r.json().get("features", []))
+            if pts:
+                return pts
     except Exception:
         pass
+
+    # 2) Fallback INGV
+    try:
+        r = requests.get(
+            "https://webservices.ingv.it/fdsnws/event/1/query?format=geojson"
+            f"&starttime={start}&minmag=2.0&limit=300"
+            "&minlatitude=35.5&maxlatitude=47.1"
+            "&minlongitude=6.6&maxlongitude=18.6",
+            timeout=10, headers=_HDR)
+        if r.status_code == 200:
+            pts = _parse_features(r.json().get("features", []))
+            if pts:
+                return pts
+    except Exception:
+        pass
+
     return []
 
 
@@ -439,8 +465,8 @@ def _build_alert_map(ma_regions, emsc_events, show_vulc, vulc_live,
         HeatMap(
             heatmap_data,
             name="🌡️ Heatmap sismica (M≥2.0 · 7gg)",
-            min_opacity=0.3,
-            radius=18, blur=15, max_zoom=1,
+            min_opacity=0.35,
+            radius=22, blur=18,
             gradient={0.2: "#3B82F6", 0.5: "#D97706", 0.8: "#EA580C", 1.0: "#DC2626"},
         ).add_to(m)
 
@@ -651,6 +677,12 @@ def show():
     # ── Mappa ─────────────────────────────────────────────────────────────────
     if ma_total == 0 and n_emsc == 0:
         st.info("MeteoAlarm feed non disponibile. La mappa mostrerà solo i vulcani.")
+
+    if show_heatmap:
+        if heatmap_data:
+            st.caption(f"🌡️ Heatmap sismica attiva — {len(heatmap_data)} eventi M≥2.0 (ultimi 7gg · EMSC)")
+        else:
+            st.warning("🌡️ Heatmap: nessun dato disponibile da EMSC al momento. Riprova tra qualche minuto.")
 
     alert_map = _build_alert_map(
         ma_regions, emsc_events, show_vulc, vulc_live,
