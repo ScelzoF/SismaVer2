@@ -13,7 +13,7 @@ def show():
     )
 
     st.markdown("""
-    ## Versione attuale: 3.4.1 (Aprile 2026)
+    ## Versione attuale: 3.4.2 (Aprile 2026)
 
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -24,20 +24,53 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # ── Versione 3.4.1 — ATTUALE ──────────────────────────────────────────
+        # ── Versione 3.4.2 — ATTUALE ──────────────────────────────────────────
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
             <div style="background:linear-gradient(135deg,#064E3B 0%,#059669 100%);
                 color:white; padding:14px 10px; border-radius:10px; text-align:center;
                 box-shadow:0 4px 12px rgba(5,150,105,0.5);">
-                <div style="font-size:1.6rem; font-weight:800;">v3.4.1</div>
+                <div style="font-size:1.6rem; font-weight:800;">v3.4.2</div>
                 <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
                 <span style="font-size:11px; background:rgba(255,255,255,0.25);
                     padding:3px 8px; border-radius:8px; font-weight:700;
                     letter-spacing:0.5px; display:inline-block; margin-top:6px;">
                     ATTUALE
                 </span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 3.4.2 (Aprile 2026)
+            #### Bugfix critico — modulo Monitoraggio ripristinato su Streamlit Cloud
+
+            **Bug `'str' object cannot be interpreted as an integer` risolto:**
+            - 🐛 **`width='stretch'` deprecato** — Streamlit Cloud (versione aggiornata) rifiuta
+              `width='stretch'` come parametro stringa dove è atteso un intero.
+              Sostituito con `use_container_width=True` in tutti i 10 moduli affetti:
+              `monitoraggio.py`, `monitoraggio_base.py`, `statistiche.py`, `vulcani.py`,
+              `mappa_rischi.py`, `meteo.py`, `numeri_utili.py`, `primo_soccorso.py`,
+              `qualita_aria.py`, `segnala_evento_enhanced.py`.
+            - ✅ **46 occorrenze sostituite** — nessun modulo mostra più questo errore.
+
+            **Fix CSS dropdown sidebar:**
+            - 🎨 **Selectbox dropdown light-theme esplicito** — la regola CSS globale
+              `[data-testid="stSidebar"] * { color: #E2E8F0 }` causava testo bianco
+              invisibile su sfondo bianco nel dropdown. Ora forzato: sfondo `#FFFFFF`,
+              testo `#1E293B`, hover `#EFF6FF`, voce selezionata `#DBEAFE`.
+            """)
+        st.markdown("---")
+
+        # ── Versione 3.4.1 ────────────────────────────────────────────────────
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background:linear-gradient(135deg,#1E3A5F 0%,#2563EB 100%);
+                color:white; padding:14px 10px; border-radius:10px; text-align:center;
+                box-shadow:0 4px 12px rgba(37,99,235,0.4);">
+                <div style="font-size:1.6rem; font-weight:800;">v3.4.1</div>
+                <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
             </div>
             """, unsafe_allow_html=True)
         with col2:
