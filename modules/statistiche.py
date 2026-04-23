@@ -27,7 +27,7 @@ FUSO_IT = _get_tz()
 
 # ─── Fetch dati storici INGV ───────────────────────────────────────────────────
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def _fetch_storico(days: int = 90, min_mag: float = 2.0) -> pd.DataFrame:
     """Recupera eventi sismici storici: INGV primario, USGS come fallback affidabile."""
     end   = datetime.utcnow()
