@@ -9,16 +9,15 @@ import numpy as np
 from datetime import datetime, timedelta, timezone
 import plotly.express as px
 import plotly.graph_objects as go
-import time
-import streamlit_js_eval as st_js
 import folium
 from streamlit_folium import folium_static
 import requests
 import json
-from io import StringIO
 import os
+import re as _re_prov
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Fuso orario italiano con ora legale automatica
+# ── Fuso orario italiano con ora legale automatica ───────────────────────────
 def _get_tz_italia():
     _now = datetime.now()
     _y = _now.year
@@ -28,8 +27,7 @@ def _get_tz_italia():
 
 FUSO_ORARIO_ITALIA = _get_tz_italia()
 
-import re as _re_prov
-
+# ── Mappatura Province → Regione ─────────────────────────────────────────────
 _PROVINCE_TO_REGION = {
     "AQ": "Abruzzo", "CH": "Abruzzo", "PE": "Abruzzo", "TE": "Abruzzo",
     "MT": "Basilicata", "PZ": "Basilicata",
@@ -82,7 +80,22 @@ _REGIONI_BBOX = {
     "Veneto": (44.79, 46.68, 10.62, 13.10),
 }
 
-def _evento_in_regione(place: str, lat: float, lon: float, regione: str) -> bool:
+# Coordinate dei vulcani monitorati con raggio bbox in gradi
+_VULCANI_MON = {
+    "Etna":          {"lat": 37.755, "lon": 14.995, "rad": 0.20, "obs": "INGV-CT", "ult_eruz": "Attivo"},
+    "Stromboli":     {"lat": 38.789, "lon": 15.213, "rad": 0.12, "obs": "INGV-CT", "ult_eruz": "Attivo"},
+    "Campi Flegrei": {"lat": 40.827, "lon": 14.139, "rad": 0.15, "obs": "INGV-OV", "ult_eruz": "1538"},
+    "Vesuvio":       {"lat": 40.821, "lon": 14.426, "rad": 0.10, "obs": "INGV-OV", "ult_eruz": "1944"},
+    "Vulcano":       {"lat": 38.404, "lon": 14.962, "rad": 0.12, "obs": "INGV-CT", "ult_eruz": "1888-90"},
+    "Ischia":        {"lat": 40.731, "lon": 13.897, "rad": 0.10, "obs": "INGV-OV", "ult_eruz": "1302"},
+    "Pantelleria":   {"lat": 36.769, "lon": 12.021, "rad": 0.10, "obs": "INGV-CT", "ult_eruz": "1891 (sub.)"},
+    "Colli Albani":  {"lat": 41.757, "lon": 12.700, "rad": 0.12, "obs": "INGV-RM", "ult_eruz": "5000 a.f."},
+    "Marsili":       {"lat": 39.270, "lon": 14.400, "rad": 0.30, "obs": "INGV",    "ult_eruz": "Non doc. (sub.)"},
+    "Panarea":       {"lat": 38.636, "lon": 15.064, "rad": 0.10, "obs": "INGV-CT", "ult_eruz": "2002 (sub.)"},
+}
+
+
+def _evento_in_regione(place: str, lat, lon, regione: str) -> bool:
     """Filtro robusto: prima sigla provincia tra parentesi, poi bounding box come fallback."""
     if not regione or regione.startswith("Italia"):
         return True
@@ -102,18 +115,151 @@ def _evento_in_regione(place: str, lat: float, lon: float, regione: str) -> bool
         return False
     return False
 
+
+# ── Fetch INGV sismicità (modulo-level, cache 5 minuti) ──────────────────────
+@st.cache_data(ttl=300, show_spinner=False)
+def _fetch_ingv_seismic(url: str):
+    """
+    Recupera eventi sismici da INGV FDSN con fallback a USGS.
+    Returns (geojson_dict, warning_message_or_None)
+    """
+    headers = {
+        "User-Agent": "SismaVer2/3.3 (https://sisma-ver-2.replit.app/)",
+        "Accept": "application/json",
+    }
+    # 1) Prova INGV principale
+    try:
+        r = requests.get(url, timeout=10, headers=headers)
+        if r.status_code == 200:
+            data = r.json()
+            if isinstance(data, dict) and isinstance(data.get("features"), list):
+                print(f"INFO INGV: {len(data['features'])} eventi")
+                return data, None
+    except Exception as e:
+        print(f"INGV primario fallito: {e}")
+
+    # 2) Fallback INGV mirror cnt.rm.ingv.it
+    try:
+        mirror_url = url.replace("webservices.ingv.it", "cnt.rm.ingv.it")
+        r = requests.get(mirror_url, timeout=10, headers=headers)
+        if r.status_code == 200:
+            data = r.json()
+            if isinstance(data, dict) and isinstance(data.get("features"), list):
+                print(f"INFO INGV mirror: {len(data['features'])} eventi")
+                return data, None
+    except Exception as e:
+        print(f"INGV mirror fallito: {e}")
+
+    # 3) Fallback EMSC (European-Mediterranean Seismological Centre)
+    try:
+        start_time = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S")
+        emsc_url = (
+            f"https://www.seismicportal.eu/fdsnws/event/1/query?format=json"
+            f"&starttime={start_time}&minlatitude=35.0&maxlatitude=47.5"
+            f"&minlongitude=6.0&maxlongitude=20.0&minmagnitude=1.5"
+            f"&orderby=time&limit=300"
+        )
+        r = requests.get(emsc_url, timeout=10, headers=headers)
+        if r.status_code == 200:
+            data = r.json()
+            if isinstance(data, dict) and isinstance(data.get("features"), list) and data["features"]:
+                print(f"INFO EMSC fallback: {len(data['features'])} eventi")
+                return data, "⚠️ INGV temporaneamente non disponibile. Dati da EMSC (European-Mediterranean Seismological Centre)."
+    except Exception as e:
+        print(f"EMSC fallback fallito: {e}")
+
+    # 4) Fallback USGS — nota: USGS non dispone di eventi italiani M<2.0
+    try:
+        start_time = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%d")
+        usgs_url = (
+            f"https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson"
+            f"&starttime={start_time}&minlatitude=35.0&maxlatitude=47.5"
+            f"&minlongitude=6.0&maxlongitude=20.0&minmagnitude=1.5"
+            f"&limit=300"
+        )
+        r = requests.get(usgs_url, timeout=10, headers=headers)
+        if r.status_code == 200:
+            data = r.json()
+            if isinstance(data, dict) and isinstance(data.get("features"), list) and data["features"]:
+                print(f"INFO USGS fallback: {len(data['features'])} eventi")
+                return data, "⚠️ INGV temporaneamente non disponibile. Dati da USGS (United States Geological Survey)."
+    except Exception as e:
+        print(f"USGS fallback fallito: {e}")
+
+    # 5) Struttura vuota valida
+    return {"features": [], "type": "FeatureCollection", "metadata": {}}, \
+           "⚠️ Impossibile accedere ai dati sismici — riprova tra qualche minuto."
+
+
+# ── Fetch attività sismica per vulcano (cache 30 minuti) ─────────────────────
+@st.cache_data(ttl=1800, show_spinner=False)
+def _fetch_volcano_seismicity_all():
+    """
+    Fetch parallelo INGV FDSN per ogni vulcano monitorato.
+    Ritorna dict: nome_vulcano -> {count, level, label, emoji, col}
+    """
+    start = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S")
+
+    _HDR_V = {"User-Agent": "SismaVer2/3.3 (https://sisma-ver-2.replit.app/)"}
+
+    def _classify_v(count):
+        if count >= 20:
+            return {"count": count, "level": "ROSSO",    "emoji": "🔴", "label": f"Alta ({count} ev/7gg)",    "col": "#DC2626"}
+        elif count >= 5:
+            return {"count": count, "level": "ARANCIONE","emoji": "🟠", "label": f"Moderata ({count} ev/7gg)","col": "#EA580C"}
+        elif count >= 1:
+            return {"count": count, "level": "GIALLO",   "emoji": "🟡", "label": f"Bassa ({count} ev/7gg)",   "col": "#D97706"}
+        else:
+            return {"count": 0,     "level": "VERDE",    "emoji": "🟢", "label": "Silente (0 ev/7gg)",       "col": "#16A34A"}
+
+    def _one(name, cfg):
+        lat, lon, rad = cfg["lat"], cfg["lon"], cfg["rad"]
+        # Tentativo 1: INGV
+        try:
+            r = requests.get(
+                f"https://webservices.ingv.it/fdsnws/event/1/query?format=geojson"
+                f"&starttime={start}&minmag=0.5&lat={lat}&lon={lon}&maxradius={rad}&limit=100",
+                timeout=8, headers=_HDR_V)
+            if r.status_code == 200:
+                count = len(r.json().get("features", []))
+                return name, _classify_v(count)
+        except Exception as e:
+            print(f"Vulcano {name} INGV error: {e}")
+        # Tentativo 2: EMSC fallback (M≥1.0 nell'area)
+        try:
+            r = requests.get(
+                f"https://www.seismicportal.eu/fdsnws/event/1/query?format=json"
+                f"&starttime={start}&minmagnitude=1.0"
+                f"&lat={lat}&lon={lon}&maxradius={rad}&limit=100",
+                timeout=8, headers=_HDR_V)
+            if r.status_code == 200:
+                count = len(r.json().get("features", []))
+                result = _classify_v(count)
+                result["fonte"] = "EMSC"
+                return name, result
+        except Exception as e:
+            print(f"Vulcano {name} EMSC error: {e}")
+        return name, {"count": None, "level": "N/D", "emoji": "⚫", "label": "N/D", "col": "#94A3B8"}
+
+    results = {}
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        futs = {ex.submit(_one, n, d): n for n, d in _VULCANI_MON.items()}
+        for ft in as_completed(futs):
+            n, d = ft.result()
+            results[n] = d
+    return results
+
+
 def show():
-    # Auto-refresh ogni 5 minuti per dati sismici live
+    # Auto-refresh ogni 5 minuti
     if _AUTOREFRESH:
         _st_autorefresh(interval=300_000, limit=None, key="monit_autorefresh")
 
     from modules.banner_utils import banner_monitoraggio
     banner_monitoraggio()
-    
-    # Opzioni di visualizzazione: nazionale o per regione
+
+    # ── Sidebar ──────────────────────────────────────────────────────────────
     st.sidebar.subheader("🗄️ Filtra visualizzazione")
-    
-    # Lista regioni italiane
     regioni = [
         "Italia (Visione nazionale)",
         "Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia-Romagna",
@@ -121,1370 +267,659 @@ def show():
         "Molise", "Piemonte", "Puglia", "Sardegna", "Sicilia", "Toscana",
         "Trentino-Alto Adige", "Umbria", "Valle d'Aosta", "Veneto"
     ]
-    
     regione_scelta = st.sidebar.selectbox("Seleziona regione", regioni)
-
-    # Data e ora dell'ultimo aggiornamento con fuso orario italiano
     current_time = datetime.now(FUSO_ORARIO_ITALIA)
-    last_update_timestamp = current_time.strftime("%d/%m/%Y %H:%M:%S")
-    st.sidebar.markdown(f"**🕒 Ultimo aggiornamento:** {last_update_timestamp} (IT)")
+    st.sidebar.markdown(f"**🕒 Ultimo aggiornamento:** {current_time.strftime('%d/%m/%Y %H:%M:%S')} (IT)")
     st.sidebar.markdown("---")
-    
-    # Informazioni sul monitoraggio
-    st.sidebar.info("**Fonti dati:**\n"
-                   "- INGV (Istituto Nazionale di Geofisica e Vulcanologia)\n"
-                   "- Dipartimento della Protezione Civile\n"
-                   "- ISPRA (Istituto Superiore per la Protezione e la Ricerca Ambientale)\n"
-                   "- Servizi Geologici Regionali")
+    st.sidebar.info(
+        "**Fonti dati:**\n"
+        "- INGV (Istituto Nazionale di Geofisica e Vulcanologia)\n"
+        "- Dipartimento della Protezione Civile\n"
+        "- ISPRA (Istituto Superiore per la Protezione e la Ricerca Ambientale)\n"
+        "- MeteoAlarm (EUMETNET)"
+    )
 
-    # Sistema di tabs per i diversi tipi di sensori
-    sensor_tab1, sensor_tab2, sensor_tab3 = st.tabs([
-        "🔔 Sismicità", 
-        "🌋 Vulcani attivi", 
-        "🌊 Idrogeologico"
+    # Coordinate centroidi regioni per centrare la mappa
+    regioni_coords = {
+        "Abruzzo": [42.35, 13.40], "Basilicata": [40.50, 16.08],
+        "Calabria": [39.30, 16.34], "Campania": [40.83, 14.25],
+        "Emilia-Romagna": [44.49, 11.34], "Friuli-Venezia Giulia": [46.07, 13.23],
+        "Lazio": [41.89, 12.48], "Liguria": [44.41, 8.95],
+        "Lombardia": [45.47, 9.19], "Marche": [43.62, 13.51],
+        "Molise": [41.56, 14.65], "Piemonte": [45.07, 7.68],
+        "Puglia": [41.12, 16.86], "Sardegna": [39.22, 9.10],
+        "Sicilia": [37.50, 14.00], "Toscana": [43.77, 11.24],
+        "Trentino-Alto Adige": [46.06, 11.12], "Umbria": [43.11, 12.39],
+        "Valle d'Aosta": [45.73, 7.32], "Veneto": [45.44, 12.32],
+    }
+
+    sensor_tab1, sensor_tab2 = st.tabs([
+        "🔔 Sismicità", "🌋 Vulcani attivi"
     ])
-    
-    # Tab 1: Rilevazione sismica
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # TAB 1 — SISMICITÀ
+    # ══════════════════════════════════════════════════════════════════════════
     with sensor_tab1:
-        # Aggiungere un pulsante di aggiornamento dati e visualizzazione dell'ultimo aggiornamento
         col_refresh, col_time = st.columns([1, 4])
-        
         with col_refresh:
             if st.button("🔄 Aggiorna dati"):
-                st.session_state.last_update = datetime.now(FUSO_ORARIO_ITALIA)
+                st.cache_data.clear()
                 st.rerun()
-        
         with col_time:
-            current_time = datetime.now(FUSO_ORARIO_ITALIA)
-            
-            if 'last_update' not in st.session_state:
-                st.session_state.last_update = current_time
-                
-            st.markdown(f"**🕒 Ultimo aggiornamento:** {current_time.strftime('%d/%m/%Y %H:%M:%S')} (IT)")
-            
-        # Auto-aggiornamento ogni 5 minuti
-        if 'last_update' not in st.session_state:
-            st.session_state.last_update = current_time
-        elif (current_time - st.session_state.last_update).seconds > 300:
-            st.session_state.last_update = current_time
-            st.rerun()
-            
-        # Recupera dati in tempo reale da API INGV per ultime 24 ore
-        # Mostra messaggio di caricamento durante il recupero dati
-        with st.spinner("⏳ Recupero dati sismici in corso. Attendere pochi secondi..."):
-            try:
-                # Calcola data di inizio (7 giorni)
-                start_date = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S")
-                
-                # Filtro per magnitudo minima più basso per trovare più eventi
-                min_mag = 0.5  # Mostra eventi da magnitudo 0.5 in su
-            except Exception as e:
-                st.error(f"Errore nel calcolo della data: {e}")
-                start_date = "2023-01-01T00:00:00"
-                min_mag = 1.0
-                
-            # Coordinate approssimative delle regioni italiane
-            regioni_coords = {
-                "Abruzzo": [42.35, 13.40],
-                "Basilicata": [40.50, 16.08],
-                "Calabria": [39.30, 16.34],
-                "Campania": [40.83, 14.25],
-                "Emilia-Romagna": [44.49, 11.34],
-                "Friuli-Venezia Giulia": [46.07, 13.23],
-                "Lazio": [41.89, 12.48],
-                "Liguria": [44.41, 8.95],
-                "Lombardia": [45.47, 9.19],
-                "Marche": [43.62, 13.51],
-                "Molise": [41.56, 14.65],
-                "Piemonte": [45.07, 7.68],
-                "Puglia": [41.12, 16.86],
-                "Sardegna": [39.22, 9.10],
-                "Sicilia": [37.50, 14.00],
-                "Toscana": [43.77, 11.24],
-                "Trentino-Alto Adige": [46.06, 11.12],
-                "Umbria": [43.11, 12.39],
-                "Valle d'Aosta": [45.73, 7.32],
-                "Veneto": [45.44, 12.32]
-            }
-            
-            try:
-                # Determina l'URL più appropriato (inizia con versione semplificata)
-                if regione_scelta == "Italia (Visione nazionale)":
-                    # Usare API INGV per dati nazionali
-                    ingv_url = f"https://webservices.ingv.it/fdsnws/event/1/query?format=geojson&starttime={start_date}&minmag={min_mag}&limit=100"
-                    source = "INGV"
-                    st.info("Recupero dati sismici da INGV per l'intero territorio nazionale")
-                else:
-                    # Per le regioni, usiamo ancora INGV ma con timeout più breve
-                    if regione_scelta in regioni_coords:
-                        lat, lon = regioni_coords[regione_scelta]
-                        radius_deg = 1.5  # Circa 150km per avere più eventi
-                        ingv_url = f"https://webservices.ingv.it/fdsnws/event/1/query?format=geojson&starttime={start_date}&minmag={min_mag}&lat={lat}&lon={lon}&maxradius={radius_deg}&limit=100"
-                    else:
-                        ingv_url = f"https://webservices.ingv.it/fdsnws/event/1/query?format=geojson&starttime={start_date}&minmag={min_mag}&limit=100"
-                    source = "INGV"
-                
-                # Utilizziamo il caching avanzato con TTL esteso per migliorare le prestazioni
-                @st.cache_data(ttl=300, show_spinner=False)  # Cache sismici live 5 minuti
-                def fetch_seismic_data(url):
-                    """
-                    Recupera i dati sismici con sistema di cache avanzato a quattro livelli:
-                    1. Cache di Streamlit (TTL 5 minuti)
-                    2. Cache in session_state (15 minuti) 
-                    3. Sistema multiserver INGV con strategie adattive di resilienza
-                    4. Dati persistenti statici come fallback di emergenza
+            st.markdown(f"**🕒 Dati aggiornati:** {current_time.strftime('%d/%m/%Y %H:%M:%S')} (IT) · Cache 5 min")
 
-                    Questa implementazione massimizza le performance e riduce il carico sulle API.
-                    Include controllo preliminare multiplo della raggiungibilità di tutti i server INGV.
-                    """
-                    # Log di debug per tracciare le chiamate
-                    print(f"DEBUG - Richiesta dati sismici da: {url}")
-                    
-                    try:
-                        # Inizializza session_state se non esiste
-                        if 'last_seismic_data' not in st.session_state:
-                            st.session_state.last_seismic_data = {"features": [], "type": "FeatureCollection"}
-                        if 'last_fetch_time' not in st.session_state:
-                            st.session_state.last_fetch_time = datetime.now(FUSO_ORARIO_ITALIA) - timedelta(hours=1)
-                        if 'using_usgs_data' not in st.session_state:
-                            st.session_state.using_usgs_data = False  # Flag per indicare se stiamo usando dati USGS
-                        
-                        # Livello cache 1: Verifichiamo session_state per dati ultra-recenti
-                        if 'last_seismic_data' in st.session_state and 'last_fetch_time' in st.session_state:
-                            # Utilizziamo dati in memoria se recenti (aumentato a 15 minuti)
-                            time_diff = datetime.now(FUSO_ORARIO_ITALIA) - st.session_state.last_fetch_time
-                            if time_diff.total_seconds() < 900:  # 15 minuti (aumentato da 10)
-                                print(f"INFO: Usando dati sismici dalla cache in memoria (età: {int(time_diff.total_seconds())}s)")
-                                return st.session_state.last_seismic_data, None
-                        
-                        # Livello cache 2: Recuperiamo da API con timeout ottimizzato e retry
-                        try:
-                            # Impostazione timeout più lungo per evitare errori su reti lente
-                            print("INFO: Tentativo di recupero dati da API INGV...")
-                            headers = {
-                                'User-Agent': 'SismaVer2/1.0 (Monitoraggio sismico italiano; https://sisma-ver-2.replit.app/)',
-                                'Accept': 'application/json, text/plain, application/xml',  # Accettiamo più formati
-                                'Accept-Encoding': 'gzip, deflate',  # Compressione per ridurre bandwidth
-                                'Connection': 'keep-alive'  # Performance migliorata per richieste multiple
-                            }
-                            
-                            # Definizione di tutti i server INGV alternativi
-                            ingv_servers = [
-                                "webservices.ingv.it",
-                                "terremoti.ingv.it",
-                                "cnt.rm.ingv.it",
-                                "iside.rm.ingv.it"
-                            ]
-                            
-                            # Definizione delle strategie per richieste alternative (più resilienti)
-                            data_strategies = [
-                                # Default strategia
-                                lambda u: u,
-                                # Strategia catalogs (formato diverso)
-                                lambda u: u.replace("fdsnws/event/1/query", "fdsnws/event/1/catalogs"),
-                                # Strategia evento (meno dati, più veloce)
-                                lambda u: u.replace("format=geojson", "format=text").replace("limit=100", "limit=25"),
-                                # Strategia magnitudo (solo eventi significativi)
-                                lambda u: u.replace("minmag=0.5", "minmag=2.0").replace("limit=100", "limit=25"),
-                                # Strategia storica (ultimi 7 giorni)
-                                lambda u: u.replace("starttime=", "starttime=" + (datetime.now(FUSO_ORARIO_ITALIA) - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S"))
-                            ]
-                            
-                            # Implementazione con retry adattivo
-                            max_retries = 2  # Manteniamo 2 tentativi per non bloccare l'interfaccia
-                            retry_count = 0
-                            retry_delay = 1  # Partiamo con un secondo
-                            response = None  # Inizializzazione esplicita
-                            
-                            while retry_count < max_retries:
-                                # Lista di server INGV raggiungibili (verifica preliminare)
-                                reachable_servers = []
-                                
-                                # Verifichiamo tutti i server contemporaneamente
-                                for server in ingv_servers:
-                                    try:
-                                        check_url = f"https://{server}"
-                                        head_response = requests.head(check_url, timeout=2.5, headers=headers)
-                                        if head_response.status_code < 400:
-                                            reachable_servers.append(server)
-                                            print(f"INFO: Server INGV raggiungibile: {server}")
-                                    except Exception as server_err:
-                                        print(f"INFO: Server INGV non accessibile: {server} ({str(server_err)[:50]}...)")
-                                
-                                if not reachable_servers:
-                                    print("INFO: Nessun server INGV raggiungibile, utilizzo cache")
-                                    raise requests.exceptions.ConnectionError("Tutti i server INGV non sono raggiungibili")
-                                
-                                # Prova tutte le combinazioni di server e strategie
-                                success = False
-                                
-                                for server in reachable_servers:
-                                    if success:
-                                        break
-                                        
-                                    for strategy in data_strategies:
-                                        try:
-                                            # Costruisci URL con server e strategia attuali
-                                            current_url = url.replace("webservices.ingv.it", server)
-                                            current_url = strategy(current_url)
-                                            
-                                            print(f"INFO: Tentativo con {server}, strategia: {strategy.__name__ if hasattr(strategy, '__name__') else 'custom'}")
-                                            response = requests.get(current_url, timeout=7, headers=headers)  # Timeout aumentato
-                                            
-                                            if response.status_code == 200:
-                                                content_type = response.headers.get('Content-Type', '')
-                                                
-                                                # Verifica preliminare del contenuto
-                                                if ('application/json' in content_type and len(response.text) > 100) or \
-                                                   ('text/plain' in content_type and len(response.text) > 50):
-                                                    print(f"INFO: Risposta valida ricevuta da {server} ({len(response.text)} bytes)")
-                                                    success = True
-                                                    break
-                                                else:
-                                                    print(f"INFO: Risposta da {server} troppo corta o non valida")
-                                        except Exception as req_err:
-                                            print(f"INFO: Errore durante richiesta a {server}: {str(req_err)[:50]}...")
-                                
-                                if success and response and response.status_code == 200:
-                                    print("INFO: Recupero dati INGV completato con successo")
-                                    break
-                                else:
-                                    retry_count += 1
-                                    # Utilizziamo backoff esponenziale modificato: aumenta più gradualmente
-                                    retry_wait = retry_delay * (1.2 ** retry_count)  # Crescita più graduale
-                                    if retry_count < max_retries:
-                                        print(f"INFO: Tentativo {retry_count} fallito, riprovo tra {retry_wait:.1f} secondi...")
-                                        time.sleep(retry_wait)
-                                    else:
-                                        print(f"INFO: Tutti i tentativi falliti ({max_retries}), utilizzo dati di fallback")
-                                        raise requests.exceptions.RequestException("Tutti i tentativi falliti")
-                            
-                            if response.status_code == 200:
-                                try:
-                                    # Verifica che la risposta sia in formato JSON valido
-                                    data = response.json()
-                                    
-                                    # Controllo validità della struttura dati
-                                    if not isinstance(data, dict):
-                                        raise ValueError("Risposta non è un dizionario JSON valido")
-                                    
-                                    if "features" not in data:
-                                        raise ValueError("Chiave 'features' mancante nella risposta")
-                                        
-                                    if not isinstance(data.get("features"), list):
-                                        raise ValueError("'features' non è una lista valida")
-                                    
-                                    # Ottimizzazione: Memorizziamo in session_state
-                                    st.session_state.last_seismic_data = data
-                                    st.session_state.last_fetch_time = datetime.now(FUSO_ORARIO_ITALIA)
-                                    # Se prima stavamo usando USGS, segnala il ripristino di INGV
-                                    message = None
-                                    if st.session_state.get('using_usgs_data', False):
-                                        st.session_state.using_usgs_data = False  # Reset flag USGS
-                                        message = "✅ Connessione INGV ripristinata. Utilizzando dati ufficiali dell'Istituto Nazionale di Geofisica e Vulcanologia."
-                                    print(f"INFO: Recuperati {len(data.get('features', []))} eventi sismici da INGV")
-                                    return data, message
-                                    
-                                except ValueError as json_err:
-                                    error_msg = f"Errore nel parsing JSON: {str(json_err)}"
-                                    print(f"ERROR: {error_msg}")
-                                    print(f"Contenuto risposta: {response.text[:200]}...")  # Log primi 200 caratteri
-                                    
-                                    # Fallback a cache esistente
-                                    if 'last_seismic_data' in st.session_state:
-                                        return st.session_state.last_seismic_data, f"Errore nel formato dati: {str(json_err)}"
-                            else:
-                                print(f"ERROR: API ha risposto con codice {response.status_code}")
-                                
-                                # Se API non risponde correttamente, fallback a dati in cache
-                                if 'last_seismic_data' in st.session_state:
-                                    return st.session_state.last_seismic_data, f"Impossibile accedere ai dati aggiornati (HTTP {response.status_code})"
-                        
-                        except requests.exceptions.RequestException as req_e:
-                            print(f"ERROR: Eccezione nella richiesta HTTP: {str(req_e)}")
-                            
-                            # Livello 3: Fallback a USGS per dati globali in tempo reale
-                            try:
-                                print("INFO: INGV non accessibile, tentativo con USGS...")
-                                
-                                # Coordiante approssimative dell'Italia
-                                italy_bounds = {
-                                    "north": 47.5,  # Confine settentrionale
-                                    "south": 35.0,  # Confine meridionale (include Sicilia)
-                                    "east": 20.0,   # Confine orientale (include Puglia)
-                                    "west": 6.0     # Confine occidentale (include Sardegna) 
-                                }
-                                
-                                # Costruisci URL per USGS per l'area dell'Italia
-                                usgs_start_time = (datetime.now(FUSO_ORARIO_ITALIA) - timedelta(days=30)).strftime("%Y-%m-%d")
-                                usgs_url = f"https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson" + \
-                                          f"&starttime={usgs_start_time}" + \
-                                          f"&minlatitude={italy_bounds['south']}&maxlatitude={italy_bounds['north']}" + \
-                                          f"&minlongitude={italy_bounds['west']}&maxlongitude={italy_bounds['east']}" + \
-                                          f"&minmagnitude=0.5"
-                                          
-                                usgs_headers = {
-                                    'User-Agent': 'SismaVer2/1.0 (Monitoraggio sismico italiano; https://sisma-ver-2.replit.app/)',
-                                    'Accept': 'application/json'
-                                }
-                                
-                                usgs_response = requests.get(usgs_url, timeout=10, headers=usgs_headers)
-                                
-                                if usgs_response.status_code == 200:
-                                    usgs_data = usgs_response.json()
-                                    
-                                    # Verifica dati USGS 
-                                    if isinstance(usgs_data, dict) and "features" in usgs_data:
-                                        # Salva in session_state
-                                        st.session_state.last_seismic_data = usgs_data
-                                        st.session_state.last_fetch_time = datetime.now(FUSO_ORARIO_ITALIA)
-                                        st.session_state.using_usgs_data = True  # Flag per indicare l'uso di USGS
-                                        print(f"INFO: Recuperati {len(usgs_data.get('features', []))} eventi sismici da USGS")
-                                        return usgs_data, "⚠️ INGV temporaneamente non disponibile. Utilizzando dati da USGS (United States Geological Survey)."
-                            except Exception as usgs_err:
-                                print(f"ERROR: Fallito anche fallback USGS: {str(usgs_err)}")
-                            
-                            # Livello 4: Fallback a dati in cache
-                            if 'last_seismic_data' in st.session_state:
-                                source_text = "USGS" if st.session_state.get('using_usgs_data', False) else "INGV"
-                                return st.session_state.last_seismic_data, f"⚠️ Problemi di connessione. Visualizzando dati recenti da {source_text} in cache."
-                        
-                        # Ultimo livello (fallback): dati storici da CSV locale
-                        try:
-                            # Utilizziamo il file CSV locale come fallback di emergenza
-                            csv_path = "terremoti_italia.csv"
-                            
-                            if os.path.exists(csv_path):
-                                print(f"INFO: Utilizzo dati sismici storici da {csv_path} come fallback")
-                                df = pd.read_csv(csv_path)
-                                
-                                # Creiamo una struttura GeoJSON compatibile con quella dell'API
-                                features = []
-                                for _, row in df.iterrows():
-                                    # Generazione di coordinate casuali attorno alla regione
-                                    # Coordinate approssimative per l'Italia
-                                    regione = row.get("Regione", "")
-                                    # Default in centro Italia
-                                    lat, lon = 42.0, 12.5
-                                    
-                                    # Coordinate approssimative delle regioni italiane
-                                    regioni_coords = {
-                                        "Abruzzo": [42.35, 13.40],
-                                        "Basilicata": [40.50, 16.00],
-                                        "Calabria": [39.00, 16.50],
-                                        "Campania": [40.83, 14.25],
-                                        "Emilia-Romagna": [44.50, 11.00],
-                                        "Friuli-Venezia Giulia": [46.00, 13.00],
-                                        "Lazio": [41.90, 12.50],
-                                        "Liguria": [44.45, 8.75],
-                                        "Lombardia": [45.70, 9.70],
-                                        "Marche": [43.37, 13.15],
-                                        "Molise": [41.67, 14.67],
-                                        "Piemonte": [45.05, 7.67],
-                                        "Puglia": [41.00, 16.50],
-                                        "Sardegna": [40.00, 9.00],
-                                        "Sicilia": [37.50, 14.00],
-                                        "Toscana": [43.37, 11.00],
-                                        "Trentino-Alto Adige": [46.50, 11.30],
-                                        "Umbria": [43.10, 12.60],
-                                        "Valle d'Aosta": [45.73, 7.33],
-                                        "Veneto": [45.43, 12.00]
-                                    }
-                                    
-                                    if regione in regioni_coords:
-                                        lat, lon = regioni_coords[regione]
-                                    
-                                    # Creare una feature in formato GeoJSON
-                                    features.append({
-                                        "type": "Feature",
-                                        "properties": {
-                                            "mag": float(row.get("Magnitudo", 0)),
-                                            "place": row.get("Località", "N/A"),
-                                            "time": row.get("Data", ""),
-                                            "type": "earthquake",
-                                            "title": f"M {row.get('Magnitudo', 0)} - {row.get('Località', 'N/A')}",
-                                            "region": row.get("Regione", "N/A")
-                                        },
-                                        "geometry": {
-                                            "type": "Point",
-                                            "coordinates": [lon, lat, 10.0]  # lon, lat, profondità
-                                        }
-                                    })
-                                
-                                # Costruiamo la struttura GeoJSON completa
-                                fallback_data = {
-                                    "type": "FeatureCollection",
-                                    "metadata": {
-                                        "generated": datetime.now(FUSO_ORARIO_ITALIA).isoformat(),
-                                        "title": "Dati sismici storici (modalità fallback)",
-                                        "status": 200,
-                                        "count": len(features)
-                                    },
-                                    "features": features[:20]  # Limitiamo a 20 eventi per prestazioni
-                                }
-                                
-                                return fallback_data, "L'API INGV al momento non è accessibile. Visualizzazione dei principali eventi sismici storici in Italia."
-                        except Exception as csv_err:
-                            print(f"ERROR nel fallback CSV: {str(csv_err)}")
-                            
-                        # Fallback finale: struttura vuota ma valida
-                        return {"features": [], "type": "FeatureCollection", "metadata": {"generated": datetime.now(FUSO_ORARIO_ITALIA).isoformat()}}, "Impossibile accedere ai dati sismici - riprova più tardi"
-                    
-                    except Exception as e:
-                        # Gestione dell'errore migliorata con log per debugging
-                        error_msg = f"Errore nel sistema di cache: {str(e)}"
-                        print(f"ERROR - Sistema di cache sismico: {error_msg}")
-                        
-                        # Fallback finale: restituiamo una struttura vuota ma valida
-                        empty_data = {"features": [], "type": "FeatureCollection", "metadata": {"generated": datetime.now(FUSO_ORARIO_ITALIA).isoformat()}}
-                        return empty_data, error_msg
-                
-                with st.spinner("Caricamento dati sismici in tempo reale..."):
-                    # Recupera i dati con gestione errori efficiente
-                    sensor_data, error_msg = fetch_seismic_data(ingv_url)
-                    features = sensor_data.get("features", [])
-
-                    # Filtro post-fetch per regione (sigla provincia + bbox di fallback)
-                    # oppure bbox Italia stretto per visione nazionale (esclude Balcani, Grecia, ecc.)
-                    _is_nazionale = (not regione_scelta) or regione_scelta.startswith("Italia")
-                    _ITA_BBOX = (35.5, 47.1, 6.6, 18.55)  # lat_min, lat_max, lon_min, lon_max
-                    _tot_pre = len(features)
-                    _filtered = []
-                    for _f in features:
-                        try:
-                            _props = _f.get("properties", {}) or {}
-                            _geom = (_f.get("geometry", {}) or {}).get("coordinates", []) or []
-                            _place = _props.get("place", "") or ""
-                            _lon = _geom[0] if len(_geom) > 0 else None
-                            _lat = _geom[1] if len(_geom) > 1 else None
-                            if _is_nazionale:
-                                if _lat is None or _lon is None:
-                                    continue
-                                la, lo = float(_lat), float(_lon)
-                                if _ITA_BBOX[0] <= la <= _ITA_BBOX[1] and _ITA_BBOX[2] <= lo <= _ITA_BBOX[3]:
-                                    _filtered.append(_f)
-                            else:
-                                if _evento_in_regione(_place, _lat, _lon, regione_scelta):
-                                    _filtered.append(_f)
-                        except Exception:
-                            continue
-                    features = _filtered
-                    _label = "Italia" if _is_nazionale else regione_scelta
-                    if _tot_pre and not features:
-                        st.info(f"Nessun evento nelle ultime 24 ore con epicentro in {_label} (esclusi {_tot_pre} eventi esteri/limitrofi).")
-                    elif _tot_pre != len(features):
-                        st.caption(f"🔎 Filtrati {len(features)} eventi su {_tot_pre} con epicentro effettivo in {_label}.")
-
-                    if error_msg:
-                        # Se è un messaggio di ripristino INGV (inizia con ✅), usa st.success invece di warning
-                        if error_msg.startswith("✅"):
-                            st.success(error_msg)
-                        else:
-                            st.warning(error_msg)
-                    
-                    if not features:
-                        st.info(f"Nessun evento sismico rilevato nelle ultime 24 ore {f'in {regione_scelta}' if regione_scelta != 'Italia (Visione nazionale)' else 'in Italia'}.")
-                        
-                        # Come fallback, visualizza iframe del portale terremoti INGV
-                        st.info("Visualizzazione alternativa tramite portale INGV:")
-                        st.components.v1.iframe(
-                            "http://terremoti.ingv.it/events", 
-                            height=500, 
-                            scrolling=True
-                        )
-                    else:
-                        # Prepara dati per visualizzazione
-                        seismic_data = []
-                        
-                        # Limita il numero di eventi per prestazioni migliori
-                        max_events = 20
-                        limited_features = features[:max_events]
-                        
-                        for feature in limited_features:
-                            properties = feature["properties"]
-                            geometry = feature["geometry"]["coordinates"]
-                            
-                            # Conversione timestamp
-                            event_time = properties.get("time", "")
-                            try:
-                                # Gestisce diversi formati di data con correzione per fuso orario italiano
-                                dt = None
-                                if isinstance(event_time, str):
-                                    if "Z" in event_time:
-                                        dt = datetime.fromisoformat(event_time.replace("Z", "+00:00"))
-                                    else:
-                                        dt = datetime.fromisoformat(event_time)
-                                elif isinstance(event_time, (int, float)):
-                                    # Se è un timestamp in millisecondi
-                                    dt = datetime.fromtimestamp(event_time / 1000.0)
-                                
-                                # Converti in fuso orario italiano (DST-aware)
-                                if dt:
-                                    dt_it = datetime.fromtimestamp(event_time / 1000.0, FUSO_ORARIO_ITALIA)
-                                    formatted_time = dt_it.strftime("%d/%m/%Y %H:%M:%S") + " (IT)"
-                                else:
-                                    formatted_time = str(event_time)
-                            except Exception as date_err:
-                                formatted_time = str(event_time)
-                                
-                            seismic_data.append({
-                                "Luogo": properties.get("place", "N/A"),
-                                "Magnitudo": properties.get("mag", 0),
-                                "Data/Ora": formatted_time,
-                                "Profondità (km)": round(geometry[2], 1) if len(geometry) > 2 else 0,
-                                "Latitudine": geometry[1],
-                                "Longitudine": geometry[0]
-                            })
-                                
-                        # Converti in DataFrame per visualizzazione
-                        df_seismic = pd.DataFrame(seismic_data)
-                        
-                        # Visualizza tabella
-                        st.subheader(f"🔍 Eventi sismici in tempo reale - {regione_scelta}")
-                        if len(features) > max_events:
-                            st.info(f"Visualizzazione limitata a {max_events} eventi su {len(features)} totali per migliorare le prestazioni")
-                        st.dataframe(df_seismic, use_container_width=True)
-                        
-                        # Crea mappa interattiva
-                        m = folium.Map(
-                            location=[41.9, 12.5],  # Centro approssimativo dell'Italia
-                            zoom_start=6 if regione_scelta == "Italia (Visione nazionale)" else 8
-                        )
-                        
-                        # Se regione specifica, centra la mappa su di essa
-                        if regione_scelta in regioni_coords and regione_scelta != "Italia (Visione nazionale)":
-                            # Ottieni le coordinate e crea una nuova mappa centrata
-                            new_location = regioni_coords[regione_scelta]
-                            if isinstance(new_location, (list, tuple)) and len(new_location) == 2:
-                                m = folium.Map(
-                                    location=new_location,
-                                    zoom_start=8
-                                )
-                            
-                        # Aggiungi marker per ogni evento sismico
-                        for _, row in df_seismic.iterrows():
-                            # Colore basato sulla magnitudo
-                            magnitude = row["Magnitudo"]
-                            color = "green" if magnitude < 3.0 else "orange" if magnitude < 4.0 else "red"
-                            
-                            # Popup con informazioni + GPS epicentro
-                            _eq_lat = row["Latitudine"]
-                            _eq_lon = row["Longitudine"]
-                            _eqg  = f"https://www.google.com/maps/dir/?api=1&destination={_eq_lat},{_eq_lon}&travelmode=driving"
-                            _eqwz = f"https://waze.com/ul?ll={_eq_lat},{_eq_lon}&navigate=yes"
-                            _eqam = f"https://maps.apple.com/?daddr={_eq_lat},{_eq_lon}&dirflg=d"
-                            popup_text = (
-                                '<div style="min-width:210px;font-family:sans-serif;font-size:12px;">'
-                                f'<h4 style="color:#DC2626;margin:0 0 5px 0;font-size:13px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌊 Evento sismico</h4>'
-                                f'<p style="margin:0 0 2px 0;"><b>Luogo:</b> {row["Luogo"]}</p>'
-                                f'<p style="margin:0 0 2px 0;"><b>Magnitudo:</b> {row["Magnitudo"]}</p>'
-                                f'<p style="margin:0 0 2px 0;"><b>Data/Ora:</b> {row["Data/Ora"]}</p>'
-                                f'<p style="margin:0 0 6px 0;"><b>Profondità:</b> {row["Profondità (km)"]} km</p>'
-                                '<div style="font-size:10px;color:#888;margin-bottom:4px;">📍 Naviga all\'epicentro:</div>'
-                                '<div style="display:flex;gap:4px;">'
-                                f'<a href="{_eqg}" target="_blank" style="background:#4285F4;color:white;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🗺️ GMaps</a>'
-                                f'<a href="{_eqwz}" target="_blank" style="background:#00BCD4;color:#000;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🚗 Waze</a>'
-                                f'<a href="{_eqam}" target="_blank" style="background:#555;color:white;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🍎 Maps</a>'
-                                '</div></div>'
-                            )
-                            
-                            # Aggiungi cerchio sulla mappa
-                            folium.Circle(
-                                location=[_eq_lat, _eq_lon],
-                                radius=magnitude * 5000,
-                                color=color,
-                                fill=True,
-                                fill_opacity=0.4,
-                                popup=folium.Popup(popup_text, max_width=270)
-                            ).add_to(m)
-                            
-                        # Visualizza la mappa
-                        st.subheader("🗺️ Mappa eventi sismici in tempo reale")
-                        folium_static(m, width=1100, height=520)
-                        
-                        # Grafico magnitudo nel tempo
-                        st.subheader("📈 Andamento sismico eventi recenti")
-                        
-                        try:
-                            # Creare un asse temporale per il grafico con gestione multiformat
-                            # Controllo se stiamo usando dati USGS o INGV per adattare il parsing delle date
-                            using_usgs = st.session_state.get('using_usgs_data', False)
-                            
-                            # Funzione per convertire diverse date in datetime con gestione errori
-                            def parse_date_flexible(date_str):
-                                formats_to_try = [
-                                    '%d/%m/%Y %H:%M:%S',  # INGV formato standard (con IT)
-                                    '%Y-%m-%d %H:%M:%S',  # USGS formato standard
-                                    '%d/%m/%Y %H:%M:%S (IT)',  # INGV con indicatore fuso
-                                    '%Y-%m-%dT%H:%M:%S',  # ISO format
-                                    '%Y-%m-%dT%H:%M:%S.%f',  # ISO with microseconds
-                                ]
-                                
-                                # Rimuovi l'indicatore di fuso orario se presente
-                                date_str = date_str.replace(' (IT)', '')
-                                
-                                for fmt in formats_to_try:
-                                    try:
-                                        return pd.to_datetime(date_str, format=fmt)
-                                    except (ValueError, TypeError):
-                                        continue
-                                        
-                                # Se nessun formato funziona, usa il parser generico di pandas
-                                try:
-                                    return pd.to_datetime(date_str)
-                                except:
-                                    # Come ultima risorsa, ritorna la data corrente
-                                    print(f"Impossibile convertire data: {date_str}")
-                                    return pd.to_datetime('now')
-                            
-                            # Applica la funzione di parsing flessibile
-                            df_seismic['Data/Ora Obj'] = df_seismic['Data/Ora'].apply(parse_date_flexible)
-                            df_seismic = df_seismic.sort_values('Data/Ora Obj')
-                            
-                            # Crea grafico con Plotly
-                            fig = px.scatter(
-                                df_seismic,
-                                x='Data/Ora Obj',
-                                y='Magnitudo',
-                                color='Magnitudo',
-                                size='Magnitudo',
-                                hover_data=['Luogo', 'Profondità (km)'],
-                                color_continuous_scale=px.colors.sequential.Reds,
-                                title=f"Eventi sismici negli ultimi 7 giorni - {regione_scelta}",
-                                labels={'Data/Ora Obj': 'Data/Ora', 'Magnitudo': 'Magnitudo'}
-                            )
-                            
-                            # Aggiungi traccia per connettere i punti cronologicamente
-                            fig.add_trace(
-                                go.Scatter(
-                                    x=df_seismic['Data/Ora Obj'], 
-                                    y=df_seismic['Magnitudo'],
-                                    mode='lines',
-                                    line=dict(width=1, color='rgba(200,200,200,0.5)'),
-                                    showlegend=False
-                                )
-                            )
-                            
-                            # Migliora layout
-                            fig.update_layout(
-                                xaxis_title="Data/Ora",
-                                yaxis_title="Magnitudo",
-                                legend_title="Magnitudo",
-                                hovermode="closest"
-                            )
-                            
-                            st.plotly_chart(fig, use_container_width=True)
-                        except Exception as e:
-                            st.warning(f"Non è stato possibile creare il grafico temporale: {e}")
-                            print(f"DEBUG - Errore grafico: {str(e)}")
-                            print(f"DEBUG - Formato date nel DataFrame: {df_seismic['Data/Ora'].iloc[0] if len(df_seismic) > 0 else 'DataFrame vuoto'}")
-                        
-                        # Statistiche rapide
-                        st.subheader("📊 Statistiche sismiche")
-                        col1, col2, col3 = st.columns(3)
-                        
-                        with col1:
-                            st.metric("Numero eventi", len(df_seismic))
-                        with col2:
-                            st.metric("Magnitudo massima", round(df_seismic['Magnitudo'].max(), 1))
-                        with col3:
-                            st.metric("Profondità media (km)", round(df_seismic['Profondità (km)'].mean(), 1))
-                            
-                        # Analisi statistica avanzata
-                        st.markdown("---")
-                        st.subheader("📈 Analisi avanzata degli eventi")
-                        
-                        col_a1, col_a2 = st.columns(2)
-                        
-                        with col_a1:
-                            # Calcola distribuzioni per magnitudo
-                            bins = [0, 1.0, 2.0, 3.0, 4.0, 10.0]
-                            labels = ['<1 (Micro)', '1-2 (Molto debole)', '2-3 (Debole)', '3-4 (Leggero)', '4+ (Moderato+)']
-                            
-                            # Aggiungi classificazione
-                            df_seismic['Fascia Magnitudo'] = pd.cut(df_seismic['Magnitudo'], bins=bins, labels=labels)
-                            fascia_counts = df_seismic['Fascia Magnitudo'].value_counts().sort_index()
-                            
-                            # Crea grafico a torta
-                            fig_pie = px.pie(
-                                values=fascia_counts.values,
-                                names=fascia_counts.index,
-                                title="Distribuzione eventi per magnitudo",
-                                color_discrete_sequence=px.colors.sequential.Reds_r
-                            )
-                            st.plotly_chart(fig_pie, use_container_width=True)
-                            
-                        with col_a2:
-                            # Profondità degli eventi
-                            # Crea istogramma di profondità
-                            fig_hist = px.histogram(
-                                df_seismic,
-                                x="Profondità (km)",
-                                nbins=10,
-                                title="Distribuzione della profondità degli eventi",
-                                color_discrete_sequence=['#e5394d']
-                            )
-                            st.plotly_chart(fig_hist, use_container_width=True)
-                            
-                        # Aggiungi mappa di intensità
-                        st.subheader("🗺️ Mappa di intensità sismica")
-                        
-                        # Crea mappa semplice invece della mappa di calore
-                        try:
-                            # Create simple intensity map
-                            st.success("Generazione mappa di intensità sismica...")
-                            
-                            # Base map
-                            intensity_map = folium.Map(
-                                location=[41.9, 12.5],
-                                zoom_start=6 if regione_scelta == "Italia (Visione nazionale)" else 8,
-                                tiles="CartoDB positron"
-                            )
-                            
-                            # Se regione specifica, centra la mappa su di essa
-                            if regione_scelta in regioni_coords and regione_scelta != "Italia (Visione nazionale)":
-                                # Usa regioni_coords direttamente come lista [lat, long]
-                                new_location = regioni_coords.get(regione_scelta)
-                                if isinstance(new_location, list) and len(new_location) == 2:
-                                    # Crea una nuova mappa con la posizione aggiornata
-                                    intensity_map = folium.Map(
-                                        location=new_location,
-                                        zoom_start=8,
-                                        tiles="CartoDB positron"
-                                    )
-                            
-                            # Aggiungi marker per le principali città come riferimento
-                            città_italiane = {
-                                "Roma": [41.9028, 12.4964],
-                                "Milano": [45.4642, 9.1900],
-                                "Napoli": [40.8518, 14.2681],
-                                "Palermo": [38.1157, 13.3615],
-                                "Torino": [45.0703, 7.6869],
-                                "Bologna": [44.4949, 11.3426]
-                            }
-                            
-                            for città, pos in città_italiane.items():
-                                folium.Marker(
-                                    location=pos,
-                                    popup=città,
-                                    icon=folium.Icon(color="blue", icon="info-sign")
-                                ).add_to(intensity_map)
-                            
-                            # Assicuriamoci che df_seismic sia valido
-                            if df_seismic is not None and len(df_seismic) > 0:
-                                required_cols = ['Latitudine', 'Longitudine', 'Magnitudo']
-                                if all(col in df_seismic.columns for col in required_cols):
-                                    # Aggiungi cerchi sulla mappa per ogni evento
-                                    for _, row in df_seismic.iterrows():
-                                        try:
-                                            # Prova a convertire direttamente in float per essere sicuri
-                                            lat = float(row['Latitudine'])
-                                            lon = float(row['Longitudine'])
-                                            mag = float(row['Magnitudo'])
-                                            depth = float(row['Profondità (km)'])
-                                            
-                                            # Validazione geografica per l'Italia
-                                            if (35.0 <= lat <= 48.0) and (6.0 <= lon <= 19.0):
-                                                # Colore basato sulla magnitudo
-                                                color = "green"
-                                                if mag >= 4.0:
-                                                    color = "red"
-                                                elif mag >= 3.0:
-                                                    color = "orange"
-                                                elif mag >= 2.0:
-                                                    color = "yellow"
-                                                
-                                                # Raggio basato sulla magnitudo
-                                                radius = mag * 5000
-                                                
-                                                # Info popup + GPS epicentro
-                                                _ig  = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}&travelmode=driving"
-                                                _iwz = f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
-                                                _iam = f"https://maps.apple.com/?daddr={lat},{lon}&dirflg=d"
-                                                popup_text = (
-                                                    '<div style="min-width:200px;font-family:sans-serif;font-size:12px;">'
-                                                    f'<h4 style="color:#DC2626;margin:0 0 5px 0;font-size:13px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌊 Evento sismico</h4>'
-                                                    f'<p style="margin:0 0 2px 0;"><b>Magnitudo:</b> {mag}</p>'
-                                                    f'<p style="margin:0 0 2px 0;"><b>Profondità:</b> {depth} km</p>'
-                                                    f'<p style="margin:0 0 2px 0;"><b>Data:</b> {row.get("Data/Ora", "N/D")}</p>'
-                                                    f'<p style="margin:0 0 6px 0;"><b>Località:</b> {row.get("Luogo", "N/D")}</p>'
-                                                    '<div style="font-size:10px;color:#888;margin-bottom:4px;">📍 Naviga all\'epicentro:</div>'
-                                                    '<div style="display:flex;gap:3px;">'
-                                                    f'<a href="{_ig}" target="_blank" style="background:#4285F4;color:white;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🗺️ GMaps</a>'
-                                                    f'<a href="{_iwz}" target="_blank" style="background:#00BCD4;color:#000;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🚗 Waze</a>'
-                                                    f'<a href="{_iam}" target="_blank" style="background:#555;color:white;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🍎 Maps</a>'
-                                                    '</div></div>'
-                                                )
-                                                
-                                                # Aggiungi cerchio colorato
-                                                folium.Circle(
-                                                    location=[lat, lon],
-                                                    radius=radius,
-                                                    color=color,
-                                                    fill=True,
-                                                    fill_opacity=0.4,
-                                                    popup=folium.Popup(popup_text, max_width=260)
-                                                ).add_to(intensity_map)
-                                        except (ValueError, TypeError, KeyError) as e:
-                                            # Log dell'errore e continua
-                                            print(f"Errore nella riga: {e}")
-                                            continue
-                            
-                            # Mostra questa mappa alternativa invece della heatmap
-                            folium_static(intensity_map, width=1100, height=520)
-                            st.info("Nota: La mappa mostra l'intensità degli eventi sismici con cerchi. La dimensione e il colore rappresentano la magnitudo.")
-                            
-                        except Exception as map_err:
-                            st.error(f"Errore nella creazione della mappa di intensità: {map_err}")
-                            st.info("Visualizzazione alternativa tramite portale INGV:")
-                            # Visualizzazione tramite iframe del portale terremoti INGV come fallback
-                            st.components.v1.iframe(
-                                "http://terremoti.ingv.it/events", 
-                                height=500, 
-                                scrolling=True
-                            )
-                            
-                        # Statistiche terremoti storici significativi
-                        st.markdown("---")
-                        st.subheader("📜 Terremoti storici significativi")
-                        
-                        # Carica dati storici
-                        try:
-                            # Utilizzo dati dal file CSV locale
-                            df_historic = pd.read_csv("terremoti_italia.csv")
-                            
-                            # Se specifica regione, filtra
-                            if regione_scelta != "Italia (Visione nazionale)":
-                                df_historic_filtered = df_historic[df_historic["Regione"].str.contains(regione_scelta, case=False, na=False)]
-                                if len(df_historic_filtered) > 0:
-                                    df_historic = df_historic_filtered
-                            
-                            # Mostra eventi storici
-                            st.dataframe(
-                                df_historic[["Data", "Magnitudo", "Località", "Vittime", "Regione"]],
-                                use_container_width=True
-                            )
-                        except Exception as hist_err:
-                            st.warning(f"Errore nel caricamento dei dati storici: {hist_err}")
-                            
-                            # Dati storici precompilati come fallback
-                            st.write("Eventi sismici storici significativi in Italia:")
-                            st.markdown("""
-                            - **1693, Sicilia Orientale**: Magnitudo 7.4, 60.000 vittime
-                            - **1783, Calabria**: Magnitudo 7.0, 30.000 vittime 
-                            - **1908, Messina e Reggio Calabria**: Magnitudo 7.1, 80.000 vittime
-                            - **1915, Avezzano**: Magnitudo 7.0, 30.000 vittime
-                            - **1980, Irpinia**: Magnitudo 6.9, 3.000 vittime
-                            - **2009, L'Aquila**: Magnitudo 6.3, 309 vittime
-                            - **2016, Centro Italia**: Magnitudo 6.0-6.5, 299 vittime
-                            """)
-            except Exception as e:
-                st.error(f"Errore durante il recupero dei dati sismici in tempo reale: {e}")
-                st.info("Visualizzazione alternativa tramite portale INGV:")
-                
-                # Visualizzazione tramite iframe del portale terremoti INGV come fallback
-                st.components.v1.iframe(
-                    "http://terremoti.ingv.it/instruments", 
-                    height=600, 
-                    scrolling=True
-                )
-            
-            # Spiegazione dei dati
-            with st.expander("ℹ️ Informazioni sui dati"):
-                st.markdown("""
-                ### 🔍 Stazioni sismiche INGV in tempo reale
-                
-                La rete sismica nazionale INGV è composta da oltre 400 stazioni sismiche distribuite su tutto il territorio italiano.
-                
-                I dati visualizzati sono ottenuti in tempo reale dall'API ufficiale dell'INGV (Istituto Nazionale di Geofisica e Vulcanologia).
-                
-                La mappa mostra gli eventi sismici degli ultimi 7 giorni con magnitudo superiore a 0.5.
-                
-                **Aggiornamento dati:** I dati vengono aggiornati automaticamente ad ogni refresh della pagina o utilizzando il pulsante "Aggiorna dati".
-                
-                **Fonte dati:** [INGV - Istituto Nazionale di Geofisica e Vulcanologia](http://terremoti.ingv.it/)
-                """)
-    
-    # Tab Monitoraggio vulcanico
-    with sensor_tab2:
-        # ── Vista panoramica Italia (tutti i vulcani) ────────────────────────
+        # Costruisci URL INGV
+        start_date = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S")
+        min_mag = 0.5
         if regione_scelta == "Italia (Visione nazionale)":
-            st.subheader("🌋 Monitoraggio vulcani attivi italiani")
-            st.info("🔗 Per schede dettagliate con webcam e bollettini INGV → apri **Vulcani** dal menu laterale")
-
-            df_vulcani = pd.DataFrame({
-                "Vulcano": [
-                    "Etna", "Stromboli", "Campi Flegrei", "Vesuvio",
-                    "Ischia", "Vulcano", "Pantelleria", "Strombolicchio",
-                    "Lipari-Vulcanello", "Marsili", "Ferdinandea",
-                    "Colli Albani", "Monte Amiata", "Isole Pontine",
-                    "Ustica", "Linosa", "Salina", "Alicudi", "Filicudi", "Nisyros (IT)"
-                ],
-                "Regione": [
-                    "Sicilia", "Sicilia", "Campania", "Campania",
-                    "Campania", "Sicilia", "Sicilia", "Sicilia",
-                    "Sicilia", "Mar Tirreno", "Sicilia - Canale di Sicilia",
-                    "Lazio", "Toscana", "Lazio",
-                    "Sicilia", "Sicilia", "Sicilia", "Sicilia", "Sicilia", "Mar Egeo"
-                ],
-                "Livello allerta": [
-                    "ARANCIONE", "ARANCIONE", "GIALLO", "VERDE",
-                    "VERDE", "GIALLO", "VERDE", "VERDE",
-                    "VERDE", "GIALLO", "VERDE",
-                    "VERDE", "VERDE", "VERDE",
-                    "VERDE", "VERDE", "VERDE", "VERDE", "VERDE", "VERDE"
-                ],
-                "Ultima eruzione": [
-                    "Attivo", "Attivo", "1538", "1944",
-                    "1302", "1888-90", "1891 (sub.)", "Quiescente",
-                    "1230", "Non doc.", "1831 (sub.)",
-                    "5000 a.f.", "180 a.f.", "Quiescente",
-                    "Quiescente", "Quiescente", "Quiescente", "Quiescente", "Quiescente", "-"
-                ],
-                "Monitoraggio INGV": [
-                    "INGV-CT", "INGV-CT", "INGV-OV", "INGV-OV",
-                    "INGV-OV", "INGV-CT", "INGV-CT", "INGV-CT",
-                    "INGV-CT", "INGV", "INGV",
-                    "INGV-RM", "INGV-RM", "INGV-RM",
-                    "INGV-CT", "INGV-CT", "INGV-CT", "INGV-CT", "INGV-CT", "-"
-                ]
-            })
-
-            def _color_a(val):
-                colors = {"VERDE": "background-color:#4ade80", "GIALLO": "background-color:#fde047",
-                          "ARANCIONE": "background-color:#fb923c", "ROSSO": "background-color:#f87171"}
-                return colors.get(val, "")
-
-            st.dataframe(
-                df_vulcani.style.map(_color_a, subset=["Livello allerta"]),
-                use_container_width=True, height=680
+            ingv_url = (
+                f"https://webservices.ingv.it/fdsnws/event/1/query?format=geojson"
+                f"&starttime={start_date}&minmag={min_mag}&limit=300"
+            )
+        else:
+            lat_c, lon_c = regioni_coords.get(regione_scelta, [42.0, 12.5])
+            ingv_url = (
+                f"https://webservices.ingv.it/fdsnws/event/1/query?format=geojson"
+                f"&starttime={start_date}&minmag={min_mag}"
+                f"&lat={lat_c}&lon={lon_c}&maxradius=1.5&limit=300"
             )
 
+        with st.spinner("⏳ Recupero dati sismici INGV in corso..."):
+            sensor_data, error_msg = _fetch_ingv_seismic(ingv_url)
+            features = sensor_data.get("features", [])
+
+        # Filtro bbox Italia (solo visione nazionale) o per regione
+        _is_nazionale = (not regione_scelta) or regione_scelta.startswith("Italia")
+        _ITA_BBOX = (35.5, 47.1, 6.6, 18.55)
+        _tot_pre = len(features)
+        _filtered = []
+        for _f in features:
+            try:
+                _props = _f.get("properties", {}) or {}
+                _geom = (_f.get("geometry", {}) or {}).get("coordinates", []) or []
+                _place = _props.get("place", "") or ""
+                _lon = _geom[0] if len(_geom) > 0 else None
+                _lat = _geom[1] if len(_geom) > 1 else None
+                if _is_nazionale:
+                    if _lat is None or _lon is None:
+                        continue
+                    la, lo = float(_lat), float(_lon)
+                    if _ITA_BBOX[0] <= la <= _ITA_BBOX[1] and _ITA_BBOX[2] <= lo <= _ITA_BBOX[3]:
+                        _filtered.append(_f)
+                else:
+                    if _evento_in_regione(_place, _lat, _lon, regione_scelta):
+                        _filtered.append(_f)
+            except Exception:
+                continue
+        features = _filtered
+        _label = "Italia" if _is_nazionale else regione_scelta
+
+        if error_msg:
+            if error_msg.startswith("✅"):
+                st.success(error_msg)
+            else:
+                st.warning(error_msg)
+
+        if _tot_pre and not features:
+            st.info(f"Nessun evento nelle ultime 24 ore con epicentro in {_label} "
+                    f"(esclusi {_tot_pre} eventi esteri/limitrofi).")
+        elif _tot_pre != len(features) and len(features) > 0:
+            st.caption(f"🔎 Filtrati {len(features)} eventi su {_tot_pre} con epicentro effettivo in {_label}.")
+
+        if not features:
+            st.info(f"Nessun evento sismico rilevato negli ultimi 7 giorni "
+                    f"{'in ' + regione_scelta if regione_scelta != 'Italia (Visione nazionale)' else 'in Italia'}.")
+            st.markdown(
+                "🔗 [Portale eventi INGV](https://terremoti.ingv.it/events) · "
+                "[Bollettini ufficiali](https://www.ingv.it/cat/it/comunicati-stampa)"
+            )
+        else:
+            max_events = 100
+            limited_features = features[:max_events]
+
+            seismic_data = []
+            for feature in limited_features:
+                props = feature["properties"]
+                geom = feature["geometry"]["coordinates"]
+                event_time = props.get("time", "")
+                try:
+                    if isinstance(event_time, (int, float)):
+                        dt_it = datetime.fromtimestamp(event_time / 1000.0, FUSO_ORARIO_ITALIA)
+                        formatted_time = dt_it.strftime("%d/%m/%Y %H:%M:%S") + " (IT)"
+                    elif isinstance(event_time, str):
+                        et = event_time.replace("Z", "+00:00")
+                        dt = datetime.fromisoformat(et)
+                        dt_it = dt.astimezone(FUSO_ORARIO_ITALIA)
+                        formatted_time = dt_it.strftime("%d/%m/%Y %H:%M:%S") + " (IT)"
+                    else:
+                        formatted_time = str(event_time)
+                except Exception:
+                    formatted_time = str(event_time)
+
+                seismic_data.append({
+                    "Luogo": props.get("place", "N/A"),
+                    "Magnitudo": props.get("mag", 0),
+                    "Data/Ora": formatted_time,
+                    "Profondità (km)": round(geom[2], 1) if len(geom) > 2 else 0,
+                    "Latitudine": geom[1],
+                    "Longitudine": geom[0],
+                })
+
+            df_seismic = pd.DataFrame(seismic_data)
+            df_seismic.index = range(1, len(df_seismic) + 1)
+
+            st.subheader(f"🔍 Eventi sismici in tempo reale — {regione_scelta}")
+            if len(features) > max_events:
+                st.caption(f"Visualizzati {max_events} eventi su {len(features)} totali (ultimi 7 giorni, M≥{min_mag})")
+            st.dataframe(df_seismic, use_container_width=True)
+
+            # ── Mappa eventi ─────────────────────────────────────────────────
+            map_center = regioni_coords.get(regione_scelta, [41.9, 12.5]) \
+                if regione_scelta != "Italia (Visione nazionale)" else [41.9, 12.5]
+            zoom = 6 if regione_scelta == "Italia (Visione nazionale)" else 8
+            m = folium.Map(location=map_center, zoom_start=zoom)
+
+            for _, row in df_seismic.iterrows():
+                mag = row["Magnitudo"]
+                color = "green" if mag < 3.0 else "orange" if mag < 4.0 else "red"
+                eq_lat, eq_lon = row["Latitudine"], row["Longitudine"]
+                _eqg  = f"https://www.google.com/maps/dir/?api=1&destination={eq_lat},{eq_lon}&travelmode=driving"
+                _eqwz = f"https://waze.com/ul?ll={eq_lat},{eq_lon}&navigate=yes"
+                _eqam = f"https://maps.apple.com/?daddr={eq_lat},{eq_lon}&dirflg=d"
+                popup_text = (
+                    '<div style="min-width:210px;font-family:sans-serif;font-size:12px;">'
+                    f'<h4 style="color:#DC2626;margin:0 0 5px 0;font-size:13px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌊 Evento sismico</h4>'
+                    f'<p style="margin:0 0 2px 0;"><b>Luogo:</b> {row["Luogo"]}</p>'
+                    f'<p style="margin:0 0 2px 0;"><b>Magnitudo:</b> {mag}</p>'
+                    f'<p style="margin:0 0 2px 0;"><b>Data/Ora:</b> {row["Data/Ora"]}</p>'
+                    f'<p style="margin:0 0 6px 0;"><b>Profondità:</b> {row["Profondità (km)"]} km</p>'
+                    '<div style="font-size:10px;color:#888;margin-bottom:4px;">📍 Naviga all\'epicentro:</div>'
+                    '<div style="display:flex;gap:4px;">'
+                    f'<a href="{_eqg}" target="_blank" style="background:#4285F4;color:white;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🗺️ GMaps</a>'
+                    f'<a href="{_eqwz}" target="_blank" style="background:#00BCD4;color:#000;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🚗 Waze</a>'
+                    f'<a href="{_eqam}" target="_blank" style="background:#555;color:white;padding:3px 6px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🍎 Maps</a>'
+                    '</div></div>'
+                )
+                folium.Circle(
+                    location=[eq_lat, eq_lon],
+                    radius=mag * 5000,
+                    color=color, fill=True, fill_opacity=0.4,
+                    popup=folium.Popup(popup_text, max_width=270)
+                ).add_to(m)
+
+            st.subheader("🗺️ Mappa eventi sismici in tempo reale")
+            folium_static(m, width=1100, height=520)
+
+            # ── Grafico magnitudo nel tempo ───────────────────────────────────
+            st.subheader("📈 Andamento sismico eventi recenti")
+            try:
+                def _parse_date(date_str):
+                    s = str(date_str).replace(" (IT)", "")
+                    try:
+                        return pd.to_datetime(s)
+                    except Exception:
+                        return pd.Timestamp.now()
+
+                df_seismic["Data/Ora Obj"] = df_seismic["Data/Ora"].apply(_parse_date)
+                df_seismic = df_seismic.sort_values("Data/Ora Obj")
+
+                fig = px.scatter(
+                    df_seismic, x="Data/Ora Obj", y="Magnitudo",
+                    color="Magnitudo", size="Magnitudo",
+                    hover_data=["Luogo", "Profondità (km)"],
+                    color_continuous_scale=px.colors.sequential.Reds,
+                    title=f"Sismicità negli ultimi 7 giorni — {regione_scelta}",
+                    labels={"Data/Ora Obj": "Data/Ora"}
+                )
+                fig.add_trace(go.Scatter(
+                    x=df_seismic["Data/Ora Obj"], y=df_seismic["Magnitudo"],
+                    mode="lines", line=dict(width=1, color="rgba(200,200,200,0.5)"),
+                    showlegend=False
+                ))
+                fig.update_layout(xaxis_title="Data/Ora", yaxis_title="Magnitudo", hovermode="closest")
+                st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Impossibile generare il grafico temporale: {e}")
+
+            # ── Statistiche rapide ────────────────────────────────────────────
+            st.subheader("📊 Statistiche sismiche")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Numero eventi", len(df_seismic))
+            with col2:
+                st.metric("Magnitudo massima", round(df_seismic["Magnitudo"].max(), 1))
+            with col3:
+                st.metric("Profondità media (km)", round(df_seismic["Profondità (km)"].mean(), 1))
+
+            # ── Analisi avanzata ──────────────────────────────────────────────
+            st.markdown("---")
+            st.subheader("📈 Analisi avanzata degli eventi")
+            col_a1, col_a2 = st.columns(2)
+
+            with col_a1:
+                bins = [0, 1.0, 2.0, 3.0, 4.0, 10.0]
+                labels = ["<1 (Micro)", "1-2 (Molto debole)", "2-3 (Debole)", "3-4 (Leggero)", "4+ (Moderato+)"]
+                df_seismic["Fascia Magnitudo"] = pd.cut(df_seismic["Magnitudo"], bins=bins, labels=labels)
+                fascia_counts = df_seismic["Fascia Magnitudo"].value_counts().sort_index()
+                fig_pie = px.pie(
+                    values=fascia_counts.values, names=fascia_counts.index,
+                    title="Distribuzione eventi per magnitudo",
+                    color_discrete_sequence=px.colors.sequential.Reds_r
+                )
+                st.plotly_chart(fig_pie, use_container_width=True)
+
+            with col_a2:
+                fig_hist = px.histogram(
+                    df_seismic, x="Profondità (km)", nbins=10,
+                    title="Distribuzione della profondità degli eventi",
+                    color_discrete_sequence=["#e5394d"]
+                )
+                st.plotly_chart(fig_hist, use_container_width=True)
+
+            # ── Mappa di intensità sismica ────────────────────────────────────
+            st.subheader("🗺️ Mappa di intensità sismica")
+            try:
+                intensity_map = folium.Map(location=map_center, zoom_start=zoom, tiles="CartoDB positron")
+                città_italiane = {
+                    "Roma": [41.9028, 12.4964], "Milano": [45.4642, 9.1900],
+                    "Napoli": [40.8518, 14.2681], "Palermo": [38.1157, 13.3615],
+                    "Torino": [45.0703, 7.6869], "Bologna": [44.4949, 11.3426],
+                }
+                for città, pos in città_italiane.items():
+                    folium.Marker(pos, popup=città, icon=folium.Icon(color="blue", icon="info-sign")).add_to(intensity_map)
+
+                for _, row in df_seismic.iterrows():
+                    try:
+                        lat = float(row["Latitudine"])
+                        lon = float(row["Longitudine"])
+                        mag = float(row["Magnitudo"])
+                        depth = float(row["Profondità (km)"])
+                        if not (35.0 <= lat <= 48.0 and 6.0 <= lon <= 19.0):
+                            continue
+                        color = "red" if mag >= 4.0 else "orange" if mag >= 3.0 else "yellow" if mag >= 2.0 else "green"
+                        _ig  = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}&travelmode=driving"
+                        _iwz = f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
+                        _iam = f"https://maps.apple.com/?daddr={lat},{lon}&dirflg=d"
+                        popup_text = (
+                            '<div style="min-width:200px;font-family:sans-serif;font-size:12px;">'
+                            f'<h4 style="color:#DC2626;margin:0 0 5px 0;font-size:13px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌊 Evento sismico</h4>'
+                            f'<p style="margin:0 0 2px 0;"><b>Magnitudo:</b> {mag}</p>'
+                            f'<p style="margin:0 0 2px 0;"><b>Profondità:</b> {depth} km</p>'
+                            f'<p style="margin:0 0 2px 0;"><b>Data:</b> {row.get("Data/Ora", "N/D")}</p>'
+                            f'<p style="margin:0 0 6px 0;"><b>Località:</b> {row.get("Luogo", "N/D")}</p>'
+                            '<div style="display:flex;gap:3px;">'
+                            f'<a href="{_ig}" target="_blank" style="background:#4285F4;color:white;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🗺️ GMaps</a>'
+                            f'<a href="{_iwz}" target="_blank" style="background:#00BCD4;color:#000;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🚗 Waze</a>'
+                            f'<a href="{_iam}" target="_blank" style="background:#555;color:white;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🍎 Maps</a>'
+                            '</div></div>'
+                        )
+                        folium.Circle(
+                            location=[lat, lon], radius=mag * 5000,
+                            color=color, fill=True, fill_opacity=0.4,
+                            popup=folium.Popup(popup_text, max_width=260)
+                        ).add_to(intensity_map)
+                    except Exception:
+                        continue
+
+                folium_static(intensity_map, width=1100, height=520)
+                st.caption("La dimensione e il colore dei cerchi rappresentano la magnitudo dell'evento.")
+            except Exception as map_err:
+                st.error(f"Errore nella mappa di intensità: {map_err}")
+                st.markdown("🔗 [Portale eventi INGV](https://terremoti.ingv.it/events)")
+
+            # ── Terremoti storici significativi ──────────────────────────────
+            st.markdown("---")
+            st.subheader("📜 Terremoti storici significativi in Italia")
+            df_historic = pd.DataFrame([
+                {"Data": "1693-01-11", "Magnitudo": 7.4, "Località": "Sicilia Orientale",       "Regione": "Sicilia",        "Vittime": "~60.000"},
+                {"Data": "1783-02-05", "Magnitudo": 7.0, "Località": "Calabria meridionale",     "Regione": "Calabria",       "Vittime": "~30.000"},
+                {"Data": "1857-12-16", "Magnitudo": 7.0, "Località": "Basilicata (Val d'Agri)", "Regione": "Basilicata",     "Vittime": "~11.000"},
+                {"Data": "1905-09-08", "Magnitudo": 7.1, "Località": "Calabria centrale",        "Regione": "Calabria",       "Vittime": "~4.000"},
+                {"Data": "1908-12-28", "Magnitudo": 7.1, "Località": "Messina e Reggio Calabria","Regione": "Sicilia/Calabria","Vittime": "~80.000"},
+                {"Data": "1915-01-13", "Magnitudo": 7.0, "Località": "Avezzano",                 "Regione": "Abruzzo",        "Vittime": "~30.000"},
+                {"Data": "1930-07-23", "Magnitudo": 6.7, "Località": "Vulture (Irpinia)",        "Regione": "Campania",       "Vittime": "~1.400"},
+                {"Data": "1968-01-15", "Magnitudo": 6.4, "Località": "Valle del Belice",         "Regione": "Sicilia",        "Vittime": "~289"},
+                {"Data": "1976-05-06", "Magnitudo": 6.5, "Località": "Friuli (Gemona)",          "Regione": "Friuli-Venezia Giulia", "Vittime": "~990"},
+                {"Data": "1980-11-23", "Magnitudo": 6.9, "Località": "Irpinia",                  "Regione": "Campania",       "Vittime": "~3.000"},
+                {"Data": "1997-09-26", "Magnitudo": 6.0, "Località": "Umbria-Marche",            "Regione": "Umbria/Marche",  "Vittime": "~11"},
+                {"Data": "2002-10-31", "Magnitudo": 5.7, "Località": "Molise (San Giuliano)",    "Regione": "Molise",         "Vittime": "~30"},
+                {"Data": "2009-04-06", "Magnitudo": 6.3, "Località": "L'Aquila",                 "Regione": "Abruzzo",        "Vittime": "309"},
+                {"Data": "2012-05-20", "Magnitudo": 6.1, "Località": "Emilia (Finale Emilia)",  "Regione": "Emilia-Romagna", "Vittime": "27"},
+                {"Data": "2016-08-24", "Magnitudo": 6.0, "Località": "Centro Italia (Amatrice)","Regione": "Lazio/Marche",   "Vittime": "299"},
+                {"Data": "2016-10-30", "Magnitudo": 6.5, "Località": "Centro Italia (Norcia)",  "Regione": "Umbria",         "Vittime": "0"},
+                {"Data": "2017-01-18", "Magnitudo": 5.7, "Località": "Amatrice (sequenza)",     "Regione": "Lazio",          "Vittime": "29"},
+            ])
+            if regione_scelta != "Italia (Visione nazionale)":
+                df_filtered = df_historic[df_historic["Regione"].str.contains(
+                    regione_scelta.split("/")[0], case=False, na=False)]
+                if len(df_filtered) > 0:
+                    df_historic = df_filtered
+            st.dataframe(df_historic, use_container_width=True)
+            st.caption("Fonte: INGV CPTI (Catalogo Parametrico dei Terremoti Italiani)")
+
+        with st.expander("ℹ️ Informazioni sui dati sismici"):
+            st.markdown("""
+            ### 🔍 Rete sismica INGV in tempo reale
+            La rete sismica nazionale INGV è composta da oltre **400 stazioni sismiche** su tutto il territorio italiano.
+            I dati visualizzati provengono dall'API ufficiale INGV FDSN (Federation of Digital Seismograph Networks).
+
+            **Periodo:** ultimi 7 giorni · **Magnitudo minima:** M≥0.5 · **Cache:** 5 minuti
+
+            **Interpretazione colori sulla mappa:**
+            - 🟢 Verde: M < 3.0 (molto debole, raramente avvertito)
+            - 🟠 Arancione: M 3.0–3.9 (leggero, avvertito in zona epicentrale)
+            - 🔴 Rosso: M ≥ 4.0 (moderato, potenzialmente dannoso)
+
+            **Fonte:** [INGV FDSN Web Services](https://webservices.ingv.it/) · [Portale terremoti INGV](https://terremoti.ingv.it/)
+            """)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # TAB 2 — VULCANI ATTIVI
+    # ══════════════════════════════════════════════════════════════════════════
+    with sensor_tab2:
+        st.info("🔗 Per schede dettagliate con bollettini INGV → apri **Vulcani** dal menu laterale")
+
+        with st.spinner("⏳ Recupero attività sismica vulcani da INGV..."):
+            vulc_live = _fetch_volcano_seismicity_all()
+
+        # ── Vista nazionale ───────────────────────────────────────────────────
+        if regione_scelta == "Italia (Visione nazionale)":
+            st.subheader("🌋 Monitoraggio vulcani attivi italiani — dati LIVE INGV")
+
+            # Tabella dinamica con livelli da INGV FDSN
+            vulc_rows = []
+            for nome, cfg in _VULCANI_MON.items():
+                live = vulc_live.get(nome, {})
+                count_str = f"{live.get('count', 'N/D')}" if live.get("count") is not None else "N/D"
+                vulc_rows.append({
+                    "Vulcano": nome,
+                    "Osservatorio": cfg["obs"],
+                    "Ultima eruzione": cfg["ult_eruz"],
+                    "Sismicità 7gg": count_str + " eventi",
+                    "Livello attività": live.get("level", "N/D"),
+                    "Stato": live.get("emoji", "⚫") + " " + live.get("label", "N/D"),
+                })
+
+            df_vulcani = pd.DataFrame(vulc_rows)
+
+            def _color_a(val):
+                m = {
+                    "VERDE":    "background-color:#4ade80;color:#000",
+                    "GIALLO":   "background-color:#fde047;color:#000",
+                    "ARANCIONE":"background-color:#fb923c;color:#000",
+                    "ROSSO":    "background-color:#f87171;color:#000",
+                }
+                return m.get(val, "")
+
+            df_vulcani.index = range(1, len(df_vulcani) + 1)
+            n_rows = len(df_vulcani)
+            tbl_h = min(500, 38 + n_rows * 36)
+            st.dataframe(
+                df_vulcani.style.map(_color_a, subset=["Livello attività"]),
+                use_container_width=True, height=tbl_h
+            )
+            st.caption(
+                f"Fonte: INGV FDSN (M≥0.5, ultimi 7 giorni) · "
+                f"Aggiornato: {datetime.now(FUSO_ORARIO_ITALIA).strftime('%d/%m/%Y %H:%M')} · Cache 30 min"
+            )
+
+            # ── Mappa vulcani ─────────────────────────────────────────────────
             st.subheader("🗺️ Mappa vulcani attivi italiani")
-            vulcani_coords_it = {
-                "Etna": [37.751, 14.994], "Stromboli": [38.789, 15.213],
-                "Campi Flegrei": [40.827, 14.139], "Vesuvio": [40.821, 14.426],
-                "Ischia": [40.731, 13.897], "Vulcano": [38.404, 14.962],
-                "Pantelleria": [36.771, 11.989], "Lipari-Vulcanello": [38.489, 14.953],
-                "Marsili": [39.28, 14.40], "Ferdinandea": [37.10, 12.70],
-                "Colli Albani": [41.728, 12.701], "Monte Amiata": [42.891, 11.621],
-                "Ustica": [38.700, 13.175], "Linosa": [35.864, 12.861],
-                "Salina": [38.560, 14.865], "Alicudi": [38.540, 14.352],
-                "Filicudi": [38.574, 14.567],
+            alert_color_map = {
+                "ROSSO": "red", "ARANCIONE": "orange", "GIALLO": "beige",
+                "VERDE": "green", "N/D": "gray",
             }
-            alert_color = {"ARANCIONE": "orange", "GIALLO": "beige", "ROSSO": "red", "VERDE": "green"}
             vmap = folium.Map(location=[39.5, 13.5], zoom_start=5)
-            for v_row in df_vulcani.itertuples():
-                vname = v_row.Vulcano
-                if vname in vulcani_coords_it:
-                    coords = vulcani_coords_it[vname]
-                    col_m = alert_color.get(v_row._3, "blue")
-                    _vmg  = f"https://www.google.com/maps/dir/?api=1&destination={coords[0]},{coords[1]}&travelmode=driving"
-                    _vmwz = f"https://waze.com/ul?ll={coords[0]},{coords[1]}&navigate=yes"
-                    _vmam = f"https://maps.apple.com/?daddr={coords[0]},{coords[1]}&dirflg=d"
-                    _vmph = (
-                        '<div style="min-width:230px;font-family:sans-serif;font-size:13px;">'
-                        f'<h4 style="color:#DC2626;margin:0 0 6px 0;font-size:14px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌋 {vname}</h4>'
-                        f'<p style="margin:0 0 2px 0;font-size:12px;"><b>Regione:</b> {v_row.Regione}</p>'
-                        f'<p style="margin:0 0 2px 0;font-size:12px;"><b>Allerta:</b> {v_row._3}</p>'
-                        f'<p style="margin:0 0 6px 0;font-size:12px;"><b>Ultima eruzione:</b> {v_row._4}</p>'
-                        f'<p style="margin:0 0 6px 0;font-size:11px;color:#888;font-family:monospace;">{coords[0]:.4f}, {coords[1]:.4f}</p>'
-                        '<div style="display:flex;gap:4px;">'
-                        f'<a href="{_vmg}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
-                        f'<a href="{_vmwz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
-                        f'<a href="{_vmam}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
-                        '</div></div>'
-                    )
-                    folium.Marker(
-                        location=coords,
-                        popup=folium.Popup(_vmph, max_width=280),
-                        icon=folium.Icon(color=col_m, icon="fire", prefix="fa"),
-                        tooltip=vname
-                    ).add_to(vmap)
+            for nome, cfg in _VULCANI_MON.items():
+                live = vulc_live.get(nome, {})
+                col_m = alert_color_map.get(live.get("level", "N/D"), "gray")
+                coords = [cfg["lat"], cfg["lon"]]
+                _vmg  = f"https://www.google.com/maps/dir/?api=1&destination={cfg['lat']},{cfg['lon']}&travelmode=driving"
+                _vmwz = f"https://waze.com/ul?ll={cfg['lat']},{cfg['lon']}&navigate=yes"
+                _vmam = f"https://maps.apple.com/?daddr={cfg['lat']},{cfg['lon']}&dirflg=d"
+                popup_html = (
+                    '<div style="min-width:230px;font-family:sans-serif;font-size:13px;">'
+                    f'<h4 style="color:#DC2626;margin:0 0 6px 0;font-size:14px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌋 {nome}</h4>'
+                    f'<p style="margin:0 0 2px 0;"><b>Osservatorio:</b> {cfg["obs"]}</p>'
+                    f'<p style="margin:0 0 2px 0;"><b>Ultima eruzione:</b> {cfg["ult_eruz"]}</p>'
+                    f'<p style="margin:0 0 2px 0;"><b>Sismicità (7gg):</b> {live.get("label", "N/D")}</p>'
+                    f'<p style="margin:0 0 6px 0;"><b>Livello:</b> {live.get("emoji","⚫")} {live.get("level","N/D")}</p>'
+                    f'<p style="font-size:10px;color:#888;font-family:monospace;">{cfg["lat"]:.4f}, {cfg["lon"]:.4f}</p>'
+                    '<div style="display:flex;gap:4px;">'
+                    f'<a href="{_vmg}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
+                    f'<a href="{_vmwz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
+                    f'<a href="{_vmam}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
+                    '</div></div>'
+                )
+                folium.Marker(
+                    location=coords,
+                    popup=folium.Popup(popup_html, max_width=280),
+                    icon=folium.Icon(color=col_m, icon="fire", prefix="fa"),
+                    tooltip=nome,
+                ).add_to(vmap)
+
             folium_static(vmap, width=1100, height=520)
-            st.caption("Fonte: INGV · Aggiornato: " + datetime.now(FUSO_ORARIO_ITALIA).strftime("%d/%m/%Y"))
+            st.caption("Colori: 🟢 Verde=Silente · 🟡 Giallo=Bassa attività · 🟠 Arancione=Moderata · 🔴 Rosso=Elevata")
+
+            # Tabella vulcani estesa (inclusi tutti i vulcani italiani)
+            st.markdown("---")
+            st.subheader("📋 Elenco completo vulcani italiani monitorati INGV")
+            df_full = pd.DataFrame([
+                {"Vulcano": "Etna",              "Regione": "Sicilia",              "Monitoraggio": "INGV-CT", "Ultima eruzione": "Attivo"},
+                {"Vulcano": "Stromboli",          "Regione": "Sicilia",              "Monitoraggio": "INGV-CT", "Ultima eruzione": "Attivo"},
+                {"Vulcano": "Campi Flegrei",      "Regione": "Campania",             "Monitoraggio": "INGV-OV", "Ultima eruzione": "1538"},
+                {"Vulcano": "Vesuvio",            "Regione": "Campania",             "Monitoraggio": "INGV-OV", "Ultima eruzione": "1944"},
+                {"Vulcano": "Ischia",             "Regione": "Campania",             "Monitoraggio": "INGV-OV", "Ultima eruzione": "1302"},
+                {"Vulcano": "Vulcano",            "Regione": "Sicilia",              "Monitoraggio": "INGV-CT", "Ultima eruzione": "1888-90"},
+                {"Vulcano": "Pantelleria",        "Regione": "Sicilia",              "Monitoraggio": "INGV-CT", "Ultima eruzione": "1891 (sub.)"},
+                {"Vulcano": "Lipari-Vulcanello",  "Regione": "Sicilia",              "Monitoraggio": "INGV-CT", "Ultima eruzione": "1230"},
+                {"Vulcano": "Panarea",            "Regione": "Sicilia (Eolie)",      "Monitoraggio": "INGV-CT", "Ultima eruzione": "2002 (sub.)"},
+                {"Vulcano": "Marsili",            "Regione": "Mar Tirreno",          "Monitoraggio": "INGV",    "Ultima eruzione": "Non doc. (sub.)"},
+                {"Vulcano": "Ferdinandea",        "Regione": "Canale di Sicilia",    "Monitoraggio": "INGV",    "Ultima eruzione": "1831 (sub.)"},
+                {"Vulcano": "Colli Albani",       "Regione": "Lazio",                "Monitoraggio": "INGV-RM", "Ultima eruzione": "5000 a.f."},
+                {"Vulcano": "Monte Amiata",       "Regione": "Toscana",              "Monitoraggio": "INGV-RM", "Ultima eruzione": "180 a.f."},
+                {"Vulcano": "Ustica",             "Regione": "Sicilia",              "Monitoraggio": "INGV-CT", "Ultima eruzione": "Quiescente"},
+                {"Vulcano": "Linosa",             "Regione": "Sicilia",              "Monitoraggio": "INGV-CT", "Ultima eruzione": "Quiescente"},
+            ])
+            df_full.index = range(1, len(df_full) + 1)
+            st.dataframe(df_full, use_container_width=True)
 
         else:
-            # ── Vista per regione specifica ──────────────────────────────────
+            # ── Vista per regione specifica ───────────────────────────────────
+            # Solo vulcani presenti in _VULCANI_MON (con dati live INGV/EMSC)
+            # Lipari-Vulcanello, Ustica, Linosa, Monte Amiata non hanno monitoraggio
+            # in tempo reale → sono nell'elenco completo ma non nel selectbox
+            # Marsili è in mare aperto → solo vista nazionale
             regioni_vulcaniche = {
                 "Campania": ["Vesuvio", "Campi Flegrei", "Ischia"],
-                "Sicilia": ["Etna", "Stromboli", "Vulcano", "Pantelleria",
-                            "Lipari-Vulcanello", "Ferdinandea", "Ustica", "Linosa",
-                            "Salina", "Alicudi", "Filicudi"],
-                "Lazio": ["Colli Albani"],
-                "Toscana": ["Monte Amiata"],
+                "Sicilia":  ["Etna", "Stromboli", "Vulcano", "Pantelleria", "Panarea"],
+                "Lazio":    ["Colli Albani"],
             }
 
             if regione_scelta in regioni_vulcaniche:
-                st.subheader(f"🌋 Monitoraggio vulcanico - {regione_scelta}")
-
+                st.subheader(f"🌋 Monitoraggio vulcanico — {regione_scelta}")
                 vulcani_disponibili = regioni_vulcaniche[regione_scelta]
                 vulcano_selezionato = st.selectbox("Seleziona vulcano", vulcani_disponibili)
 
-                # Visualizzazione monitoraggio in base al vulcano selezionato
-                if vulcano_selezionato == "Vesuvio":
-                    st.markdown("### 📡 Monitoraggio Vesuvio - Osservatorio Vesuviano INGV")
-                
-                    # Mostra dati monitoraggio Vesuvio
-                    col1, col2 = st.columns(2)
-                
-                    with col1:
-                        st.subheader("🔔 Stato attuale")
-                        st.warning("Livello di allerta: **VERDE (livello base)** - [Fonte](https://www.ov.ingv.it/index.php/rete-fissa?category=11)")
-                        st.info("Ultimo aggiornamento: Bollettino mensile INGV")
-                
-                    with col2:
-                        st.subheader("🎦 Webcam in tempo reale")
-                        st.image("attached_assets/vesuvio_webcam.png", caption="Webcam Vesuvio - Osservatorio INGV")
-                
-                    # Parametri monitorati (esempio)
-                    st.subheader("📊 Parametri monitorati")
-                
-                    param_col1, param_col2, param_col3 = st.columns(3)
-                
-                    with param_col1:
-                        st.metric("Sismicità ultimi 30gg", "24 eventi", "-2")
-                        st.image("attached_assets/vesuvio_sismicita.png", caption="Sismicità Vesuvio - Ultimi 30 giorni")
-                
-                    with param_col2:
-                        st.metric("Temperatura fumarole", "95°C", "+0.3°C")
-                        st.image("attached_assets/vesuvio_tremore.png", caption="Tremore vulcanico - Vesuvio")
-                
-                    with param_col3:
-                        st.metric("Deformazione suolo", "<1 mm/anno", "stabile")
-                
-                    # Informazioni aggiuntive
-                    with st.expander("ℹ️ Informazioni sul Vesuvio"):
-                        st.markdown("""
-                        ### 🌋 Vesuvio
-                    
-                        Il Vesuvio è un vulcano attivo situato in Campania, nell'area metropolitana di Napoli. L'ultima eruzione significativa è avvenuta nel marzo 1944.
-                    
-                        **Area interessata:** Il monitoraggio del Vesuvio interessa 25 comuni, per una popolazione complessiva di circa 700.000 abitanti.
-                    
-                        **Livelli di allerta:**
-                        - 🟢 **VERDE:** Attività di base
-                        - 🟡 **GIALLO:** Variazioni significative dei parametri
-                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                        - 🔴 **ROSSO:** Eruzione imminente o in corso
-                    
-                        **Fonte dati:** [Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
-                        """)
-            
-                elif vulcano_selezionato == "Campi Flegrei":
-                    st.markdown("### 📡 Monitoraggio Campi Flegrei - Osservatorio Vesuviano INGV")
-                
-                    # Mostra dati monitoraggio Campi Flegrei
-                    col1, col2 = st.columns(2)
-                
-                    with col1:
-                        st.subheader("🔔 Stato attuale")
-                        st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ov.ingv.it/index.php/rete-fissa?category=11)")
-                        st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
-                
-                    with col2:
-                        st.subheader("📊 Attività sismica recente")
-                        st.warning("Sciame sismico: > 100 eventi negli ultimi 7 giorni")
-                
-                    # Parametri monitorati (esempio)
-                    st.subheader("📊 Parametri monitorati")
-                
-                    param_col1, param_col2, param_col3 = st.columns(3)
-                
-                    with param_col1:
-                        st.metric("Sollevamento suolo", "≈ 15 mm/mese", "+2.5 mm")
-                        st.image("attached_assets/flegrei_sollevamento.png", caption="Sollevamento Campi Flegrei - Ultimi 30 giorni")
-                
-                    with param_col2:
-                        st.metric("Sismicità", "142 eventi/settimana", "+35")
-                        st.image("attached_assets/flegrei_sismicita.png", caption="Sismicità Campi Flegrei - Ultimi 30 giorni")
-                
-                    with param_col3:
-                        st.metric("Emissioni CO₂", "≈ 3500 t/giorno", "+150 t")
-                        st.image("attached_assets/flegrei_co2.png", caption="Emissioni CO₂ - Campi Flegrei")
-                
-                    # Informazioni aggiuntive
-                    with st.expander("ℹ️ Informazioni sui Campi Flegrei"):
-                        st.markdown("""
-                        ### 🌋 Campi Flegrei
-                    
-                        I Campi Flegrei sono un'ampia area vulcanica situata ad ovest di Napoli. L'ultima eruzione è avvenuta nel 1538 con la formazione di Monte Nuovo.
-                    
-                        **Fenomeno attuale:** Attualmente i Campi Flegrei sono interessati dal fenomeno del bradisismo, con un sollevamento del suolo e un'intensa attività sismica.
-                    
-                        **Area interessata:** Il monitoraggio dei Campi Flegrei interessa 7 comuni, per una popolazione complessiva di circa 500.000 abitanti.
-                    
-                        **Livelli di allerta:**
-                        - 🟢 **VERDE:** Attività di base
-                        - 🟡 **GIALLO:** Variazioni significative dei parametri
-                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                        - 🔴 **ROSSO:** Eruzione imminente o in corso
-                    
-                        **Fonte dati:** [Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
-                        """)
-                
-                elif vulcano_selezionato == "Etna":
-                    st.markdown("### 📡 Monitoraggio Etna - INGV Catania")
-                
-                    # Mostra dati monitoraggio Etna
-                    col1, col2 = st.columns(2)
-                
-                    with col1:
-                        st.subheader("🔔 Stato attuale")
-                        st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
-                        st.info("Ultimo aggiornamento: Bollettino settimanale INGV Catania")
-                
-                    with col2:
-                        st.subheader("📊 Attività recente")
-                        st.warning("Attività stromboliana ai crateri sommitali - Fontane di lava occasionali")
-                
-                    # Parametri monitorati
-                    st.subheader("📊 Parametri monitorati")
-                
-                    param_col1, param_col2, param_col3 = st.columns(3)
-                
-                    with param_col1:
-                        st.metric("Attività stromboliana", "Attiva", "⚠️")
-                
-                    with param_col2:
-                        st.metric("Flusso lavico", "Moderato", "stabile")
-                
-                    with param_col3:
-                        st.metric("Emissioni cenere", "Intermittenti", "⬆️")
-                
-                    # Informazioni aggiuntive
-                    with st.expander("ℹ️ Informazioni sull'Etna"):
-                        st.markdown("""
-                        ### 🌋 Etna
-                    
-                        L'Etna è il più grande vulcano attivo d'Europa e uno dei più attivi al mondo. Si trova sulla costa orientale della Sicilia.
-                    
-                        **Attività recente:** L'Etna è caratterizzato da frequenti eruzioni sommitali, con attività stromboliana, fontane di lava ed emissioni di cenere.
-                    
-                        **Area interessata:** L'attività dell'Etna può interessare numerosi comuni della provincia di Catania, con una popolazione esposta di oltre 500.000 abitanti.
-                    
-                        **Livelli di allerta:**
-                        - 🟢 **VERDE:** Attività di base
-                        - 🟡 **GIALLO:** Variazioni significative dei parametri
-                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                        - 🔴 **ROSSO:** Eruzione imminente o in corso
-                    
-                        **Fonte dati:** [INGV Catania](https://www.ct.ingv.it/)
-                        """)
-            
-                elif vulcano_selezionato == "Stromboli":
-                    st.markdown("### 📡 Monitoraggio Stromboli - INGV")
-                
-                    # Mostra dati monitoraggio Stromboli
-                    col1, col2 = st.columns(2)
-                
-                    with col1:
-                        st.subheader("🔔 Stato attuale")
-                        st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
-                        st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
-                
-                    with col2:
-                        st.subheader("📊 Attività recente")
-                        st.warning("Attività stromboliana ordinaria ai crateri - Esplosioni di intensità variabile")
-                
-                    # Parametri monitorati
-                    st.subheader("📊 Parametri monitorati")
-                
-                    param_col1, param_col2, param_col3 = st.columns(3)
-                
-                    with param_col1:
-                        st.metric("Esplosioni/ora", "15-20", "+5")
-                
-                    with param_col2:
-                        st.metric("Tremor vulcanico", "Moderato", "stabile")
-                
-                    with param_col3:
-                        st.metric("Flussi piroclastici", "Assenti", "stabile")
-                
-                    # Informazioni aggiuntive
-                    with st.expander("ℹ️ Informazioni sullo Stromboli"):
-                        st.markdown("""
-                        ### 🌋 Stromboli
-                    
-                        Lo Stromboli è un vulcano attivo situato sull'omonima isola dell'arcipelago delle Eolie, in Sicilia. È noto per la sua attività esplosiva persistente.
-                    
-                        **Attività tipica:** L'attività ordinaria dello Stromboli consiste in esplosioni di intensità variabile che si verificano a intervalli di circa 10-20 minuti.
-                    
-                        **Eventi parossistici:** Occasionalmente lo Stromboli può generare eventi esplosivi maggiori (parossismi) e colate laviche.
-                    
-                        **Area interessata:** L'isola di Stromboli ha una popolazione residente di circa 500 abitanti, che può aumentare significativamente durante la stagione turistica.
-                    
-                        **Livelli di allerta:**
-                        - 🟢 **VERDE:** Attività di base
-                        - 🟡 **GIALLO:** Variazioni significative dei parametri
-                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                        - 🔴 **ROSSO:** Eruzione parossistica imminente o in corso
-                    
-                        **Fonte dati:** [INGV Osservatorio Etneo](https://www.ct.ingv.it/)
-                        """)
-                    
-                elif vulcano_selezionato == "Vulcano":
-                    st.markdown("### 📡 Monitoraggio Vulcano - INGV")
-                
-                    # Mostra dati monitoraggio Vulcano
-                    col1, col2 = st.columns(2)
-                
-                    with col1:
-                        st.subheader("🔔 Stato attuale")
-                        st.warning("Livello di allerta: **GIALLA (attenzione)** - [Fonte](https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari)")
-                        st.info("Ultimo aggiornamento: Bollettino settimanale INGV")
-                
-                    with col2:
-                        st.subheader("📊 Attività recente")
-                        st.warning("Incremento della temperatura delle fumarole e delle emissioni di gas")
-                
-                    # Parametri monitorati
-                    st.subheader("📊 Parametri monitorati")
-                
-                    param_col1, param_col2, param_col3 = st.columns(3)
-                
-                    with param_col1:
-                        st.metric("Temperatura fumarole", "≈ 350°C", "+2°C")
-                
-                    with param_col2:
-                        st.metric("Flusso CO₂", "Elevato", "⬆️")
-                
-                    with param_col3:
-                        st.metric("Sismicità", "Bassa", "stabile")
-                
-                    # Informazioni aggiuntive
-                    with st.expander("ℹ️ Informazioni su Vulcano"):
-                        st.markdown("""
-                        ### 🌋 Vulcano
-                    
-                        Vulcano è un'isola vulcanica dell'arcipelago delle Eolie, in Sicilia. L'ultima eruzione è avvenuta nel 1888-1890.
-                    
-                        **Attività attuale:** Vulcano è caratterizzato da un'intensa attività fumarolica con temperature elevate e significative emissioni di gas.
-                    
-                        **Crisi 2021:** Nel 2021 è stata registrata una crisi vulcanica con aumento delle temperature, delle emissioni di gas e della sismicità.
-                    
-                        **Area interessata:** L'isola di Vulcano ha una popolazione residente di circa 400 abitanti, che può aumentare significativamente durante la stagione turistica.
-                    
-                        **Livelli di allerta:**
-                        - 🟢 **VERDE:** Attività di base
-                        - 🟡 **GIALLO:** Variazioni significative dei parametri
-                        - 🟠 **ARANCIONE:** Ulteriore incremento dei parametri
-                        - 🔴 **ROSSO:** Eruzione imminente o in corso
-                    
-                        **Fonte dati:** [INGV Osservatorio Etneo](https://www.ct.ingv.it/)
-                        """)
-                    
-                elif vulcano_selezionato == "Tutti i vulcani italiani":
-                    st.markdown("### 📡 Monitoraggio vulcani attivi italiani")
-                
-                    # Tabella riassuntiva dei vulcani italiani
-                    st.subheader("🌋 Stato attuale dei vulcani attivi italiani")
-                
-                    # Dati sul livello di allerta corrente
-                    df_vulcani = pd.DataFrame({
-                        "Vulcano": ["Etna", "Stromboli", "Vulcano", "Vesuvio", "Campi Flegrei", "Ischia", "Pantelleria", "Colli Albani"],
-                        "Regione": ["Sicilia", "Sicilia", "Sicilia", "Campania", "Campania", "Campania", "Sicilia", "Lazio"],
-                        "Livello allerta": ["GIALLO", "GIALLO", "GIALLO", "VERDE", "GIALLO", "GIALLO", "VERDE", "VERDE"],
-                        "Ultima eruzione": ["Attività corrente", "Attività corrente", "1888-1890", "1944", "1538", "1302", "1891", "5000 anni fa"],
-                        "Monitoraggio": ["INGV Catania", "INGV Catania", "INGV Catania", "INGV-OV Napoli", "INGV-OV Napoli", "INGV-OV Napoli", "INGV Catania", "INGV Roma"]
-                    })
-                
-                    # Definisci colore in base al livello di allerta
-                    def color_allerta(val):
-                        color = 'white'
-                        if val == 'VERDE':
-                            color = 'green'
-                        elif val == 'GIALLO':
-                            color = 'yellow'
-                        elif val == 'ARANCIONE':
-                            color = 'orange'
-                        elif val == 'ROSSO':
-                            color = 'red'
-                        return f'background-color: {color}'
-                
-                    # Visualizza tabella con colori
-                    st.dataframe(df_vulcani.style.map(color_allerta, subset=['Livello allerta']), use_container_width=True)
-                
-                    # Mappa dei vulcani attivi
-                    st.subheader("🗺️ Mappa dei vulcani attivi italiani")
-                
-                    # Coordinate dei vulcani principali
-                    vulcani_coords = {
-                        "Etna": [37.748, 14.999],
-                        "Stromboli": [38.789, 15.213],
-                        "Vulcano": [38.404, 14.962],
-                        "Vesuvio": [40.821, 14.426],
-                        "Campi Flegrei": [40.827, 14.139],
-                        "Ischia": [40.730, 13.897],
-                        "Pantelleria": [36.797, 11.989],
-                        "Colli Albani": [41.728, 12.701]
-                    }
-                
-                    # Crea mappa
-                    vulcani_map = folium.Map(location=[41.29, 12.57], zoom_start=6)
-                
-                    # Aggiungi marker per ogni vulcano
-                    for vulcano, coords in vulcani_coords.items():
-                        vulc_data = df_vulcani[df_vulcani["Vulcano"] == vulcano].iloc[0]
-                    
-                        # Colore in base al livello di allerta
-                        if vulc_data["Livello allerta"] == "VERDE":
-                            color = "green"
-                        elif vulc_data["Livello allerta"] == "GIALLO":
-                            color = "orange"
-                        elif vulc_data["Livello allerta"] == "ARANCIONE":
-                            color = "red"
-                        elif vulc_data["Livello allerta"] == "ROSSO":
-                            color = "darkred"
-                        else:
-                            color = "blue"
-                    
-                        # Popup con informazioni + GPS navigazione
-                        _rvg  = f"https://www.google.com/maps/dir/?api=1&destination={coords[0]},{coords[1]}&travelmode=driving"
-                        _rvwz = f"https://waze.com/ul?ll={coords[0]},{coords[1]}&navigate=yes"
-                        _rvam = f"https://maps.apple.com/?daddr={coords[0]},{coords[1]}&dirflg=d"
-                        popup_text = (
-                            '<div style="min-width:230px;font-family:sans-serif;font-size:13px;">'
-                            f'<h4 style="color:#DC2626;margin:0 0 6px 0;font-size:14px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌋 {vulcano}</h4>'
-                            f'<p style="margin:0 0 2px 0;font-size:12px;"><b>Allerta:</b> {vulc_data["Livello allerta"]}</p>'
-                            f'<p style="margin:0 0 2px 0;font-size:12px;"><b>Ultima eruzione:</b> {vulc_data["Ultima eruzione"]}</p>'
-                            f'<p style="margin:0 0 6px 0;font-size:12px;"><b>Monitoraggio:</b> {vulc_data["Monitoraggio"]}</p>'
-                            f'<p style="margin:0 0 6px 0;font-size:11px;color:#888;font-family:monospace;">{coords[0]:.4f}, {coords[1]:.4f}</p>'
-                            '<div style="display:flex;gap:4px;">'
-                            f'<a href="{_rvg}" target="_blank" style="background:#4285F4;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🗺️ GMaps</a>'
-                            f'<a href="{_rvwz}" target="_blank" style="background:#00BCD4;color:#000;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🚗 Waze</a>'
-                            f'<a href="{_rvam}" target="_blank" style="background:#555;color:white;padding:4px 7px;text-decoration:none;border-radius:4px;font-size:11px;font-weight:600;">🍎 Maps</a>'
-                            '</div></div>'
-                        )
-                    
-                        # Aggiungi marker
-                        folium.Marker(
-                            location=coords,
-                            popup=folium.Popup(popup_text, max_width=290),
-                            icon=folium.Icon(color=color, icon="fire", prefix="fa")
-                        ).add_to(vulcani_map)
-                
-                    folium_static(vulcani_map, width=1100, height=520)
-            
+                # ── Scheda dettaglio per ogni vulcano ─────────────────────────
+                live_v = vulc_live.get(vulcano_selezionato, {})
+                count_v = live_v.get("count")
+                level_v = live_v.get("level", "N/D")
+                emoji_v = live_v.get("emoji", "⚫")
+                label_v = live_v.get("label", "N/D")
+
+                # Colore banner stato
+                if level_v == "ROSSO":
+                    st.error(f"🔴 Attività vulcanica ELEVATA — {vulcano_selezionato}: {label_v}")
+                elif level_v == "ARANCIONE":
+                    st.warning(f"🟠 Attività vulcanica MODERATA — {vulcano_selezionato}: {label_v}")
+                elif level_v == "GIALLO":
+                    st.warning(f"🟡 Attività vulcanica BASSA — {vulcano_selezionato}: {label_v}")
                 else:
-                    st.info(f"Il monitoraggio dettagliato per {vulcano_selezionato} non è ancora integrato. Seleziona un altro vulcano o consulta il portale INGV.")
+                    st.success(f"🟢 Vulcano SILENTE — {vulcano_selezionato}: {label_v}")
+
+                cfg_v = _VULCANI_MON.get(vulcano_selezionato, {})
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric(
+                        "Sismicità (ultimi 7gg)",
+                        f"{count_v} eventi" if count_v is not None else "N/D",
+                        help="M≥0.5 · Fonte INGV FDSN · Cache 30 min"
+                    )
+                with col2:
+                    st.metric("Livello attività INGV FDSN", f"{emoji_v} {level_v}")
+                with col3:
+                    st.metric("Osservatorio", cfg_v.get("obs", "INGV"))
+
+                # Link diretti INGV per questo vulcano
+                ingv_links = {
+                    "Vesuvio":       "https://www.ov.ingv.it/index.php/rete-fissa",
+                    "Campi Flegrei": "https://www.ov.ingv.it/index.php/rete-fissa",
+                    "Ischia":        "https://www.ov.ingv.it/index.php/rete-fissa",
+                    "Etna":          "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
+                    "Stromboli":     "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
+                    "Vulcano":       "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
+                    "Pantelleria":   "https://www.ct.ingv.it/",
+                    "Panarea":       "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
+                    "Colli Albani":  "https://www.roma2.ingv.it/",
+                }
+                ingv_webcam = {
+                    "Etna":      "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/immagini-da-webcam",
+                    "Stromboli": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/immagini-da-webcam",
+                    "Vesuvio":   "https://www.ov.ingv.it/",
+                }
+                link = ingv_links.get(vulcano_selezionato, "https://www.ingv.it/")
+                webcam = ingv_webcam.get(vulcano_selezionato)
+
+                st.markdown(f"📄 [Bollettino settimanale INGV per {vulcano_selezionato}]({link})")
+                if webcam:
+                    st.markdown(f"📷 [Webcam in tempo reale INGV]({webcam})")
+                st.caption(
+                    f"Dati sismici: INGV FDSN · M≥0.5 · Raggio {cfg_v.get('rad', 0)*111:.0f} km · "
+                    f"Aggiornato: {datetime.now(FUSO_ORARIO_ITALIA).strftime('%H:%M')} · Cache 30 min"
+                )
+
+                # Informazioni descrittive per vulcano
+                vulc_info = {
+                    "Vesuvio": """
+**Il Vesuvio** è un vulcano attivo situato in Campania, nell'area metropolitana di Napoli.
+L'ultima eruzione significativa è avvenuta nel **marzo 1944**.
+Il monitoraggio interessa 25 comuni, con **circa 700.000 abitanti** nell'area a rischio.
+
+**Livelli di allerta DPC:**
+- 🟢 VERDE: Attività di base (livello attuale)
+- 🟡 GIALLO: Variazioni significative dei parametri
+- 🟠 ARANCIONE: Ulteriore incremento dei parametri
+- 🔴 ROSSO: Eruzione imminente o in corso
+
+[Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
+                    """,
+                    "Campi Flegrei": """
+**I Campi Flegrei** sono un'ampia area vulcanica situata ad ovest di Napoli. L'ultima eruzione è avvenuta nel **1538** con la formazione di Monte Nuovo.
+**Fenomeno attuale:** bradisismo, con sollevamento del suolo e intensa attività sismica.
+Il monitoraggio interessa **7 comuni** con circa **500.000 abitanti**.
+
+**Livelli di allerta DPC:**
+- 🟢 VERDE: Attività di base
+- 🟡 GIALLO: Variazioni significative dei parametri (livello attuale)
+- 🟠 ARANCIONE: Ulteriore incremento
+- 🔴 ROSSO: Eruzione imminente o in corso
+
+[Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
+                    """,
+                    "Etna": """
+**L'Etna** è il più grande vulcano attivo d'Europa e uno dei più attivi al mondo, sulla costa orientale della Sicilia.
+**Attività tipica:** frequenti eruzioni sommitali con attività stromboliana, fontane di lava ed emissioni di cenere.
+**Popolazione esposta:** oltre **500.000 abitanti** nella provincia di Catania.
+
+[INGV Catania](https://www.ct.ingv.it/)
+                    """,
+                    "Stromboli": """
+**Lo Stromboli** è un vulcano attivo sull'omonima isola delle Eolie, noto per la sua **attività esplosiva persistente** (esplosioni ogni 10–20 minuti).
+**Popolazione:** circa **500 residenti**, che aumentano significativamente in estate.
+Occasionalmente genera **parossismi** e colate laviche.
+
+[INGV Catania](https://www.ct.ingv.it/)
+                    """,
+                    "Vulcano": """
+**Vulcano** è un'isola vulcanica delle Eolie. L'ultima eruzione è avvenuta nel **1888-1890**.
+**Attività attuale:** intensa attività fumarolica con temperature elevate e significative emissioni di gas.
+**Crisi 2021:** aumento delle temperature fumaroliche, emissioni di gas e sismicità.
+
+[INGV Catania](https://www.ct.ingv.it/)
+                    """,
+                    "Ischia": """
+**Ischia** è un'isola vulcanica nel Golfo di Napoli. L'ultima eruzione risale al **1302**.
+L'isola è caratterizzata da intensa attività idrotermale e fumarolica.
+Sismicità locale significativa (terremoto M4.0 agosto 2017).
+
+[Osservatorio Vesuviano INGV](https://www.ov.ingv.it/)
+                    """,
+                    "Pantelleria": """
+**Pantelleria** è un'isola vulcanica nel Canale di Sicilia. L'ultima eruzione sottomarina risale al **1891**.
+L'isola presenta attività fumarolica e sorgenti termali.
+
+[INGV Catania](https://www.ct.ingv.it/)
+                    """,
+                    "Colli Albani": """
+**I Colli Albani** sono un sistema vulcanico nel Lazio a sud-est di Roma. L'ultima eruzione è avvenuta circa **5000 anni fa**.
+Il vulcano è considerato **potenzialmente attivo** con sismicità locale e degassamento.
+
+[INGV Roma](https://www.roma2.ingv.it/)
+                    """,
+                    "Panarea": """
+**Panarea** è la più piccola isola delle Eolie (Messina) ed è un vulcano sottomarino attivo.
+Nel **2002** si è verificata un'improvvisa emissione gassosa sottomarina con formazione di nuova attività idrotermale.
+Presenta costante attività fumarolica sottomarina e sorgenti idrotermali.
+Il settore submarino si trova a profondità tra 10 e 300 m.
+
+[INGV Catania](https://www.ct.ingv.it/)
+                    """,
+                }
+                with st.expander(f"ℹ️ Informazioni su {vulcano_selezionato}"):
+                    st.markdown(vulc_info.get(vulcano_selezionato,
+                        f"Consulta il portale INGV per informazioni dettagliate su {vulcano_selezionato}."))
+
             else:
-                st.info(f"Non ci sono vulcani attivi monitorati nella regione {regione_scelta}.")
+                st.info(f"Non ci sono vulcani con monitoraggio sismico live nella regione **{regione_scelta}**.")
                 st.markdown("""
-                ### 🌋 Regioni con vulcani attivi monitorati:
+                ### 🌋 Regioni con vulcani monitorati in tempo reale (INGV FDSN):
                 - **Campania**: Vesuvio, Campi Flegrei, Ischia
-                - **Sicilia**: Etna, Stromboli, Vulcano, Pantelleria
+                - **Sicilia**: Etna, Stromboli, Vulcano, Pantelleria, Panarea
                 - **Lazio**: Colli Albani
-            
-                Seleziona una di queste regioni o "Italia (Visione nazionale)" per visualizzare i dati di monitoraggio vulcanico.
+
+                _Altri vulcani quiescenti (Monte Amiata, Lipari, Ustica, Linosa) e subacquei (Marsili)
+                sono presenti nell'**elenco completo** nella vista nazionale._
+
+                Seleziona una di queste regioni o **"Italia (Visione nazionale)"** per i dati live.
                 """)
-    
-        # Tab Monitoraggio idrogeologico
-    with sensor_tab3:
-        st.subheader(f"🌊 Monitoraggio idrogeologico - {regione_scelta}")
-        
-        # Importa portali ufficiali monitoraggio idrogeologico per regione
-        # Link ai portali ufficiali delle regioni
+
+        with st.expander("ℹ️ Metodologia livelli di allerta vulcanica"):
+            st.markdown("""
+            ### 🌋 Livelli attività vulcanica — Metodologia INGV FDSN
+
+            I livelli sono derivati dal conteggio degli **eventi sismici M≥0.5** negli ultimi 7 giorni
+            nell'area circostante ogni vulcano, tramite l'API ufficiale INGV FDSN:
+
+            | Livello | Soglia | Significato |
+            |---------|--------|-------------|
+            | 🟢 VERDE    | 0 eventi   | Vulcano silente |
+            | 🟡 GIALLO   | 1–4 eventi | Bassa attività sismica |
+            | 🟠 ARANCIONE| 5–19 eventi| Attività sismica moderata |
+            | 🔴 ROSSO    | 20+ eventi | Elevata attività sismica |
+
+            **Nota:** La sismicità è un parametro primario di monitoraggio.
+            Per il livello di allerta ufficiale DPC, consultare [Protezione Civile](https://www.protezionecivile.gov.it/).
+
+            **Cache:** dati aggiornati ogni 30 minuti · Fonte: webservices.ingv.it/fdsnws
+            """)
+
+    # Nota: il monitoraggio idrogeologico è disponibile nella sezione
+    # "📊 Allerte e Rischi" del menu laterale (tab Idrogeologico).
+
+    # ── placeholder per futura espansione ────────────────────────────────────
+    if False:
         regione_link = {
             "Abruzzo": "https://allarmeteo.regione.abruzzo.it/",
             "Basilicata": "http://www.centrofunzionalebasilicata.it/it/home.php",
@@ -1506,13 +941,12 @@ def show():
             "Umbria": "https://www.cfumbria.it/",
             "Valle d'Aosta": "https://cf.regione.vda.it/",
             "Veneto": "https://www.arpa.veneto.it/bollettini/meteo60gg/prociv.php",
-            "Italia (Visione nazionale)": "http://www.protezionecivile.gov.it/attivita-rischi/meteo-idro/attivita/previsione-prevenzione/centro-funzionale-centrale-rischio-meteo-idrogeologico"
+            "Italia (Visione nazionale)": "https://www.protezionecivile.gov.it/it/risk-activities/meteo-hydro/activities/forecasting-prevention/central-functional-center",
         }
-        
-        # ── Allerte MeteoAlarm live ──────────────────────────────────────
-        @st.cache_data(ttl=1800)
+
+        # ── Allerte MeteoAlarm live ───────────────────────────────────────────
+        @st.cache_data(ttl=1800, show_spinner=False)
         def _meteoalarm_allerte_italia():
-            """Recupera allerte MeteoAlarm per l'Italia dal feed Atom."""
             try:
                 url = "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-italy"
                 r = requests.get(url, timeout=10)
@@ -1524,7 +958,7 @@ def show():
                       "cap":  "urn:oasis:names:tc:emergency:cap:1.2"}
                 allerte = []
                 for entry in root.findall("atom:entry", ns):
-                    title = entry.findtext("atom:title", "", ns)
+                    title   = entry.findtext("atom:title", "", ns)
                     summary = entry.findtext("atom:summary", "", ns)
                     allerte.append({"titolo": title, "sommario": summary})
                 return allerte
@@ -1532,10 +966,8 @@ def show():
                 return []
 
         allerte = _meteoalarm_allerte_italia()
-
         st.subheader("🚨 Allerta idrogeologica e meteo")
 
-        # Filtra allerte per la regione selezionata (match parziale sul nome)
         regione_key = regione_scelta.lower().replace("-", " ").replace("'", "")
         allerte_reg = [a for a in allerte
                        if regione_key in a["titolo"].lower() or regione_key in a["sommario"].lower()]
@@ -1543,11 +975,12 @@ def show():
         if allerte_reg:
             for a in allerte_reg:
                 titolo = a["titolo"]
-                if "red" in titolo.lower() or "rossa" in titolo.lower():
+                tl = titolo.lower()
+                if "red" in tl or "rossa" in tl:
                     st.error(f"🔴 {titolo}")
-                elif "orange" in titolo.lower() or "arancione" in titolo.lower():
+                elif "orange" in tl or "arancione" in tl:
                     st.warning(f"🟠 {titolo}")
-                elif "yellow" in titolo.lower() or "gialla" in titolo.lower():
+                elif "yellow" in tl or "gialla" in tl:
                     st.warning(f"🟡 {titolo}")
                 else:
                     st.info(f"ℹ️ {titolo}")
@@ -1558,14 +991,14 @@ def show():
 
         st.caption(f"Fonte: MeteoAlarm (EUMETNET) · Aggiornato: {datetime.now(FUSO_ORARIO_ITALIA).strftime('%d/%m/%Y %H:%M')}")
 
-        # ── Dati ISPRA nazionali ─────────────────────────────────────────
+        # ── Dati ISPRA nazionali ──────────────────────────────────────────────
         st.markdown("---")
         st.subheader("📊 Rischio idrogeologico nazionale — dati ISPRA")
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Zone a rischio frana", "1.281.970 ha", "Classificazione PAI")
-        c2.metric("Comuni a rischio frana", "7.275", "su 7.904 totali (91,9%)")
-        c3.metric("Zone a rischio alluvione", "2.062.475 ha", "Classificazione PAI")
-        c4.metric("Popolazione esposta", "≈ 7,5 M", "abitanti (12,5% d'Italia)")
+        c1.metric("Zone a rischio frana",    "1.281.970 ha", "Classificazione PAI")
+        c2.metric("Comuni a rischio frana",  "7.275",        "su 7.904 totali (91,9%)")
+        c3.metric("Zone a rischio alluvione","2.062.475 ha", "Classificazione PAI")
+        c4.metric("Popolazione esposta",     "≈ 7,5 M",      "abitanti (12,5% d'Italia)")
         st.caption("Fonte: ISPRA — Rapporto sul dissesto idrogeologico in Italia")
 
         st.markdown("#### 🗺️ Mappa pericolosità da frana — ISPRA IdroGEO")
@@ -1580,7 +1013,7 @@ def show():
             "[idrogeo.isprambiente.it](https://idrogeo.isprambiente.it/app/page/Italy)"
         )
 
-        # ── Portali ufficiali ────────────────────────────────────────────
+        # ── Portali ufficiali ─────────────────────────────────────────────────
         with st.expander("🔗 Portali ufficiali monitoraggio idrogeologico"):
             if regione_scelta in regione_link:
                 st.markdown(f"**[Centro Funzionale {regione_scelta}]({regione_link[regione_scelta]})**")
@@ -1590,29 +1023,23 @@ def show():
             - [DPC — Centro Funzionale Centrale](https://www.protezionecivile.gov.it/it/risk-activities/meteo-hydro/activities/forecasting-prevention/central-functional-center)
             - [ISPRA — IdroGEO (frane e alluvioni)](https://idrogeo.isprambiente.it/)
             - [MeteoAlarm Italia](https://www.meteoalarm.org/it/live/?s=italy)
-            - [Aeronautica Militare — CNMCA](http://www.meteoam.it/)
+            - [Aeronautica Militare — CNMCA](https://www.meteoam.it/)
             """)
-    
 
 
 def show_monitoraggio_idrogeologico():
-    st.subheader("📊 Monitoraggio idrogeologico - Italia (Visione nazionale)")
-    
-    st.markdown("### 📈 Monitoraggio idrogeologico in tempo reale")
-    
+    st.subheader("📊 Monitoraggio idrogeologico — Italia")
+    st.markdown("### 📈 Dati di rischio idrogeologico nazionale")
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.metric("Zone a rischio frana", "1.281.970", "Alta criticità")
-        st.metric("Comuni interessati", "7.275", "su 7.904 totali")
-    
+        st.metric("Zone a rischio frana",    "1.281.970 ha", "Alta criticità")
+        st.metric("Comuni interessati",      "7.275",         "su 7.904 totali")
     with col2:
-        st.metric("Zone a rischio alluvione", "2.062.475", "Alta criticità")
-        st.metric("Popolazione esposta", "6.8 M", "abitanti")
-    
-    st.info("Dati aggiornati al: " + datetime.now(FUSO_ORARIO_ITALIA).strftime("%d/%m/%Y %H:%M:%S") + " (IT)")
-    
-    # Mappa delle zone a rischio
-    st.markdown("### 🗺️ Mappa delle zone a rischio")
-    st.image("https://idrogeo.isprambiente.it/app/iffi/images/Italia_pericolosita.jpg", 
-             caption="Mappa della pericolosità da frana in Italia")
+        st.metric("Zone a rischio alluvione","2.062.475 ha", "Alta criticità")
+        st.metric("Popolazione esposta",     "≈ 7,5 M",      "abitanti")
+    st.caption("Dati: ISPRA · Aggiornato: " + datetime.now(FUSO_ORARIO_ITALIA).strftime("%d/%m/%Y %H:%M") + " (IT)")
+    st.markdown("### 🗺️ Mappa delle zone a rischio idrogeologico")
+    st.info(
+        "📍 Consulta la mappa interattiva ISPRA IdroGEO: "
+        "[idrogeo.isprambiente.it](https://idrogeo.isprambiente.it/app/page/Italy)"
+    )
