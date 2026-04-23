@@ -3,6 +3,39 @@ banner_utils.py — Banner visivi coerenti per SismaVer2
 Fornisce hero-banner tematizzati per tutte le sezioni della navigazione.
 """
 import streamlit as st
+import base64
+import requests
+
+# ── Fetch immagine come base64 (server-side, aggira blocchi browser/CORS) ────
+@st.cache_data(ttl=86400, show_spinner=False)
+def _img_b64(url: str) -> str:
+    """
+    Scarica l'immagine lato server con User-Agent Wikimedia-compliant,
+    la restituisce come data URI base64.
+    Se il download fallisce, ritorna l'URL originale come fallback.
+    """
+    if not url or url == "Non disponibile":
+        return ""
+    try:
+        headers = {
+            "User-Agent": (
+                "SismaVer2/3.0 (https://sos-italia.streamlit.app; "
+                "meteotorre@gmail.com) Python-requests"
+            ),
+            "Accept": "image/webp,image/jpeg,image/*",
+        }
+        # Usa thumbnail 800px per bilanciare qualità e peso
+        thumb_url = url
+        if "upload.wikimedia.org" in url and "/1280px-" in url:
+            thumb_url = url.replace("/1280px-", "/800px-")
+        r = requests.get(thumb_url, headers=headers, timeout=8)
+        if r.status_code == 200:
+            ct = r.headers.get("content-type", "image/jpeg").split(";")[0]
+            b64 = base64.b64encode(r.content).decode()
+            return f"data:{ct};base64,{b64}"
+    except Exception:
+        pass
+    return url  # fallback all'URL diretto
 
 
 def render_banner(icon: str, titolo: str, sottotitolo: str,
@@ -22,8 +55,9 @@ def render_banner(icon: str, titolo: str, sottotitolo: str,
     img_html = ""
     overlay_html = ""
     if bg_image:
+        img_src = _img_b64(bg_image)
         img_html = (
-            f'<img src="{bg_image}" alt="" loading="eager" decoding="async" '
+            f'<img src="{img_src}" alt="" loading="eager" decoding="async" '
             f'style="position:absolute;inset:0;width:100%;height:100%;'
             f'object-fit:cover;object-position:center 35%;z-index:0;'
             f'image-rendering:-webkit-optimize-contrast;" '
@@ -99,7 +133,7 @@ def banner_vulcani():
 
 # ── Foto Wikimedia verificate per ogni vulcano italiano (CDN upload.wikimedia) ──
 _VULCANO_FOTO = {
-    "Vesuvio":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Il_cratere_del_Vulcano_-_panoramio.jpg/1280px-Il_cratere_del_Vulcano_-_panoramio.jpg",
+    "Vesuvio":           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Vesuvio_da_Pompei.jpg/1280px-Vesuvio_da_Pompei.jpg",
     "Etna":              "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Mt_Etna_and_Catania1.jpg/1280px-Mt_Etna_and_Catania1.jpg",
     "Stromboli":         "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg/1280px-Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg",
     "Campi Flegrei":     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Panorama_con_Cratere_degli_Astroni.jpg/1280px-Panorama_con_Cratere_degli_Astroni.jpg",
@@ -114,6 +148,7 @@ _VULCANO_FOTO = {
     "Salina":            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Aerial_image_of_Salina_%28view_from_the_southwest%29.jpg/1280px-Aerial_image_of_Salina_%28view_from_the_southwest%29.jpg",
     "Alicudi":           "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Aerial_image_of_Alicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Alicudi_%28view_from_the_south%29.jpg",
     "Filicudi":          "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg/1280px-Aerial_image_of_Filicudi_%28view_from_the_south%29.jpg",
+    "Panarea":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Panarea.jpg/1280px-Panarea.jpg",
     # Vulcani sottomarini → immagine arco eoliano / storica
     "Marsili":           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/CalabrianArc-GeotectonicSection.jpg/1280px-CalabrianArc-GeotectonicSection.jpg",
     "Ferdinandea":       "https://upload.wikimedia.org/wikipedia/commons/3/3f/HMS_Melville_and_Graham_Island.jpg",
@@ -138,6 +173,7 @@ _VULCANO_FOCUS = {
     "Filicudi":          "center 40%",
     "Marsili":           "center center",
     "Ferdinandea":       "center 35%",
+    "Panarea":           "center 45%",
 }
 
 
@@ -218,11 +254,12 @@ def vulcano_hero_card(nome: str, info: dict):
 
     obj_pos = _VULCANO_FOCUS.get(nome, "center 45%")
 
+    foto_src = _img_b64(foto)
     html = (
         '<div style="position:relative;width:100%;aspect-ratio:21/9;'
         'max-height:280px;border-radius:16px;overflow:hidden;margin-bottom:18px;'
         'box-shadow:0 8px 28px rgba(0,0,0,0.32);background:#0F172A;">'
-        f'<img src="{foto}" alt="{nome}" loading="eager" decoding="async" '
+        f'<img src="{foto_src}" alt="{nome}" loading="eager" decoding="async" '
         f'fetchpriority="high" '
         f'style="position:absolute;inset:0;width:100%;height:100%;'
         f'object-fit:cover;object-position:{obj_pos};z-index:0;'
