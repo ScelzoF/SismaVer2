@@ -259,7 +259,12 @@ def show():
             else:
                 st.info("GPS non disponibile — mostro dati per Napoli.")
         else:
-            city_input = st.text_input("🏙️ Inserisci città", value="Napoli", key="city_om")
+            _c1, _c2 = st.columns([4, 1])
+            with _c1:
+                city_input = st.text_input("🏙️ Inserisci città", value="Napoli", key="city_om", label_visibility="visible")
+            with _c2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.button("🔍 Cerca", key="cerca_om", type="primary", use_container_width=True)
             if city_input:
                 lat_om, lon_om, city_label = _geocode_city(city_input)
                 if not lat_om:
@@ -336,7 +341,12 @@ def show():
             metodo = "🏙️ Inserisci città"
 
     if metodo == "🏙️ Inserisci città":
-        city_name = st.text_input("🏙️ Inserisci città", value="Napoli", key="city_ow")
+        _c1, _c2 = st.columns([4, 1])
+        with _c1:
+            city_name = st.text_input("🏙️ Inserisci città", value="Napoli", key="city_ow", label_visibility="visible")
+        with _c2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.button("🔍 Cerca", key="cerca_ow", type="primary", use_container_width=True)
         if city_name:
             url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={API_KEY}&units=metric&lang=it"
 
