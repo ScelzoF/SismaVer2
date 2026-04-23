@@ -188,7 +188,7 @@ def show():
             
             # Expander nativo Streamlit per visualizzazione ingrandita
             with st.expander(f"🔍 Visualizza {caption} ingrandita"):
-                st.image(img, caption=caption, use_container_width=True)
+                st.image(img, caption=caption, width='stretch')
             
         
         except Exception as e:
