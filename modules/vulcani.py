@@ -714,6 +714,24 @@ def show():
             "sismicita": "Molto bassa",
             "sollevamento": "Non significativo",
             "danni": "Nessuno"
+        },
+        "Panarea": {
+            "regione": "Sicilia",
+            "lat": 38.636,
+            "lon": 15.064,
+            "altezza": 421,
+            "tipo": "Isola vulcanica / Sistema idrotermale",
+            "ultima_eruzione": "2002 (attività sottomarina)",
+            "stato": "Quiescente con attività idrotermale attiva",
+            "livello_allerta": "Verde",
+            "pericolosita": "Bassa",
+            "descrizione": "Panarea è la più piccola delle Isole Eolie abitate. Nel novembre 2002 si verificò una significativa eruzione sottomarina nei fondali a est dell'isola, con rilascio di gas e intense colonne di bolle. Il sistema idrotermale submarino è ancora molto attivo attorno agli scogli di Bottaro, con fumarole e sorgenti di CO₂ sul fondale. Il sistema vulcanico è costantemente monitorato dall'INGV.",
+            "webcam": "Non disponibile",
+            "monitoraggio": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza",
+            "bollettino_settimanale": "https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-multidisciplinari",
+            "sismicita": "Bassa con occasionali sciami idrotermali",
+            "sollevamento": "Lieve, in corrispondenza dell'attività idrotermale",
+            "danni": "Nessuno strutturale recente"
         }
     }
 
