@@ -791,7 +791,7 @@ def show():
             "Luogo":     ev["luogo"],
             "Data/Ora":  ev["ora"],
         } for ev in emsc_events])
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(df, width='stretch', hide_index=True)
         st.caption(
             "⚠️ Indicatore derivato. Per allerta tsunami ufficiale: "
             "[CAT-INGV](https://www.ingv.it/cat/)"
@@ -809,7 +809,7 @@ def show():
             "Data/Ora":       ev["ora"],
         } for ev in italy_m3])
         df_m3.index = range(1, len(df_m3) + 1)
-        st.dataframe(df_m3, use_container_width=True)
+        st.dataframe(df_m3, width='stretch')
         st.caption("Fonte: EMSC seismicportal.eu · bounding box territorio italiano · aggiorn. 5 min")
     else:
         st.markdown("---")
