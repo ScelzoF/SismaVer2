@@ -412,7 +412,7 @@ def show():
             st.subheader(f"🔍 Eventi sismici in tempo reale — {regione_scelta}")
             if len(features) > max_events:
                 st.caption(f"Visualizzati {max_events} eventi su {len(features)} totali (ultimi 7 giorni, M≥{min_mag})")
-            st.dataframe(df_seismic, use_container_width=True)
+            st.dataframe(df_seismic, width='stretch')
 
             # ── Mappa eventi ─────────────────────────────────────────────────
             map_center = regioni_coords.get(regione_scelta, [41.9, 12.5]) \
@@ -478,7 +478,7 @@ def show():
                     showlegend=False
                 ))
                 fig.update_layout(xaxis_title="Data/Ora", yaxis_title="Magnitudo", hovermode="closest")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             except Exception as e:
                 st.warning(f"Impossibile generare il grafico temporale: {e}")
 
@@ -507,7 +507,7 @@ def show():
                     title="Distribuzione eventi per magnitudo",
                     color_discrete_sequence=px.colors.sequential.Reds_r
                 )
-                st.plotly_chart(fig_pie, use_container_width=True)
+                st.plotly_chart(fig_pie, width='stretch')
 
             with col_a2:
                 fig_hist = px.histogram(
@@ -515,7 +515,7 @@ def show():
                     title="Distribuzione della profondità degli eventi",
                     color_discrete_sequence=["#e5394d"]
                 )
-                st.plotly_chart(fig_hist, use_container_width=True)
+                st.plotly_chart(fig_hist, width='stretch')
 
             # ── Mappa di intensità sismica ────────────────────────────────────
             st.subheader("🗺️ Mappa di intensità sismica")
@@ -595,7 +595,7 @@ def show():
                     regione_scelta.split("/")[0], case=False, na=False)]
                 if len(df_filtered) > 0:
                     df_historic = df_filtered
-            st.dataframe(df_historic, use_container_width=True)
+            st.dataframe(df_historic, width='stretch')
             st.caption("Fonte: INGV CPTI (Catalogo Parametrico dei Terremoti Italiani)")
 
         with st.expander("ℹ️ Informazioni sui dati sismici"):
@@ -657,7 +657,7 @@ def show():
             tbl_h = min(500, 38 + n_rows * 36)
             st.dataframe(
                 df_vulcani.style.map(_color_a, subset=["Livello attività"]),
-                use_container_width=True, height=tbl_h
+                width='stretch', height=tbl_h
             )
             st.caption(
                 f"Fonte: INGV FDSN (M≥0.5, ultimi 7 giorni) · "
@@ -723,7 +723,7 @@ def show():
                 {"Vulcano": "Linosa",             "Regione": "Sicilia",              "Monitoraggio": "INGV-CT", "Ultima eruzione": "Quiescente"},
             ])
             df_full.index = range(1, len(df_full) + 1)
-            st.dataframe(df_full, use_container_width=True)
+            st.dataframe(df_full, width='stretch')
 
         else:
             # ── Vista per regione specifica ───────────────────────────────────
