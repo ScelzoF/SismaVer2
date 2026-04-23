@@ -69,21 +69,15 @@ def _emsc_mediterranean(min_mag: float, days: float):
     return []
 
 
-@st.cache_data(ttl=1800, show_spinner=False)  # 30 min per meteo
 def _meteoalarm_italy():
-    """Fetch del feed MeteoAlarm per l'Italia (Atom XML)."""
-    urls = [
-        "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-italy",
-        "https://feeds.meteoalarm.org/api/v1/warnings/feeds-italy/",
-    ]
-    for url in urls:
-        try:
-            r = requests.get(url, timeout=8, headers={"User-Agent": "SismaVer2/2.5"})
-            if r.status_code == 200 and len(r.content) > 200:
-                return r.content
-        except Exception:
-            pass
-    return None
+    """
+    Fetch del feed MeteoAlarm per l'Italia — delega alla cache CONDIVISA.
+    Usa fetch_meteoalarm_raw() da meteoalarm_cache.py (TTL=120s): stessa cache
+    usata da home.py → home e Allerte mostrano SEMPRE lo stesso numero di allerte.
+    Nessun @st.cache_data qui — la cache è già gestita da fetch_meteoalarm_raw().
+    """
+    from modules.meteoalarm_cache import fetch_meteoalarm_raw
+    return fetch_meteoalarm_raw()
 
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -292,7 +286,7 @@ def _parse_meteoalarm(raw_bytes):
             if title:
                 alerts.append({"title": title_it, "summary": summary_it[:200],
                                 "updated": updated, "color": color, "livello": lvl})
-        return alerts[:10]
+        return alerts   # nessun cap artificiale — mostra tutte le allerte reali
     except Exception:
         return []
 
