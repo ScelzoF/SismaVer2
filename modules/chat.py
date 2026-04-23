@@ -297,16 +297,18 @@ CREATE INDEX idx_chat_messages_regione ON public.chat_messages(regione);
                         border_color = "#b3d9ff"      # Blu più intenso
 
                     # Visualizzazione messaggi con stile personalizzato
-                    st.markdown(f"""
-                    <div style='background-color:{background_color}; padding:10px; 
-                         border-radius:5px; margin-bottom:10px; border-left:4px solid {border_color};'>
-                        <strong>{msg["nickname"]}</strong> 
-                        <small>({msg["regione"]} - {timestamp_str})</small>
-                        {" 🚨 " if is_emergency and mostra_emergenze else ""}
-                        {" (tu) " if is_own_message else ""}<br>
-                        {msg["message"]}
-                    </div>
-                    """, unsafe_allow_html=True)
+                    # NOTA: stringa senza indentazione di testa — evita code-block Markdown
+                    card_html = (
+                        f'<div style="background-color:{background_color};padding:10px;'
+                        f'border-radius:5px;margin-bottom:10px;border-left:4px solid {border_color};">'
+                        f'<strong>{msg["nickname"]}</strong> '
+                        f'<small>({msg["regione"]} - {timestamp_str})</small>'
+                        f'{" 🚨 " if is_emergency and mostra_emergenze else ""}'
+                        f'{" (tu) " if is_own_message else ""}<br>'
+                        f'{msg["message"]}'
+                        f'</div>'
+                    )
+                    st.markdown(card_html, unsafe_allow_html=True)
 
                 # Opzione per caricare più messaggi
                 if len(messages) == num_messaggi:
