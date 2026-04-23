@@ -363,7 +363,7 @@ def _show_deformazione_block(vulcano_nome):
             station=d["station"],
             color=d["color"]
         )
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     except Exception as _e:
         st.warning(f"Grafico non disponibile: {_e}")
     st.markdown(f"📡 [Consulta il bollettino INGV aggiornato →]({d['link']})")
@@ -861,7 +861,7 @@ def show():
                     "depth": "Profondità (km)", "location": "Località"
                 })
                 st.caption(f"📡 Ultimi 30 giorni · raggio 10 km · {len(df_sismi)} eventi · fonte INGV FDSN")
-                st.dataframe(df_sismi, width='stretch', hide_index=True)
+                st.dataframe(df_sismi, use_container_width=True, hide_index=True)
             else:
                 st.info("📡 Nessun evento sismico significativo registrato nell'area del Vesuvio negli ultimi 30 giorni secondo INGV FDSN.")
             
@@ -886,7 +886,7 @@ def show():
                     "depth": "Profondità (km)", "location": "Località"
                 })
                 st.caption(f"📡 Ultimi 30 giorni · raggio 22 km da Pozzuoli (40.827°N, 14.139°E) · {len(df_cf)} eventi · fonte INGV FDSN")
-                st.dataframe(df_cf, width='stretch', hide_index=True)
+                st.dataframe(df_cf, use_container_width=True, hide_index=True)
             else:
                 st.info("Nessun evento sismico significativo registrato nell'area flegrea negli ultimi 30 giorni.")
 
@@ -928,7 +928,7 @@ def show():
                     })
                 
                 # Mostra eventi sismici recenti
-                st.dataframe(pd.DataFrame(processed_events), width='stretch')
+                st.dataframe(pd.DataFrame(processed_events), use_container_width=True)
                 
                 # Crea un grafico delle magnitudo nel tempo
                 if len(processed_events) > 2:
@@ -948,7 +948,7 @@ def show():
                             title="Eventi sismici recenti - Etna",
                             color_continuous_scale=px.colors.sequential.Reds
                         )
-                        st.plotly_chart(fig, width='stretch')
+                        st.plotly_chart(fig, use_container_width=True)
                     except Exception as chart_err:
                         st.warning(f"Impossibile creare il grafico: {chart_err}")
             else:
@@ -961,7 +961,7 @@ def show():
             if etna_events:
                 df_etna = pd.DataFrame(etna_events)
                 cols_show = [c for c in ["Data/Ora UTC","Magnitudo","Profondità (km)","Località"] if c in df_etna.columns]
-                st.dataframe(df_etna[cols_show].head(20) if cols_show else df_etna.head(20), width='stretch')
+                st.dataframe(df_etna[cols_show].head(20) if cols_show else df_etna.head(20), use_container_width=True)
             else:
                 st.info("Nessun evento sismico significativo registrato nell'area dell'Etna negli ultimi 30 giorni.")
 
