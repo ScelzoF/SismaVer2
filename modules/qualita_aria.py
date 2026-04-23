@@ -122,7 +122,7 @@ def show():
             key="aqi_city_search", label_visibility="collapsed"
         )
     with c_btn:
-        cerca = st.button("Cerca", width='stretch', type="primary")
+        cerca = st.button("Cerca", use_container_width=True, type="primary")
 
     lat = lon = None
     citta_scelta = None
@@ -190,7 +190,7 @@ def show():
                 "Limite OMS": ["15 µg/m³", "45 µg/m³", "10 µg/m³", "100 µg/m³", "40 µg/m³"],
                 "Limite UE vigente": ["25 µg/m³", "50 µg/m³", "40 µg/m³", "120 µg/m³", "125 µg/m³"],
             })
-            st.dataframe(df_who, width='stretch', hide_index=True)
+            st.dataframe(df_who, use_container_width=True, hide_index=True)
         else:
             st.warning("Dati di qualità dell'aria non disponibili per questa località. Riprova tra qualche minuto.")
     else:
@@ -239,8 +239,7 @@ def show():
 
         display_df = df.drop(columns=["_color"])
         st.dataframe(
-            display_df.style.apply(_style_row, axis=1),
-            width='stretch', height=700, hide_index=True
+            display_df.style.apply(_style_row, axis=1), use_container_width=True, height=700, hide_index=True
         )
 
     st.markdown("---")
