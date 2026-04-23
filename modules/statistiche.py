@@ -259,7 +259,7 @@ def show():
             font=dict(family="Inter, sans-serif"),
             hovermode="x unified",
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
         # Grafico per categoria magnitudo nel tempo
         st.subheader("Composizione per magnitudo nel tempo")
@@ -284,7 +284,7 @@ def show():
                 margin=dict(l=0, r=0, t=20, b=0),
                 font=dict(family="Inter, sans-serif"),
             )
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width='stretch')
         else:
             st.info("Nessun evento M≥3 nel periodo selezionato.")
 
@@ -317,7 +317,7 @@ def show():
                 annotation_text=f"Media: M{mag_media:.2f}",
                 annotation_position="top right"
             )
-            st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3, width='stretch')
 
         with col_r:
             st.subheader("Ripartizione per categoria")
@@ -339,7 +339,7 @@ def show():
                 margin=dict(l=0, r=0, t=20, b=0),
                 font=dict(family="Inter, sans-serif"),
             )
-            st.plotly_chart(fig4, use_container_width=True)
+            st.plotly_chart(fig4, width='stretch')
 
         # Distribuzione profondità
         st.subheader("Distribuzione della profondità ipocentrale")
@@ -364,7 +364,7 @@ def show():
                 annotation_text=f"Media: {depth_media:.1f} km",
                 annotation_position="top right"
             )
-            st.plotly_chart(fig5, use_container_width=True)
+            st.plotly_chart(fig5, width='stretch')
 
     # ── TAB 3: Distribuzione geografica ───────────────────────────────────────
     with tab3:
@@ -395,7 +395,7 @@ def show():
                 margin=dict(l=0, r=0, t=0, b=0),
                 coloraxis_colorbar=dict(title="Magnitudo"),
             )
-            st.plotly_chart(fig6, use_container_width=True)
+            st.plotly_chart(fig6, width='stretch')
 
         # Top zone sismiche
         st.subheader("Zone più attive nel periodo")
@@ -424,7 +424,7 @@ def show():
             margin=dict(l=0, r=0, t=10, b=0),
             font=dict(family="Inter, sans-serif"),
         )
-        st.plotly_chart(fig7, use_container_width=True)
+        st.plotly_chart(fig7, width='stretch')
 
     # ── TAB 4: Analisi temporale ───────────────────────────────────────────────
     with tab4:
@@ -454,7 +454,7 @@ def show():
                 margin=dict(l=0, r=0, t=10, b=0),
                 font=dict(family="Inter, sans-serif"),
             )
-            st.plotly_chart(fig8, use_container_width=True)
+            st.plotly_chart(fig8, width='stretch')
             st.caption(f"Picco: ore {int(hourly.loc[peak_h,'ora']):02d}:00 "
                        f"con {int(hourly.loc[peak_h,'count'])} eventi")
 
@@ -481,7 +481,7 @@ def show():
                 margin=dict(l=0, r=0, t=10, b=0),
                 font=dict(family="Inter, sans-serif"),
             )
-            st.plotly_chart(fig9, use_container_width=True)
+            st.plotly_chart(fig9, width='stretch')
             st.caption(f"Giorno più attivo: {weekly.loc[peak_d,'giorno_nome']} "
                        f"({int(weekly.loc[peak_d,'count'])} eventi)")
 
@@ -522,7 +522,7 @@ def show():
         fig10.update_yaxes(title_text="Magnitudo max", secondary_y=True,
                            showgrid=False)
         fig10.update_xaxes(showgrid=True, gridcolor="#F1F5F9")
-        st.plotly_chart(fig10, use_container_width=True)
+        st.plotly_chart(fig10, width='stretch')
 
     # ── Tabella eventi significativi ──────────────────────────────────────────
     st.markdown("---")
@@ -531,5 +531,5 @@ def show():
     df_top["datetime"] = df_top["datetime"].dt.strftime("%d/%m/%Y %H:%M")
     df_top["depth"] = df_top["depth"].apply(lambda x: f"{x:.1f} km" if pd.notna(x) else "—")
     df_top.columns = ["Data/ora (IT)", "Magnitudo", "Profondità", "Luogo", "Tipo Mag."]
-    st.dataframe(df_top, use_container_width=True, hide_index=True)
+    st.dataframe(df_top, width='stretch', hide_index=True)
     st.caption(f"Fonte: INGV FDSN · Periodo: ultimi {days} giorni · M≥{min_mag} · Area Italia+Mediterraneo")
