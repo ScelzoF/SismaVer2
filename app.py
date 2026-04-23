@@ -379,14 +379,116 @@ a:hover { color: #1E40AF !important; text-decoration: underline; }
 /* ── Spinner ── */
 [data-testid="stSpinner"] { color: #2563EB !important; }
 
-/* ── Sidebar radio: evidenzia voce attiva ── */
+/* ── Sidebar radio: voce selezionata chiaramente visibile ── */
 [data-testid="stSidebar"] .stRadio [role="radiogroup"] label {
-    padding: 4px 8px;
+    padding: 5px 8px;
     border-radius: 6px;
     cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
 }
 [data-testid="stSidebar"] .stRadio [role="radiogroup"] label:hover {
-    background: rgba(255,255,255,0.08) !important;
+    background: rgba(255,255,255,0.09) !important;
+    color: #93C5FD !important;
+}
+/* voce attiva radio */
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] label:has(input[type="radio"]:checked) {
+    background: rgba(96,165,250,0.18) !important;
+    border-left: 2px solid #60A5FA !important;
+    color: #93C5FD !important;
+    font-weight: 600;
+}
+
+/* ── SIDEBAR: Input text / number — sfondo dark, testo leggibile ── */
+[data-testid="stSidebar"] input,
+[data-testid="stSidebar"] textarea {
+    background: rgba(255,255,255,0.09) !important;
+    color: #E2E8F0 !important;
+    border: 1px solid rgba(255,255,255,0.22) !important;
+    border-radius: 6px !important;
+}
+[data-testid="stSidebar"] input::placeholder,
+[data-testid="stSidebar"] textarea::placeholder {
+    color: rgba(148,163,184,0.7) !important;
+}
+[data-testid="stSidebar"] input:focus,
+[data-testid="stSidebar"] textarea:focus {
+    border-color: #60A5FA !important;
+    box-shadow: 0 0 0 1px #60A5FA !important;
+    outline: none !important;
+}
+
+/* ── SIDEBAR: Selectbox — sfondo dark, valore selezionato visibile ── */
+[data-testid="stSidebar"] [data-baseweb="select"] > div:first-child,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] {
+    background: rgba(255,255,255,0.09) !important;
+    border-color: rgba(255,255,255,0.22) !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] [data-baseweb="value"],
+[data-testid="stSidebar"] [data-baseweb="select"] [data-baseweb="placeholder"],
+[data-testid="stSidebar"] [data-baseweb="select"] span {
+    color: #E2E8F0 !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] svg {
+    fill: #94A3B8 !important;
+}
+
+/* ── Dropdown popover (fuori sidebar DOM, ma appartiene ai widget sidebar) ── */
+[data-baseweb="popover"] [data-baseweb="menu"],
+[data-baseweb="popover"] [role="listbox"] {
+    background: #1E293B !important;
+    border: 1px solid rgba(255,255,255,0.13) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+}
+[data-baseweb="popover"] li,
+[data-baseweb="popover"] [role="option"] {
+    color: #CBD5E1 !important;
+    background: transparent !important;
+}
+[data-baseweb="popover"] li:hover,
+[data-baseweb="popover"] [role="option"]:hover {
+    background: rgba(96,165,250,0.18) !important;
+    color: #E2E8F0 !important;
+}
+[data-baseweb="popover"] [aria-selected="true"] {
+    background: rgba(37,99,235,0.35) !important;
+    color: #93C5FD !important;
+    font-weight: 600;
+}
+
+/* ── SIDEBAR: Number input stepper buttons ── */
+[data-testid="stSidebar"] [data-testid="stNumberInput"] button {
+    background: rgba(255,255,255,0.1) !important;
+    color: #E2E8F0 !important;
+    border-color: rgba(255,255,255,0.2) !important;
+}
+[data-testid="stSidebar"] [data-testid="stNumberInput"] button:hover {
+    background: rgba(96,165,250,0.2) !important;
+}
+
+/* ── SIDEBAR: Slider label e valore ── */
+[data-testid="stSidebar"] [data-testid="stSlider"] label,
+[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBarMin"],
+[data-testid="stSidebar"] [data-testid="stTickBarMax"] {
+    color: #CBD5E1 !important;
+}
+
+/* ── SIDEBAR: subheader e labels dei widget ── */
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
+    color: #E2E8F0 !important;
+}
+
+/* ── Fix sezione label troppo scura ── */
+.sidebar-section-label {
+    color: #94A3B8 !important;
+}
+
+/* ── SIDEBAR: selectbox label (testo sopra il widget) ── */
+[data-testid="stSidebar"] label {
+    color: #CBD5E1 !important;
+    font-size: 0.84rem !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -449,7 +551,7 @@ with st.sidebar:
             ✅ Nessuna allerta critica
         </span>
     </div>
-    <div style="color: #475569; font-size: 0.72rem; text-align: center; padding: 2px 0;">
+    <div style="color: #94A3B8; font-size: 0.72rem; text-align: center; padding: 2px 0;">
         🕒 {ora_attuale.strftime('%d/%m/%Y %H:%M')} (IT)
     </div>
     """, unsafe_allow_html=True)
