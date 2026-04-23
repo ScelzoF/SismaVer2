@@ -13,7 +13,7 @@ def show():
     )
 
     st.markdown("""
-    ## Versione attuale: 3.4 (Aprile 2026)
+    ## Versione attuale: 3.4.1 (Aprile 2026)
 
     SismaVer2 è un'applicazione in costante evoluzione, sviluppata con l'obiettivo di fornire un sistema
     completo di monitoraggio e prevenzione per il territorio italiano.
@@ -24,7 +24,47 @@ def show():
     with st.container():
         st.subheader("Cronologia delle versioni")
 
-        # ── Versione 3.4 — ATTUALE ────────────────────────────────────────────
+        # ── Versione 3.4.1 — ATTUALE ──────────────────────────────────────────
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("""
+            <div style="background:linear-gradient(135deg,#064E3B 0%,#059669 100%);
+                color:white; padding:14px 10px; border-radius:10px; text-align:center;
+                box-shadow:0 4px 12px rgba(5,150,105,0.5);">
+                <div style="font-size:1.6rem; font-weight:800;">v3.4.1</div>
+                <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
+                <span style="font-size:11px; background:rgba(255,255,255,0.25);
+                    padding:3px 8px; border-radius:8px; font-weight:700;
+                    letter-spacing:0.5px; display:inline-block; margin-top:6px;">
+                    ATTUALE
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            ### Versione 3.4.1 (Aprile 2026)
+            #### Zero dati falsi — tutti i TTL live a 5 minuti
+
+            **Rimozione dati sismici inventati (vulcani.py):**
+            - 🚫 **`get_historical_events()` svuotata** — eliminati 12 eventi sismici falsi
+              con date inventate (2026-03-28, 2026-04-10, ecc.) usati come fallback INGV.
+              Ora se INGV FDSN non risponde → messaggio "nessun dato disponibile" trasparente.
+            - ⏱️ **Cache session_state vulcani: 7200s → 300s** — da 2 ore a 5 minuti.
+              Garantisce che i dati sismici per vulcano non rimangano stantii per ore.
+            - 🔗 **Badge livello allerta con link bollettino** — ogni card vulcano ora mostra
+              un link diretto al bollettino INGV ufficiale sotto il badge di allerta.
+            - 🐛 **Bug fix Vesuvio** — il dataframe sismico ora viene mostrato solo se
+              ci sono eventi reali (non più tabella vuota fuorviante).
+
+            **Fix cache a cascata (tutti i moduli):**
+            - 📊 **statistiche.py** — `_fetch_storico` TTL 3600s → 300s (da 1h a 5 min)
+            - 🗺️ **mappa_rischi.py** — `_fetch_volcano_alerts_live` TTL 1800s → 300s,
+              `_fetch_seismic_heatmap` e `_fetch_fire_risk` TTL 3600s → 300s
+            - 🌋 **monitoraggio.py** — `_fetch_volcano_seismicity_all` TTL 1800s → 300s
+            """)
+        st.markdown("---")
+
+        # ── Versione 3.4 ──────────────────────────────────────────────────────
         col1, col2 = st.columns([1, 3])
         with col1:
             st.markdown("""
@@ -33,11 +73,6 @@ def show():
                 box-shadow:0 4px 12px rgba(5,150,105,0.5);">
                 <div style="font-size:1.6rem; font-weight:800;">v3.4</div>
                 <div style="font-size:0.85rem; opacity:0.9;">Aprile 2026</div>
-                <span style="font-size:11px; background:rgba(255,255,255,0.25);
-                    padding:3px 8px; border-radius:8px; font-weight:700;
-                    letter-spacing:0.5px; display:inline-block; margin-top:6px;">
-                    ATTUALE
-                </span>
             </div>
             """, unsafe_allow_html=True)
         with col2:
