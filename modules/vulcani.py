@@ -388,7 +388,7 @@ def _show_deformazione_block(vulcano_nome):
             station=d["station"],
             color=d["color"]
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
     except Exception as _e:
         st.warning(f"Grafico non disponibile: {_e}")
     st.markdown(f"📡 [Dati live bollettini INGV →]({d['link']})")
@@ -881,7 +881,7 @@ def show():
                 vesuvio_events = []
             
             df_sismi = pd.DataFrame(vesuvio_events)
-            st.dataframe(df_sismi, use_container_width=True)
+            st.dataframe(df_sismi, width='stretch')
             
             # Inserisci link alla fonte dei dati
             st.markdown("[🔍 Consulta tutti gli eventi sismici del Vesuvio - INGV](https://www.ov.ingv.it/index.php/monitoraggio-e-infrastrutture/bollettini-tutti/bollett-mensili-ves)")
@@ -904,7 +904,7 @@ def show():
                     "depth": "Profondità (km)", "location": "Località"
                 })
                 st.caption(f"📡 Ultimi 30 giorni · raggio 22 km da Pozzuoli (40.827°N, 14.139°E) · {len(df_cf)} eventi · fonte INGV FDSN")
-                st.dataframe(df_cf, use_container_width=True, hide_index=True)
+                st.dataframe(df_cf, width='stretch', hide_index=True)
             else:
                 st.info("Nessun evento sismico significativo registrato nell'area flegrea negli ultimi 30 giorni.")
 
@@ -946,7 +946,7 @@ def show():
                     })
                 
                 # Mostra eventi sismici recenti
-                st.dataframe(pd.DataFrame(processed_events), use_container_width=True)
+                st.dataframe(pd.DataFrame(processed_events), width='stretch')
                 
                 # Crea un grafico delle magnitudo nel tempo
                 if len(processed_events) > 2:
@@ -966,7 +966,7 @@ def show():
                             title="Eventi sismici recenti - Etna",
                             color_continuous_scale=px.colors.sequential.Reds
                         )
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width='stretch')
                     except Exception as chart_err:
                         st.warning(f"Impossibile creare il grafico: {chart_err}")
             else:
@@ -986,7 +986,7 @@ def show():
             ]
             
             df_attività = pd.DataFrame(attività_recente)
-            st.dataframe(df_attività, use_container_width=True)
+            st.dataframe(df_attività, width='stretch')
             
             # Link al bollettino settimanale e alle webcam
             st.markdown("---")
