@@ -433,28 +433,39 @@ a:hover { color: #1E40AF !important; text-decoration: underline; }
     fill: #94A3B8 !important;
 }
 
-/* ── Dropdown popover (fuori sidebar DOM, ma appartiene ai widget sidebar) ── */
-[data-baseweb="popover"] [data-baseweb="menu"],
-[data-baseweb="popover"] [role="listbox"] {
-    background: #1E293B !important;
-    border: 1px solid rgba(255,255,255,0.13) !important;
+/* ── Dropdown selectbox — light theme affidabile (vince sulla regola sidebar *) ── */
+/* Il popover eredita color:#E2E8F0 dalla regola sidebar * → testo bianco su sfondo bianco.
+   Soluzione: forzare sfondo BIANCO e testo SCURO con specificità superiore. */
+body div[data-baseweb="popover"],
+body div[data-baseweb="popover"] > div,
+body div[data-baseweb="popover"] > div > div,
+body div[data-baseweb="popover"] [data-baseweb="menu"],
+body div[data-baseweb="popover"] [role="listbox"],
+body div[data-baseweb="popover"] ul {
+    background-color: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
     border-radius: 8px !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.18) !important;
 }
-[data-baseweb="popover"] li,
-[data-baseweb="popover"] [role="option"] {
-    color: #CBD5E1 !important;
-    background: transparent !important;
+body div[data-baseweb="popover"] li,
+body div[data-baseweb="popover"] [role="option"],
+body div[data-baseweb="popover"] [data-baseweb="menu-item"],
+body div[data-baseweb="popover"] span,
+body div[data-baseweb="popover"] div,
+body div[data-baseweb="popover"] p {
+    color: #1E293B !important;
+    background-color: transparent !important;
 }
-[data-baseweb="popover"] li:hover,
-[data-baseweb="popover"] [role="option"]:hover {
-    background: rgba(96,165,250,0.18) !important;
-    color: #E2E8F0 !important;
+body div[data-baseweb="popover"] li:hover,
+body div[data-baseweb="popover"] [role="option"]:hover {
+    background-color: #EFF6FF !important;
+    color: #1D4ED8 !important;
 }
-[data-baseweb="popover"] [aria-selected="true"] {
-    background: rgba(37,99,235,0.35) !important;
-    color: #93C5FD !important;
-    font-weight: 600;
+body div[data-baseweb="popover"] [aria-selected="true"],
+body div[data-baseweb="popover"] li[aria-selected="true"] {
+    background-color: #DBEAFE !important;
+    color: #1D4ED8 !important;
+    font-weight: 600 !important;
 }
 
 /* ── SIDEBAR: Number input stepper buttons ── */
