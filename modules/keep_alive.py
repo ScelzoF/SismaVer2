@@ -63,7 +63,53 @@ def inject_keepalive_js():
         st.session_state.keepalive_js_injected = True
 
 
-# ─── 2. THREAD BACKGROUND: PING SUPABASE ──────────────────────────────────────
+# ─── 2. THREAD BACKGROUND: SELF-PING APP ──────────────────────────────────────
+
+_self_ping_thread = None
+_self_ping_lock = threading.Lock()
+
+def _self_ping_loop(app_url: str, interval_sec: int = 300):
+    """
+    Thread daemon che fa un GET sull'URL pubblico dell'app ogni interval_sec
+    (default 5 min) per impedire l'ibernazione su Streamlit Community Cloud.
+    """
+    import urllib.request
+    while True:
+        try:
+            req = urllib.request.Request(
+                app_url,
+                headers={"User-Agent": "SismaVer2-KeepAlive/1.0", "X-Keepalive": "1"}
+            )
+            urllib.request.urlopen(req, timeout=10)
+        except Exception:
+            pass  # Ignora errori di rete — non bloccare
+        time.sleep(interval_sec)
+
+
+def start_self_ping(interval_sec: int = 300):
+    """
+    Avvia il thread di self-ping sull'URL pubblico dell'app.
+    URL di default: https://sos-italia.streamlit.app
+    Sovrascrivibile con la variabile d'ambiente APP_URL.
+    """
+    global _self_ping_thread
+
+    app_url = os.environ.get("APP_URL", "https://sos-italia.streamlit.app")
+
+    with _self_ping_lock:
+        if _self_ping_thread is not None and _self_ping_thread.is_alive():
+            return
+
+        _self_ping_thread = threading.Thread(
+            target=_self_ping_loop,
+            args=(app_url, interval_sec),
+            daemon=True,
+            name="self-ping-keepalive"
+        )
+        _self_ping_thread.start()
+
+
+# ─── 3. THREAD BACKGROUND: PING SUPABASE ──────────────────────────────────────
 
 _supabase_ping_thread = None
 _supabase_ping_lock = threading.Lock()
@@ -129,4 +175,5 @@ def activate():
     Chiamare all'inizio di app.py, prima del rendering del contenuto.
     """
     inject_keepalive_js()
+    start_self_ping()
     start_supabase_keepalive()
