@@ -273,41 +273,53 @@ def _fetch_dpc_news():
 
 @st.cache_data(ttl=600, show_spinner=False)
 def _fetch_volcano_activity():
-    """Sismicità aree vulcaniche principali INGV — 10 vulcani (incl. Marsili e Panarea)."""
+    """Sismicità aree vulcaniche principali INGV — 10 vulcani (incl. Marsili e Panarea).
+    
+    Raggi aumentati per catturare più eventi; 204 No Content → 0 eventi (Silente).
+    Max 4 thread paralleli per non saturare il rate-limit INGV.
+    """
     vulcani = {
-        "Etna":          (37.755, 14.995, 0.20),
-        "Stromboli":     (38.789, 15.213, 0.12),
-        "Campi Flegrei": (40.827, 14.139, 0.15),
-        "Vesuvio":       (40.821, 14.426, 0.10),
-        "Vulcano":       (38.404, 14.962, 0.12),
-        "Ischia":        (40.731, 13.897, 0.10),
-        "Pantelleria":   (36.769, 12.021, 0.10),
-        "Colli Albani":  (41.757, 12.700, 0.12),
-        "Marsili":       (39.270, 14.400, 0.30),   # più grande vulcano europeo - sottomarino
-        "Panarea":       (38.636, 15.064, 0.10),   # sistema idrotermale Eolie
+        "Etna":          (37.755, 14.995, 0.25),
+        "Stromboli":     (38.789, 15.213, 0.20),
+        "Campi Flegrei": (40.827, 14.139, 0.20),
+        "Vesuvio":       (40.821, 14.426, 0.18),
+        "Vulcano":       (38.404, 14.962, 0.20),
+        "Ischia":        (40.731, 13.897, 0.18),
+        "Pantelleria":   (36.769, 12.021, 0.18),
+        "Colli Albani":  (41.757, 12.700, 0.18),
+        "Marsili":       (39.270, 14.400, 0.40),   # sottomarino — raggio esteso
+        "Panarea":       (38.636, 15.064, 0.18),   # sistema idrotermale Eolie
     }
     result = {}
     start = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S")
 
     def _one(name, lat, lon, rad):
-        try:
-            r = requests.get(
-                f"https://webservices.ingv.it/fdsnws/event/1/query?format=geojson"
-                f"&starttime={start}&minmag=0.5&lat={lat}&lon={lon}&maxradius={rad}&limit=50",
-                timeout=6)
-            if r.status_code == 200:
-                return name, len(r.json().get("features", []))
-        except Exception:
-            pass
-        return name, None
+        urls = [
+            f"https://webservices.ingv.it/fdsnws/event/1/query?format=geojson"
+            f"&starttime={start}&minmag=0.5&lat={lat}&lon={lon}&maxradius={rad}&limit=50",
+            f"https://terremoti.ingv.it/fdsnws/event/1/query?format=geojson"
+            f"&starttime={start}&minmag=0.5&lat={lat}&lon={lon}&maxradius={rad}&limit=50",
+        ]
+        for url in urls:
+            try:
+                r = requests.get(url, timeout=9)
+                if r.status_code == 200:
+                    return name, len(r.json().get("features", []))
+                if r.status_code == 204:
+                    # Nessun evento in area — vulcano silente
+                    return name, 0
+            except Exception:
+                continue
+        return name, None  # Tutti i tentativi falliti → N/D
 
-    with ThreadPoolExecutor(max_workers=10) as ex:
+    # Max 4 thread paralleli per non saturare il rate-limit INGV
+    with ThreadPoolExecutor(max_workers=4) as ex:
         futs = {ex.submit(_one, n, la, lo, ra): n for n, (la, lo, ra) in vulcani.items()}
         for ft in as_completed(futs):
             name, count = ft.result()
             result[name] = count
     # Ordina per attività decrescente (silente in fondo)
-    return dict(sorted(result.items(), key=lambda x: (x[1] or -1), reverse=True))
+    return dict(sorted(result.items(), key=lambda x: (x[1] if x[1] is not None else -1), reverse=True))
 
 
 def _mag_color(mag):
