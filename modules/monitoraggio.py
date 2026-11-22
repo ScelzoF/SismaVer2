@@ -450,6 +450,7 @@ def show():
 
             st.subheader("🗺️ Mappa eventi sismici in tempo reale")
             st_folium(m, height=520, use_container_width=True, returned_objects=[], key="seismic_events_map")
+            st.caption("Legenda: verde M<3; arancione 3≤M<4; rosso M≥4. Il raggio cresce con la magnitudo; non rappresenta l’intensità macrosismica percepita.")
 
             # ── Grafico magnitudo nel tempo ───────────────────────────────────
             st.subheader("📈 Andamento sismico eventi recenti")
@@ -516,57 +517,6 @@ def show():
                     color_discrete_sequence=["#e5394d"]
                 )
                 st.plotly_chart(fig_hist, use_container_width=True)
-
-            # ── Mappa di intensità sismica ────────────────────────────────────
-            st.subheader("🗺️ Mappa di intensità sismica")
-            try:
-                intensity_map = folium.Map(location=map_center, zoom_start=zoom, tiles="OpenStreetMap")
-                città_italiane = {
-                    "Roma": [41.9028, 12.4964], "Milano": [45.4642, 9.1900],
-                    "Napoli": [40.8518, 14.2681], "Palermo": [38.1157, 13.3615],
-                    "Torino": [45.0703, 7.6869], "Bologna": [44.4949, 11.3426],
-                }
-                for città, pos in città_italiane.items():
-                    folium.Marker(pos, popup=città, icon=folium.Icon(color="blue", icon="info-sign")).add_to(intensity_map)
-
-                for _, row in df_seismic.iterrows():
-                    try:
-                        lat = float(row["Latitudine"])
-                        lon = float(row["Longitudine"])
-                        mag = float(row["Magnitudo"])
-                        depth = float(row["Profondità (km)"])
-                        if not (35.0 <= lat <= 48.0 and 6.0 <= lon <= 19.0):
-                            continue
-                        color = "red" if mag >= 4.0 else "orange" if mag >= 3.0 else "yellow" if mag >= 2.0 else "green"
-                        _ig  = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}&travelmode=driving"
-                        _iwz = f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
-                        _iam = f"https://maps.apple.com/?daddr={lat},{lon}&dirflg=d"
-                        popup_text = (
-                            '<div style="min-width:200px;font-family:sans-serif;font-size:12px;">'
-                            f'<h4 style="color:#DC2626;margin:0 0 5px 0;font-size:13px;border-bottom:2px solid #DC2626;padding-bottom:3px;">🌊 Evento sismico</h4>'
-                            f'<p style="margin:0 0 2px 0;"><b>Magnitudo:</b> {mag}</p>'
-                            f'<p style="margin:0 0 2px 0;"><b>Profondità:</b> {depth} km</p>'
-                            f'<p style="margin:0 0 2px 0;"><b>Data:</b> {row.get("Data/Ora", "N/D")}</p>'
-                            f'<p style="margin:0 0 6px 0;"><b>Località:</b> {row.get("Luogo", "N/D")}</p>'
-                            '<div style="display:flex;gap:3px;">'
-                            f'<a href="{_ig}" target="_blank" style="background:#4285F4;color:white;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🗺️ GMaps</a>'
-                            f'<a href="{_iwz}" target="_blank" style="background:#00BCD4;color:#000;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🚗 Waze</a>'
-                            f'<a href="{_iam}" target="_blank" style="background:#555;color:white;padding:3px 5px;text-decoration:none;border-radius:3px;font-size:10px;font-weight:600;">🍎 Maps</a>'
-                            '</div></div>'
-                        )
-                        folium.Circle(
-                            location=[lat, lon], radius=mag * 5000,
-                            color=color, fill=True, fill_opacity=0.4,
-                            popup=folium.Popup(popup_text, max_width=260)
-                        ).add_to(intensity_map)
-                    except Exception:
-                        continue
-
-                st_folium(intensity_map, height=520, use_container_width=True, returned_objects=[], key="seismic_intensity_map")
-                st.caption("La dimensione e il colore dei cerchi rappresentano la magnitudo dell'evento.")
-            except Exception as map_err:
-                st.error(f"Errore nella mappa di intensità: {map_err}")
-                st.markdown("🔗 [Portale eventi INGV](https://terremoti.ingv.it/events)")
 
             # ── Terremoti storici significativi ──────────────────────────────
             st.markdown("---")
