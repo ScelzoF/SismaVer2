@@ -1,4 +1,3 @@
-
 import os as _os
 
 _COUNTER_PATH = _os.path.join("data", "visit_counter.txt")
@@ -13,27 +12,28 @@ def _ensure_data_dir():
 
 
 def read_visit_counter():
-    """Legge il contatore senza incrementarlo."""
+    """Legge il contatore locale; None indica un errore di accesso al file."""
     try:
-        if _os.path.exists(_COUNTER_PATH):
-            with open(_COUNTER_PATH, "r") as f:
-                content = f.read().strip()
-                if content.isdigit():
-                    return int(content)
+        if not _os.path.exists(_COUNTER_PATH):
+            return 0
+        with open(_COUNTER_PATH, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+        return int(content) if content.isdigit() else None
     except Exception:
-        pass
-    return 0
+        return None
 
 
 def increment_visit_counter():
-    """Incrementa il contatore di una unità e restituisce il nuovo valore."""
+    """Incrementa una volta per sessione browser e restituisce il nuovo valore."""
     if not _ensure_data_dir():
-        return 0
+        return None
     count = read_visit_counter()
+    if count is None:
+        return None
     count += 1
     try:
-        with open(_COUNTER_PATH, "w") as f:
+        with open(_COUNTER_PATH, "w", encoding="utf-8") as f:
             f.write(str(count))
     except Exception:
-        return 0
+        return None
     return count

@@ -522,7 +522,7 @@ def show():
                             intensity_map = folium.Map(
                                 location=[41.9, 12.5],
                                 zoom_start=6 if regione_scelta == "Italia (Visione nazionale)" else 8,
-                                tiles="CartoDB positron"
+                                tiles="OpenStreetMap"
                             )
                             
                             # Se regione specifica, centra la mappa su di essa
@@ -534,7 +534,7 @@ def show():
                                     intensity_map = folium.Map(
                                         location=new_location,
                                         zoom_start=8,
-                                        tiles="CartoDB positron"
+                                        tiles="OpenStreetMap"
                                     )
                             
                             # Aggiungi marker per le principali città come riferimento

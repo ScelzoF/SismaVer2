@@ -1,7 +1,11 @@
 # Runtime data
 data/visit_counter.txt
 data/chat_local.json
+data/segnalazioni_locali.json
 data/duplicates/
+data/*.db
+data/*.sqlite
+data/*.sqlite3
 data/ratelimit/
 logs/
 *.log

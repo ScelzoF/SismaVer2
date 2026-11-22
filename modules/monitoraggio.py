@@ -520,7 +520,7 @@ def show():
             # ── Mappa di intensità sismica ────────────────────────────────────
             st.subheader("🗺️ Mappa di intensità sismica")
             try:
-                intensity_map = folium.Map(location=map_center, zoom_start=zoom, tiles="CartoDB positron")
+                intensity_map = folium.Map(location=map_center, zoom_start=zoom, tiles="OpenStreetMap")
                 città_italiane = {
                     "Roma": [41.9028, 12.4964], "Milano": [45.4642, 9.1900],
                     "Napoli": [40.8518, 14.2681], "Palermo": [38.1157, 13.3615],
