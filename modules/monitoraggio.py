@@ -449,7 +449,7 @@ def show():
                 ).add_to(m)
 
             st.subheader("🗺️ Mappa eventi sismici in tempo reale")
-            folium_static(m, width=1100, height=520)
+            folium_static(m, width=None, height=520)
 
             # ── Grafico magnitudo nel tempo ───────────────────────────────────
             st.subheader("📈 Andamento sismico eventi recenti")
@@ -562,7 +562,7 @@ def show():
                     except Exception:
                         continue
 
-                folium_static(intensity_map, width=1100, height=520)
+                folium_static(intensity_map, width=None, height=520)
                 st.caption("La dimensione e il colore dei cerchi rappresentano la magnitudo dell'evento.")
             except Exception as map_err:
                 st.error(f"Errore nella mappa di intensità: {map_err}")
@@ -698,7 +698,7 @@ def show():
                     tooltip=nome,
                 ).add_to(vmap)
 
-            folium_static(vmap, width=1100, height=520)
+            folium_static(vmap, width=None, height=520)
             st.caption("Colori: 🟢 Verde=Silente · 🟡 Giallo=Bassa attività · 🟠 Arancione=Moderata · 🔴 Rosso=Elevata")
 
             # Tabella vulcani estesa (inclusi tutti i vulcani italiani)
