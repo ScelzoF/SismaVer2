@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 import plotly.express as px
 import plotly.graph_objects as go
 import folium
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium
 import requests
 import json
 import os
@@ -449,7 +449,7 @@ def show():
                 ).add_to(m)
 
             st.subheader("🗺️ Mappa eventi sismici in tempo reale")
-            folium_static(m, width=None, height=520)
+            st_folium(m, height=520, use_container_width=True, returned_objects=[], key="seismic_events_map")
 
             # ── Grafico magnitudo nel tempo ───────────────────────────────────
             st.subheader("📈 Andamento sismico eventi recenti")
@@ -562,7 +562,7 @@ def show():
                     except Exception:
                         continue
 
-                folium_static(intensity_map, width=None, height=520)
+                st_folium(intensity_map, height=520, use_container_width=True, returned_objects=[], key="seismic_intensity_map")
                 st.caption("La dimensione e il colore dei cerchi rappresentano la magnitudo dell'evento.")
             except Exception as map_err:
                 st.error(f"Errore nella mappa di intensità: {map_err}")
@@ -698,7 +698,7 @@ def show():
                     tooltip=nome,
                 ).add_to(vmap)
 
-            folium_static(vmap, width=None, height=520)
+            st_folium(vmap, height=520, use_container_width=True, returned_objects=[], key="volcano_activity_map")
             st.caption("Colori: 🟢 Verde=Silente · 🟡 Giallo=Bassa attività · 🟠 Arancione=Moderata · 🔴 Rosso=Elevata")
 
             # Tabella vulcani estesa (inclusi tutti i vulcani italiani)
