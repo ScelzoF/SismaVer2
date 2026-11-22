@@ -456,9 +456,7 @@ def _fetch_fire_risk():
 def _build_alert_map(ma_regions, emsc_events, show_vulc, vulc_live,
                      show_heatmap, heatmap_data):
     """Costruisce la mappa di allerta regioni + EMSC + vulcani live + heatmap."""
-    m = folium.Map(location=[42.0, 12.5], zoom_start=6,
-                   tiles="CartoDB positron",
-                   attr="© CartoDB · © OpenStreetMap")
+    m = folium.Map(location=[42.0, 12.5], zoom_start=6, tiles="OpenStreetMap")
 
     # ── Heatmap sismica ───────────────────────────────────────────────────────
     if show_heatmap and heatmap_data:

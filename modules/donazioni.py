@@ -25,33 +25,8 @@ def show():
 
     st.markdown("---")
 
-    # ── DONAZIONE PAYPAL ───────────────────────────────────────────────────────
-    paypal_html = (
-        '<div style="display:flex;align-items:center;gap:24px;'
-        'background:linear-gradient(135deg,#F0F4FF,#E8F0FE);'
-        'border:1px solid #C7D7FD;border-radius:16px;'
-        'padding:24px 28px;margin:0 0 20px 0;">'
-        '<div style="font-size:3rem;flex-shrink:0;">💙</div>'
-        '<div style="flex:1;">'
-        '<div style="font-weight:800;font-size:1.15rem;color:#1E293B;margin-bottom:4px;">'
-        'Sostieni SismaVer2 con PayPal</div>'
-        '<div style="font-size:0.88rem;color:#475569;margin-bottom:14px;">'
-        'Donazione amici e parenti · zero commissioni · '
-        '<span style="color:#1D4ED8;font-weight:600;">meteotorre@gmail.com</span></div>'
-        '<a href="https://www.paypal.com/donate/?business=meteotorre%40gmail.com" '
-        'target="_blank" '
-        'style="background:#003087;color:white;padding:10px 26px;'
-        'border-radius:24px;font-weight:700;text-decoration:none;'
-        'font-size:0.92rem;display:inline-block;">'
-        '💙 Dona ora con PayPal</a></div>'
-        '<div style="flex-shrink:0;text-align:center;padding:12px 16px;'
-        'background:white;border-radius:12px;border:1px solid #C7D7FD;min-width:110px;">'
-        '<div style="font-size:1.6rem;">🛡️</div>'
-        '<div style="font-size:0.72rem;color:#64748B;margin-top:4px;font-weight:600;">'
-        '100% sicuro<br>cifrato SSL</div>'
-        '</div></div>'
-    )
-    st.markdown(paypal_html, unsafe_allow_html=True)
+    # Il vecchio collegamento non è più utilizzabile.
+    st.info("🎁 Il nuovo collegamento per i regali è in aggiornamento. Non effettuare pagamenti tramite il vecchio link.")
 
     st.markdown("---")
 

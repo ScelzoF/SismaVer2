@@ -540,19 +540,8 @@ with st.sidebar:
 
     st.markdown('<div style="border-top: 1px solid rgba(255,255,255,0.08); margin: 12px 0 10px 0;"></div>', unsafe_allow_html=True)
 
-    # ── Banner supporto / monetizzazione ────────────────────────────────────
-    st.markdown("""
-    <div style="background:linear-gradient(135deg,rgba(0,48,135,0.25),rgba(0,48,135,0.10));
-                border:1px solid rgba(0,48,135,0.35); border-radius:10px;
-                padding:10px 12px; margin-bottom:10px; text-align:center;">
-        <div style="color:#93C5FD; font-size:0.78rem; font-weight:700; letter-spacing:0.5px;
-                    text-transform:uppercase; margin-bottom:8px;">❤️ Supporta il progetto</div>
-        <a href="https://www.paypal.com/donate/?business=meteotorre%40gmail.com" target="_blank"
-           style="background:#003087; color:white; padding:7px 18px; border-radius:16px;
-                  font-weight:700; text-decoration:none; font-size:0.84rem;
-                  display:inline-block;">💙 Dona con PayPal</a>
-    </div>
-    """, unsafe_allow_html=True)
+    # Link per i regali: nessuna CTA finché non è scelto un metodo funzionante.
+    st.caption("🎁 Link per i regali in aggiornamento.")
 
     ora_attuale = datetime.now(FUSO_ORARIO_ITALIA)
     st.markdown(f"""
@@ -716,13 +705,19 @@ except Exception as e:
 # Messaggio sul tempo di caricamento (solo per debug)
 # print(f"⏱️ Tempo totale caricamento: {time.time() - start_time:.3f}s")
 
-# Contatore visite: incrementa solo una volta per sessione browser (non ad ogni rerun)
+# Il totale locale può ripartire da zero dopo un riavvio.
 from modules.security import increment_visit_counter, read_visit_counter
-if "visit_counted" not in st.session_state:
-    st.session_state.visit_counted = True
+if not st.session_state.get("visit_counted", False):
     visit_count = increment_visit_counter()
+    if visit_count is not None:
+        st.session_state.visit_count = visit_count
+        st.session_state.visit_counted = True
 else:
-    visit_count = read_visit_counter()
+    latest_count = read_visit_counter()
+    if latest_count is not None:
+        st.session_state.visit_count = latest_count
+    visit_count = st.session_state.get("visit_count")
+visit_count_label = f"{visit_count:,}" if isinstance(visit_count, int) and not isinstance(visit_count, bool) else "N/D"
 
 # Footer moderno v3.0
 st.markdown(f"""
@@ -740,7 +735,7 @@ st.markdown(f"""
         <a href="https://www.protezionecivile.gov.it/it/privacy" target="_blank">Privacy</a>
     </p>
     <p style="color: #94A3B8; font-size: 0.75rem; margin: 6px 0;">
-        👥 Visite totali: <strong style="color:#475569;">{visit_count:,}</strong>
+        👥 Visite totali: <strong style="color:#475569;">{visit_count_label}</strong>
         &nbsp;·&nbsp;
         🕒 {ora_attuale.strftime('%d/%m/%Y %H:%M')} (IT)
         &nbsp;·&nbsp;

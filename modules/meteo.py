@@ -673,7 +673,7 @@ def show():
         st.markdown("### 🌧️ Mappa interattiva delle precipitazioni")
         
         # Creiamo una mappa folium centrata sull'Italia
-        m_italy = folium.Map(location=[42.0, 12.0], zoom_start=5, tiles="CartoDB positron")
+        m_italy = folium.Map(location=[42.0, 12.0], zoom_start=5, tiles="OpenStreetMap")
         
         # Aggiungiamo la leggenda direttamente nella mappa
         legend_html = '''
@@ -1058,7 +1058,7 @@ def show_monitoraggio_meteo():
     }
     
     # Crea una mappa centrata sull'Italia
-    m = folium.Map(location=[42.0, 12.0], zoom_start=5.5, tiles="CartoDB positron")
+    m = folium.Map(location=[42.0, 12.0], zoom_start=5.5, tiles="OpenStreetMap")
     
     # Funzione per determinare il colore dell'allerta
     def allerta_color(livello):
