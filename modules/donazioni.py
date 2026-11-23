@@ -26,7 +26,10 @@ def show():
     st.markdown("---")
 
     # Il vecchio collegamento non è più utilizzabile.
-    st.link_button("🎁 Sostieni SismaVer2 via PayPal.Me", "https://paypal.me/police73")
+    with st.container(border=True):
+        st.markdown("### 🎁 Sostieni il progetto")
+        st.caption("Contributo volontario tramite PayPal.Me; scegli l’importo sulla pagina di PayPal.")
+        st.link_button("Apri PayPal.Me", "https://paypal.me/police73", type="primary", width="stretch")
 
     st.markdown("---")
 
