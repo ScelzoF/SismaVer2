@@ -25,7 +25,7 @@ def show():
 
 ### 👤 Autore e Diritti
 **Ideato e sviluppato da:** `Fabio SCELZO`  
-📬 Per supportare lo sviluppo: `meteotorre@gmail.com`
+📬 Contatti: `meteotorre@gmail.com`
 
 🛑 Tutti i diritti riservati. È **vietata la riproduzione anche parziale** del codice o dei contenuti senza autorizzazione scritta dell'autore.
 
