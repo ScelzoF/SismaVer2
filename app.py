@@ -541,7 +541,7 @@ with st.sidebar:
     st.markdown('<div style="border-top: 1px solid rgba(255,255,255,0.08); margin: 12px 0 10px 0;"></div>', unsafe_allow_html=True)
 
     # Link per i regali: nessuna CTA finché non è scelto un metodo funzionante.
-    st.caption("🎁 Link per i regali in aggiornamento.")
+    st.link_button("🎁 Sostieni SismaVer2 via PayPal.Me", "https://paypal.me/police73")
 
     ora_attuale = datetime.now(FUSO_ORARIO_ITALIA)
     st.markdown(f"""
