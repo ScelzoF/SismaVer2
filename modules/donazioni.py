@@ -26,7 +26,7 @@ def show():
     st.markdown("---")
 
     # Il vecchio collegamento non è più utilizzabile.
-    st.info("🎁 Il nuovo collegamento per i regali è in aggiornamento. Non effettuare pagamenti tramite il vecchio link.")
+    st.link_button("🎁 Sostieni SismaVer2 via PayPal.Me", "https://paypal.me/police73")
 
     st.markdown("---")
 
