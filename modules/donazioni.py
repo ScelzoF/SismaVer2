@@ -25,11 +25,11 @@ def show():
 
     st.markdown("---")
 
-    # Il vecchio collegamento non è più utilizzabile.
-    with st.container(border=True):
-        st.markdown("### 🎁 Sostieni il progetto")
-        st.caption("Contributo volontario tramite PayPal.Me; scegli l’importo sulla pagina di PayPal.")
-        st.link_button("Apri PayPal.Me", "https://paypal.me/police73", type="primary", width="stretch")
+    st.markdown("### 🎁 Sostieni il progetto")
+    st.caption("Contributo volontario tramite PayPal.Me; scegli l’importo su PayPal.")
+    _donation_left, _donation_center, _donation_right = st.columns([1, 2, 1])
+    with _donation_center:
+        st.link_button("Apri PayPal.Me", "https://paypal.me/police73", type="primary")
 
     st.markdown("---")
 
