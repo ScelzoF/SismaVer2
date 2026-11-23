@@ -527,7 +527,7 @@ with st.sidebar:
         "🚨 Punti di Emergenza": "emergenza",
         "🩺 Primo Soccorso": "primo_soccorso",
         "📱 Segnala Evento": "segnala_evento_enhanced",
-        "💰 Donazioni": "donazioni",
+        "🎒 Kit di Emergenza": "kit_emergenza",
         "📚 Fonti dei Dati": "fonti",
         "📋 Note di Rilascio": "note_rilascio",
         "ℹ️ Licenza e Info": "licenza"

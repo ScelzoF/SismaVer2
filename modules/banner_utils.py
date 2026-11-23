@@ -338,13 +338,6 @@ def banner_segnala():
         "#78350F", "#D97706",
     )
 
-def banner_donazioni():
-    render_banner(
-        "💰", "Supporta il Progetto",
-        "SismaVer2 è indipendente e gratuito · Il tuo contributo garantisce continuità e sviluppo",
-        "#14532D", "#16A34A",
-    )
-
 def banner_fonti():
     render_banner(
         "📚", "Fonti dei Dati",
