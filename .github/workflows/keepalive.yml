@@ -15,8 +15,10 @@ jobs:
     steps:
       - name: Ping SismaVer2
         run: |
-          curl --silent --show-error --location --max-time 20 \
-            --output /dev/null \
-            --write-out "HTTP %{http_code}\n" \
-            -H "User-Agent: Mozilla/5.0 (compatible; SismaVer2-Keepalive/1.0)" \
+          cookie_jar=$(mktemp)
+          trap 'rm -f "$cookie_jar"' EXIT
+          curl --silent --show-error --fail --location --max-redirs 10 --max-time 25 \
+            --cookie "$cookie_jar" --cookie-jar "$cookie_jar" \
+            --output /dev/null --write-out "HTTP %{http_code}\n" \
+            -H "User-Agent: Mozilla/5.0 (compatible; SismaVer2-Keepalive/1.1)" \
             https://sos-italia.streamlit.app/
